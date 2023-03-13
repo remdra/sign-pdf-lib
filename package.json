@@ -1,7 +1,7 @@
 {
-  "name": "sign-pdf",
+  "name": "@remdra/sign-pdf",
   "version": "1.0.0",
-  "description": "",
+  "description": "Signs PDF files or just add a placeholder for signature.",
   "main": "index.js",
   "scripts": {
     "test": "ts-mocha src/**/*.spec.ts",
@@ -17,6 +17,12 @@
   "bugs": {
     "url": "https://github.com/remdra/sign-pdf/issues"
   },
+  "keywords": [
+    "pdf",
+    "signing",
+    "signature",
+    "placeholder"
+  ],
   "homepage": "https://github.com/remdra/sign-pdf#readme",
   "dependencies": {
     "fs-extra": "^11.1.0",
