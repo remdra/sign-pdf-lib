@@ -1,7 +1,7 @@
 import { PDFDocument } from 'pdf-lib';
 import { PdfSigner } from './pdf-signer';
 import { SignatureInfo } from 'src/models/signature-info';
-import { defaultSignatureSettings } from './models/signature-settings';
+import { SignatureSettings } from 'src/models/signature-settings';
 
 import PdfPrinter = require('pdfmake');
 import streamBuffers = require('stream-buffers');
@@ -9,6 +9,7 @@ import streamBuffers = require('stream-buffers');
 import { pdfSignerAssets13 } from '../test/_run-assets/pdf-signer/assets-pdf-signer-pdf-13';
 import { pdfSignerAssets17 } from '../test/_run-assets/pdf-signer/assets-pdf-signer-pdf-17';
 import { pdfSignerAssets17Streams } from '../test/_run-assets/pdf-signer/assets-pdf-signer-pdf-17-streams';
+import { settingsAssets } from '../test/_run-assets/pdf-signer/assets-settings';
 import { generateAsset } from '../test/_helpers/generate-asset';
 import { bufferReplace } from '../test/_helpers/buffer-helpers';
 
@@ -80,6 +81,7 @@ describe('PdfSigner (pdf 1.3)', function () {
 
     let pdfSigner: PdfSigner;
     let info: SignatureInfo;
+    let settings: SignatureSettings;
 
     beforeEach(function () {
         info = {
@@ -91,7 +93,16 @@ describe('PdfSigner (pdf 1.3)', function () {
             modified: new Date(2023, 1, 20, 18, 47, 35), 
             contactInfo: 'signer@semnezonline.ro'
         };
-        pdfSigner = new PdfSigner();
+        settings = {
+            signatureLength: 4000 - 6,
+            rangePlaceHolder: 9999999,
+            
+            p12Certificate: settingsAssets.p12Certificate,
+            pemCertificate: settingsAssets.pemCertificate,
+            pemKey: settingsAssets.pemKey,
+            certificatePassword: 'password'
+        }
+        pdfSigner = new PdfSigner(settings);
     });
 
     it('_generate', async function () {
@@ -120,7 +131,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
 
         it('adds placeholder for different settings', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, signatureLength: 5000, rangePlaceHolder: 9999 });
+            const pdfSigner = new PdfSigner({ ...settings, signatureLength: 5000, rangePlaceHolder: 9999 });
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.differentPlaceholderPdf, res);
@@ -141,7 +152,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         
 
         it('throws when not enough space for range', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, rangePlaceHolder: 9 });
+            const pdfSigner = new PdfSigner({ ...settings, rangePlaceHolder: 9 });
             
             await expect(pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info)).to.be.rejected;
         })
@@ -174,7 +185,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
 
         it('throws when not enough space for signature', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, signatureLength: 200 });
+            const pdfSigner = new PdfSigner({ ...settings, signatureLength: 200 });
             
             await expect(pdfSigner.signAsync(pdfSignerAssets13.pdf, info)).to.be.rejected;
         })
@@ -193,25 +204,25 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
 
         it('works for missing p12 certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, p12Certificate: undefined });
+            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined });
 
             await expect(pdfSigner.signAsync(pdfSignerAssets13.pdf, info)).to.be.fulfilled;
         })
 
         it('works for missing pem certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, pemCertificate: undefined });
+            const pdfSigner = new PdfSigner({ ...settings, pemCertificate: undefined });
 
             await expect(pdfSigner.signAsync(pdfSignerAssets13.pdf, info)).to.be.fulfilled;
         })
 
         it('works for missing pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, pemKey: undefined });
+            const pdfSigner = new PdfSigner({ ...settings, pemKey: undefined });
 
             await expect(pdfSigner.signAsync(pdfSignerAssets13.pdf, info)).to.be.fulfilled;
         })
 
         it('throws for missing p12 certificate, pem certificate and pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, p12Certificate: undefined, pemCertificate: undefined, pemKey: undefined });
+            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined, pemCertificate: undefined, pemKey: undefined });
 
             await expect(pdfSigner.signAsync(pdfSignerAssets13.pdf, info)).to.be.rejected;
         })
@@ -264,6 +275,7 @@ describe('PdfSigner (pdf 1.7)', function () {
 
     let pdfSigner: PdfSigner;
     let info: SignatureInfo;
+    let settings: SignatureSettings;
 
     beforeEach(function () {
         info = {
@@ -275,7 +287,16 @@ describe('PdfSigner (pdf 1.7)', function () {
             modified: new Date(2023, 1, 20, 18, 47, 35), 
             contactInfo: 'signer@semnezonline.ro'
         };
-        pdfSigner = new PdfSigner();
+        settings = {
+            signatureLength: 4000 - 6,
+            rangePlaceHolder: 9999999,
+            
+            p12Certificate: settingsAssets.p12Certificate,
+            pemCertificate: settingsAssets.pemCertificate,
+            pemKey: settingsAssets.pemKey,
+            certificatePassword: 'password'
+        }
+        pdfSigner = new PdfSigner(settings);
     });
 
     it('_generate', async function () {
@@ -304,7 +325,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
 
         it('adds placeholder for different settings', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, signatureLength: 5000, rangePlaceHolder: 9999 });
+            const pdfSigner = new PdfSigner({ ...settings, signatureLength: 5000, rangePlaceHolder: 9999 });
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.differentPlaceholderPdf, res);
@@ -325,7 +346,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         
 
         it('throws when not enough space for range', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, rangePlaceHolder: 9 });
+            const pdfSigner = new PdfSigner({ ...settings, rangePlaceHolder: 9 });
             
             await expect(pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info)).to.be.rejected;
         })
@@ -358,7 +379,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
 
         it('throws when not enough space for signature', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, signatureLength: 200 });
+            const pdfSigner = new PdfSigner({ ...settings, signatureLength: 200 });
             
             await expect(pdfSigner.signAsync(pdfSignerAssets17.pdf, info)).to.be.rejected;
         })
@@ -377,25 +398,25 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
 
         it('works for missing p12 certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, p12Certificate: undefined });
+            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined });
 
             await expect(pdfSigner.signAsync(pdfSignerAssets17.pdf, info)).to.be.fulfilled;
         })
 
         it('works for missing pem certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, pemCertificate: undefined });
+            const pdfSigner = new PdfSigner({ ...settings, pemCertificate: undefined });
 
             await expect(pdfSigner.signAsync(pdfSignerAssets17.pdf, info)).to.be.fulfilled;
         })
 
         it('works for missing pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, pemKey: undefined });
+            const pdfSigner = new PdfSigner({ ...settings, pemKey: undefined });
 
             await expect(pdfSigner.signAsync(pdfSignerAssets17.pdf, info)).to.be.fulfilled;
         })
 
         it('throws for missing p12 certificate, pem certificate and pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, p12Certificate: undefined, pemCertificate: undefined, pemKey: undefined });
+            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined, pemCertificate: undefined, pemKey: undefined });
 
             await expect(pdfSigner.signAsync(pdfSignerAssets17.pdf, info)).to.be.rejected;
         })
@@ -448,6 +469,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
 
     let pdfSigner: PdfSigner;
     let info: SignatureInfo;
+    let settings: SignatureSettings;
 
     beforeEach(function () {
         info = {
@@ -459,7 +481,16 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
             modified: new Date(2023, 1, 20, 18, 47, 35), 
             contactInfo: 'signer@semnezonline.ro'
         };
-        pdfSigner = new PdfSigner();
+        settings = {
+            signatureLength: 4000 - 6,
+            rangePlaceHolder: 9999999,
+            
+            p12Certificate: settingsAssets.p12Certificate,
+            pemCertificate: settingsAssets.pemCertificate,
+            pemKey: settingsAssets.pemKey,
+            certificatePassword: 'password'
+        }
+        pdfSigner = new PdfSigner(settings);
     });
 
     it('_generate', async function () {
@@ -488,7 +519,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
 
         it('adds placeholder for different settings', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, signatureLength: 5000, rangePlaceHolder: 9999 });
+            const pdfSigner = new PdfSigner({ ...settings, signatureLength: 5000, rangePlaceHolder: 9999 });
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.differentPlaceholderPdf, res);
@@ -509,7 +540,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         
 
         it('throws when not enough space for range', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, rangePlaceHolder: 9 });
+            const pdfSigner = new PdfSigner({ ...settings, rangePlaceHolder: 9 });
             
             await expect(pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info)).to.be.rejected;
         })
@@ -542,7 +573,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
 
         it('throws when not enough space for signature', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, signatureLength: 200 });
+            const pdfSigner = new PdfSigner({ ...settings, signatureLength: 200 });
             
             await expect(pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info)).to.be.rejected;
         })
@@ -561,25 +592,25 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
 
         it('works for missing p12 certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, p12Certificate: undefined });
+            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined });
 
             await expect(pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info)).to.be.fulfilled;
         })
 
         it('works for missing pem certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, pemCertificate: undefined });
+            const pdfSigner = new PdfSigner({ ...settings, pemCertificate: undefined });
 
             await expect(pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info)).to.be.fulfilled;
         })
 
         it('works for missing pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, pemKey: undefined });
+            const pdfSigner = new PdfSigner({ ...settings, pemKey: undefined });
 
             await expect(pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info)).to.be.fulfilled;
         })
 
         it('throws for missing p12 certificate, pem certificate and pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...defaultSignatureSettings, p12Certificate: undefined, pemCertificate: undefined, pemKey: undefined });
+            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined, pemCertificate: undefined, pemKey: undefined });
 
             await expect(pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info)).to.be.rejected;
         })

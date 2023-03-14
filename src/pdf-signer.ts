@@ -5,25 +5,14 @@ import * as forge from 'node-forge';
 
 import { PdfCheckResult, SignatureCheckResult, SignatureDetails } from './models/check-result';
 import { PdfByteRanges } from './models/byte-range';
-import { defaultSignatureSettings, SignatureSettings } from './models/signature-settings';
+import { SignatureSettings } from './models/signature-settings';
 import { SignatureInfo } from './models/signature-info';
 import { emptyRectangle, Rectangle } from './models/rectangle';
 
 
-function toPDFArray(n1: number, n2: number, n3: number, n4: number, context: PDFContext) {
-
-    const array = PDFArray.withContext(context);
-    array.push(PDFNumber.of(n1));
-    array.push(PDFNumber.of(n2));
-    array.push(PDFNumber.of(n3));
-    array.push(PDFNumber.of(n4));
-
-    return array;
-} 
-
 function getSignatureDictRef(info: SignatureInfo, settings: SignatureSettings, context: PDFContext) {
 
-    const byteRange = toPDFArray(0, settings.rangePlaceHolder, settings.rangePlaceHolder, settings.rangePlaceHolder, context);
+    const byteRange = context.obj([ 0, settings.rangePlaceHolder, settings.rangePlaceHolder, settings.rangePlaceHolder ]);
 
     const signatureDict = PDFDict.withContext(context);
     signatureDict.set(PDFName.of('Type'), PDFName.of('Sig'));
@@ -50,7 +39,7 @@ function getAppearanceDict(context: PDFContext) {
 
 function getAppearanceStreamRef(signatureRef: PDFRef, signatureNumber: number, context: PDFContext): PDFRef {
     const drawBuffer = Buffer.from(`q 1 0 0 1 0 0 cm /frm${signatureNumber} Do Q`);
-    const boundingBox = toPDFArray(0.0, 0.0, 100.0, 100.0, context);
+    const boundingBox = context.obj([ 0.0, 0.0, 100.0, 100.0 ]);
 
     const appearanceDict = getAppearanceDict(context);
     appearanceDict.set(PDFName.of('BBox'), boundingBox);
@@ -80,7 +69,7 @@ function getSignatureFieldDictRef(signatureNumber: number, pageRef: PDFRef, norm
     if(normalAppearanceDict) {
         signatureFieldDict.set(PDFName.of('AP'), normalAppearanceDict);
     }
-    const boundingBox = toPDFArray(signatureRect.left, signatureRect.top, signatureRect.left + signatureRect.width, signatureRect.top + signatureRect.height, context);
+    const boundingBox = context.obj([ signatureRect.left, signatureRect.top, signatureRect.left + signatureRect.width, signatureRect.top + signatureRect.height ]);
     signatureFieldDict.set(PDFName.of('Rect'), boundingBox);
 
     return context.register(signatureFieldDict);
@@ -119,7 +108,7 @@ function getSignatureImageStreamRef(signatureImageStreamRef: PDFRef, signatureNu
     const dict = PDFDict.withContext(context);
     dict.set(PDFName.of('Type'), PDFName.of('XObject'));
     dict.set(PDFName.of('Subtype'), PDFName.of('Form'));
-    dict.set(PDFName.of('BBox'), toPDFArray(0.0, 0.0, 100.0, 100.0, context));
+    dict.set(PDFName.of('BBox'), context.obj([ 0.0, 0.0, 100.0, 100.0 ]));
     dict.set(PDFName.of('Resources'), objDict);
     dict.set(PDFName.of('Length'), PDFNumber.of(drawBuffer.length));
 
@@ -189,7 +178,7 @@ function updateByteRange(incrementalPdf: Buffer, initialPdf: Buffer, context: PD
 
     const { rangeBefore, rangeAfter } = getPdfSigningRanges(initialPdf, incrementalPdf);
 
-    const byteRangeArray = toPDFArray(rangeBefore.start, rangeBefore.length, rangeAfter.start, rangeAfter.length, context);
+    const byteRangeArray = context.obj([ rangeBefore.start, rangeBefore.length, rangeAfter.start, rangeAfter.length ]);
     const byteRangeStartIndex = incrementalPdf.indexOf('/ByteRange');
     const startOfByteRange = incrementalPdf.indexOf('[', byteRangeStartIndex);
     const endOfByteRange = incrementalPdf.indexOf(']', startOfByteRange) + 1;
@@ -293,7 +282,7 @@ function embedSignature(signature: Buffer, placeholderPdf: Buffer, pdfRanges: Pd
 
 
 function getSignature(signature: PDFDict): string {
-    let signatureHex = (signature.lookup(PDFName.of('Contents')) as PDFHexString).asString();
+    let signatureHex = signature.lookup(PDFName.of('Contents'), PDFHexString).asString();
     while(signatureHex[signatureHex.length - 1] == '0' && signatureHex[signatureHex.length - 2] == '0') {
         signatureHex = signatureHex.substring(0, signatureHex.length - 2);
     }
@@ -331,7 +320,7 @@ function getSignatureName(signature: PDFDict, pdfDoc: PDFDocument): string {
 }
 
 function getString(dict: PDFDict, key: string): string {
-    const value = dict.lookup(PDFName.of(key)) as PDFString;
+    const value = dict.lookup(PDFName.of(key), PDFString);
 
     return value.asString();
 }
@@ -411,32 +400,17 @@ function getSigningSettingsPem(pemCertificate: string, pemKey: string, certifica
     };
 }
 
-function getUseObjectStreams(pdf: Buffer) {
-    let typeIndex = 0; 
-    while(typeIndex >= 0) {
-        typeIndex = pdf.indexOf('/Type', typeIndex);
-        if(typeIndex < 0) { return false; };
-        typeIndex += '/Type'.length;
-        while(pdf[typeIndex] == ' '.charCodeAt(0)) { typeIndex++; };
-        if(pdf.indexOf('/XRef', typeIndex) == typeIndex) { return true; };
-    }
-
-    return false;
-}
-
 export class PdfSigner {
 
     constructor(
-        private settings: SignatureSettings = defaultSignatureSettings
+        private settings: SignatureSettings
     ) {
     }
 
     public async addPlaceholderAsync(pdf: Buffer, info: SignatureInfo): Promise<Buffer> {
-        const useObjectStreams = getUseObjectStreams(pdf);
-
         const pdfDoc = await PDFDocument.load(pdf);
-        if(useObjectStreams) { pdfDoc.context.largestObjectNumber += 1; };
-        const docSnapshot = pdfDoc.takeSnapshot(info.pageNumber - 1, useObjectStreams);
+        if(pdfDoc.context.pdfFileDetails.useObjectStreams) { pdfDoc.context.largestObjectNumber += 1; };
+        const docSnapshot = pdfDoc.takeSnapshot({ pageIndex: info.pageNumber - 1 });
         const signatureNumber = getSignatureCount(pdfDoc.context) + 1;
         const page = pdfDoc.getPage(info.pageNumber - 1);
 
@@ -454,12 +428,12 @@ export class PdfSigner {
         const signatureDictRef = getSignatureDictRef(info, this.settings, pdfDoc.context);
         const signatureRect = info.visual ? info.visual.imageRectangle : emptyRectangle;
         const signatureFieldDictRef = getSignatureFieldDictRef(signatureNumber, page.ref, normalAppearanceDict, signatureDictRef, signatureRect, pdfDoc.context);
-        if(useObjectStreams) {
+        if(pdfDoc.context.pdfFileDetails.useObjectStreams) {
             addSignatureFieldDictStreams(signatureFieldDictRef, page, pdfDoc);
         } else {
             addSignatureFieldDict(signatureFieldDictRef, page, pdfDoc);
         }
-        let incrementalPdf = Buffer.from(await pdfDoc.saveIncremental(docSnapshot, { useObjectStreams, addDefaultPage: false, updateFieldAppearances: false }));
+        let incrementalPdf = Buffer.from(await pdfDoc.saveIncremental(docSnapshot));
         incrementalPdf = updateByteRange(incrementalPdf, pdf, pdfDoc.context);
 
         return Buffer.concat([
