@@ -13,8 +13,8 @@ npm i @remdra/sign-pdf
 Instantiate signer:
 ```
 const settings: SignatureSettings {
-    signatureLength: ...;
-    rangePlaceHolder: ...;
+    signatureLength: ...,
+    rangePlaceHolder: ...,
 
     p12Certificate: await fse.readFile(...),
     certificatePassword: '...'
@@ -24,8 +24,8 @@ const pdfSigner = new PdfSigner(settings);
 or
 ```
 const settings: SignatureSettings {
-    signatureLength: ...;
-    rangePlaceHolder: ...;
+    signatureLength: ...,
+    rangePlaceHolder: ...,
 
     pemCertificate: await fse.readFile(..., 'ascii'),
     pemKey: await fse.readFile(..., 'ascii'),
