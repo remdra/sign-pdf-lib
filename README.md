@@ -9,6 +9,31 @@ npm i @remdra/sign-pdf
 
 # Usage
 ## Preparation
+
+Instantiate signer:
+```
+const settings: SignatureSettings {
+    signatureLength: ...;
+    rangePlaceHolder: ...;
+
+    p12Certificate: await fse.readFile(...),
+    certificatePassword: '...'
+}
+const pdfSigner = new PdfSigner(settings);
+```
+or
+```
+const settings: SignatureSettings {
+    signatureLength: ...;
+    rangePlaceHolder: ...;
+
+    pemCertificate: await fse.readFile(..., 'ascii'),
+    pemKey: await fse.readFile(..., 'ascii'),
+    certificatePassword: '...'
+}
+const pdfSigner = new PdfSigner(settings);
+```
+Prepare signature info:
 ```
 const info: SignatureInfo = {
     pageNumber: 1,
@@ -29,7 +54,6 @@ const info: SignatureInfo = {
         }
     }
 };
-const pdfSigner = new PdfSigner();
 ```
 
 For non visual signatures, just omit visual field:
@@ -43,20 +67,6 @@ const info: SignatureInfo = {
     modified: new Date(2023, 1, 20, 18, 47, 35), 
     contactInfo: 'signer@semnezonline.ro',
 };
-```
-
-Signer can be instantiated with different settings:
-```
-const settings: SignatureSettings {
-    signatureLength: ...;
-    rangePlaceHolder: ...;
-
-    p12Certificate: await fse.readFile(...),
-    pemCertificate: await fse.readFile(..., 'ascii'),
-    pemKey?: await fse.readFile(..., 'ascii'),
-    certificatePassword: '...'
-}
-const pdfSigner = new PdfSigner(settings);
 ```
 
 ## Sign PDF
