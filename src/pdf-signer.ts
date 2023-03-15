@@ -69,7 +69,7 @@ function getSignatureFieldDictRef(signatureNumber: number, pageRef: PDFRef, norm
     if(normalAppearanceDict) {
         signatureFieldDict.set(PDFName.of('AP'), normalAppearanceDict);
     }
-    const boundingBox = context.obj([ signatureRect.left, signatureRect.top, signatureRect.left + signatureRect.width, signatureRect.top + signatureRect.height ]);
+    const boundingBox = context.obj([ signatureRect.left, signatureRect.top, signatureRect.right, signatureRect.bottom ]);
     signatureFieldDict.set(PDFName.of('Rect'), boundingBox);
 
     return context.register(signatureFieldDict);

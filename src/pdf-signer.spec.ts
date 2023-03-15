@@ -160,7 +160,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         it('adds placeholder with image', async function() {
             info.visual = {
                 jpgImage: pdfSignerAssets13.signatureImage,
-                imageRectangle: { left: 50.0, top: 741.9 - 100, width: 214.0, height: 70 }
+                imageRectangle: { left: 50.0, top: 741.9 - 100, right: 50.0 + 214.0, bottom: 741.9 - 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
 
@@ -193,10 +193,11 @@ describe('PdfSigner (pdf 1.3)', function () {
         it('signs with image', async function() {
             info.visual = {
                 jpgImage: pdfSignerAssets13.signatureImage,
-                imageRectangle: { left: 50.0, top: 741.9 - 100, width: 214.0, height: 70 }
+                imageRectangle: { left: 50.0, top: 741.9 - 100, right: 50.0 + 214.0, bottom: 741.9 - 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
-            info.visual.imageRectangle.left = 300;
+            info.visual.imageRectangle.left += 250;
+            info.visual.imageRectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signAsync(signedPdf, info);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.imageTwiceSignedPdf, twiceSignedPdf);
@@ -354,7 +355,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         it('adds placeholder with image', async function() {
             info.visual = {
                 jpgImage: pdfSignerAssets17.signatureImage,
-                imageRectangle: { left: 50.0, top: 741.9 - 100, width: 214.0, height: 70 }
+                imageRectangle: { left: 50.0, top: 741.9 - 100, right: 50.0 + 214.0, bottom: 741.9 - 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info);
 
@@ -387,10 +388,11 @@ describe('PdfSigner (pdf 1.7)', function () {
         it('signs with image', async function() {
             info.visual = {
                 jpgImage: pdfSignerAssets17.signatureImage,
-                imageRectangle: { left: 50.0, top: 741.9 - 100, width: 214.0, height: 70 }
+                imageRectangle: { left: 50.0, top: 741.9 - 100, right: 50.0 + 214.0, bottom: 741.9 - 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets17.pdf, info);
-            info.visual.imageRectangle.left = 300;
+            info.visual.imageRectangle.left += 250;
+            info.visual.imageRectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signAsync(signedPdf, info);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.imageTwiceSignedPdf, twiceSignedPdf);
@@ -548,7 +550,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         it('adds placeholder with image', async function() {
             info.visual = {
                 jpgImage: pdfSignerAssets17Streams.signatureImage,
-                imageRectangle: { left: 50.0, top: 741.9 - 100, width: 214.0, height: 70 }
+                imageRectangle: { left: 50.0, top: 741.9 - 100, right: 50.0 + 214.0, bottom: 741.9 - 100 + 70 }
             }
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info);
 
@@ -581,10 +583,11 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         it('signs with image', async function() {
             info.visual = {
                 jpgImage: pdfSignerAssets17Streams.signatureImage,
-                imageRectangle: { left: 50.0, top: 741.9 - 100, width: 214.0, height: 70 }
+                imageRectangle: { left: 50.0, top: 741.9 - 100, right: 50.0 + 214.0, bottom: 741.9 - 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info);
-            info.visual.imageRectangle.left = 300;
+            info.visual.imageRectangle.left += 250;
+            info.visual.imageRectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signAsync(signedPdf, info);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.imageTwiceSignedPdf, twiceSignedPdf);

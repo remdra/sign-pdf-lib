@@ -5,8 +5,8 @@
   "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "ts-mocha src/**/*.spec.ts",
-    "test:dev": "ts-mocha -watch --watch-files=**/*.ts src/**/*.spec.ts",
+    "test": "ts-mocha --type-check src/**/*.spec.ts",
+    "test:dev": "ts-mocha --type-check -watch --watch-files=**/*.ts src/**/*.spec.ts",
     "preinstall": "if ! [ -d ../pdf-lib ]; then (git clone https://github.com/remdra/pdf-lib-incremental-save.git ../pdf-lib); fi && cd ../pdf-lib && yarn install && yarn build && cd ../sign-pdf"
   },
   "repository": {

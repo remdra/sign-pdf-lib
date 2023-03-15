@@ -49,8 +49,8 @@ const info: SignatureInfo = {
         imageRectangle: { 
             left: 50, 
             top: 641, 
-            width: 214.0, 
-            height: 70
+            right: 264, 
+            bottom: 711
         }
     }
 };
