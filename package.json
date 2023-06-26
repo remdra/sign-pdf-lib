@@ -1,5 +1,5 @@
 {
-  "name": "@remdra/sign-pdf",
+  "name": "sign-pdf-lib",
   "version": "1.0.1",
   "description": "Signs PDF files or just add a placeholder for signature.",
   "main": "dist/src/index.js",

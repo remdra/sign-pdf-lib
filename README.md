@@ -4,7 +4,7 @@ Signs pdf files. Uses [pdf-lib](https://www.npmjs.com/package/pdf-lib) to add si
 
 ## Installation
 ```
-npm i @remdra/sign-pdf
+npm i sign-pdf-lib
 ```
 
 # Usage
