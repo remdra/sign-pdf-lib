@@ -12,7 +12,6 @@
         "@pdf-lib/standard-fonts",
         "@pdf-lib/upng"
       ],
-      "hasInstallScript": true,
       "license": "ISC",
       "dependencies": {
         "@pdf-lib/standard-fonts": "^1.0.0",
@@ -20,7 +19,7 @@
         "fs-extra": "^11.1.0",
         "lodash": "^4.17.21",
         "node-forge": "^1.3.1",
-        "pdf-lib": "../pdf-lib"
+        "pdf-lib": "npm:pdf-lib-incremental-save@^1.17.2"
       },
       "devDependencies": {
         "@types/chai": "^4.3.4",
@@ -79,6 +78,7 @@
     },
     "../pdf-lib": {
       "version": "1.17.1",
+      "extraneous": true,
       "license": "MIT",
       "dependencies": {
         "@pdf-lib/standard-fonts": "^1.0.0",
@@ -1898,8 +1898,17 @@
       }
     },
     "node_modules/pdf-lib": {
-      "resolved": "../pdf-lib",
-      "link": true
+      "name": "pdf-lib-incremental-save",
+      "version": "1.17.2",
+      "resolved": "https://registry.npmjs.org/pdf-lib-incremental-save/-/pdf-lib-incremental-save-1.17.2.tgz",
+      "integrity": "sha512-1T7TDQNj3TYNS+ESH4xK7e78UFXuYADHNimei2xsStirlySPDpea0AdOaGTmWjJi4SlFqvO3tHmjINTfg3YhhA==",
+      "inBundle": true,
+      "dependencies": {
+        "@pdf-lib/standard-fonts": "^1.0.0",
+        "@pdf-lib/upng": "^1.0.1",
+        "pako": "^1.0.11",
+        "tslib": "^1.11.1"
+      }
     },
     "node_modules/pdfmake": {
       "version": "0.2.7",
@@ -2481,6 +2490,12 @@
         "minimist": "^1.2.6",
         "strip-bom": "^3.0.0"
       }
+    },
+    "node_modules/tslib": {
+      "version": "1.14.1",
+      "resolved": "https://registry.npmjs.org/tslib/-/tslib-1.14.1.tgz",
+      "integrity": "sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==",
+      "inBundle": true
     },
     "node_modules/type": {
       "version": "1.2.0",
@@ -4129,34 +4144,14 @@
       "dev": true
     },
     "pdf-lib": {
-      "version": "file:../pdf-lib",
+      "version": "npm:pdf-lib-incremental-save@1.17.2",
+      "resolved": "https://registry.npmjs.org/pdf-lib-incremental-save/-/pdf-lib-incremental-save-1.17.2.tgz",
+      "integrity": "sha512-1T7TDQNj3TYNS+ESH4xK7e78UFXuYADHNimei2xsStirlySPDpea0AdOaGTmWjJi4SlFqvO3tHmjINTfg3YhhA==",
       "requires": {
-        "@pdf-lib/fontkit": "^1.1.0",
         "@pdf-lib/standard-fonts": "^1.0.0",
         "@pdf-lib/upng": "^1.0.1",
-        "@rollup/plugin-commonjs": "^13.0.0",
-        "@rollup/plugin-json": "^4.1.0",
-        "@rollup/plugin-node-resolve": "^8.0.1",
-        "@types/jest": "^26.0.0",
-        "@types/node-fetch": "^2.5.7",
-        "@types/pako": "^1.0.1",
-        "@zerollup/ts-transform-paths": "^1.7.18",
-        "downlevel-dts": "^0.5.0",
-        "flamebearer": "^1.1.3",
-        "http-server": "^0.12.3",
-        "jest": "^26.0.1",
-        "node-fetch": "^2.6.0",
         "pako": "^1.0.11",
-        "prettier": "^2.0.5",
-        "rimraf": "^3.0.2",
-        "rollup": "^2.17.1",
-        "rollup-plugin-terser": "^6.1.0",
-        "ts-jest": "^26.1.0",
-        "tslib": "^1.11.1",
-        "tslint": "^6.1.2",
-        "tslint-config-prettier": "^1.18.0",
-        "ttypescript": "^1.5.10",
-        "typescript": "^3.9.5"
+        "tslib": "^1.11.1"
       }
     },
     "pdfmake": {
@@ -4601,6 +4596,11 @@
         "minimist": "^1.2.6",
         "strip-bom": "^3.0.0"
       }
+    },
+    "tslib": {
+      "version": "1.14.1",
+      "resolved": "https://registry.npmjs.org/tslib/-/tslib-1.14.1.tgz",
+      "integrity": "sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg=="
     },
     "type": {
       "version": "1.2.0",
