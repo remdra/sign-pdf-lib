@@ -9,7 +9,7 @@
     "build": "tsc",
     "test": "ts-mocha --type-check src/**/*.spec.ts",
     "test:dev": "ts-mocha --type-check -watch --watch-files=**/*.ts src/**/*.spec.ts",
-    "prepublish": "tsc"
+    "prepublishOnly": "tsc"
   },
   "repository": {
     "type": "git",
