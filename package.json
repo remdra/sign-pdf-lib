@@ -2,8 +2,8 @@
   "name": "sign-pdf-lib",
   "version": "1.0.3",
   "description": "Signs PDF files or just add a placeholder for signature.",
-  "main": "src/index.js",
-  "types": "src/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "ts-mocha --type-check src/**/*.spec.ts",
