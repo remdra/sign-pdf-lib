@@ -1,5 +1,4 @@
 {
-  "files": ["src/*.ts", "src/**/*.ts"],
   "compilerOptions": {
     "declaration": true,
     
