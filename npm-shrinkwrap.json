@@ -1,11 +1,11 @@
 {
-  "name": "@remdra/sign-pdf",
+  "name": "sign-pdf-lib",
   "version": "1.0.1",
   "lockfileVersion": 2,
   "requires": true,
   "packages": {
     "": {
-      "name": "@remdra/sign-pdf",
+      "name": "sign-pdf-lib",
       "version": "1.0.1",
       "bundleDependencies": [
         "pdf-lib",

@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "declaration": true,
+    
     "baseUrl": ".",
     
     "target": "es2016",
