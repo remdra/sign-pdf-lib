@@ -2,7 +2,7 @@
   "name": "sign-pdf-lib",
   "version": "1.0.8",
   "description": "Signs PDF files or just add a placeholder for signature.",
-  "type": "module",
+  "type": "commonjs",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
