@@ -7,6 +7,7 @@ import { PdfByteRanges } from './models/byte-range';
 import { SignatureSettings } from './models/signature-settings';
 import { SignatureInfo } from './models/signature-info';
 import { emptyRectangle, Rectangle } from './models/rectangle';
+import { Size } from './models/size';
 
 
 function getSignatureDictRef(info: SignatureInfo, settings: SignatureSettings, context: PDFContext) {
@@ -404,6 +405,25 @@ function getSigningSettingsPem(pemCertificate: string, pemKey: string, certifica
     };
 }
 
+function getCoordinate(coordinate: number, limit: number): number {
+    return coordinate >= 0
+        ? coordinate
+        : (limit + coordinate);
+}
+
+function getSignatureRectangle(visualRectangle: Rectangle | undefined, pageSize: Size): Rectangle {
+    if(!visualRectangle){
+        return emptyRectangle;
+    }
+
+    return {
+        left: getCoordinate(visualRectangle.left, pageSize.width),
+        top: pageSize.height - getCoordinate(visualRectangle.top, pageSize.height),
+        right: getCoordinate(visualRectangle.right, pageSize.width),
+        bottom: pageSize.height - getCoordinate(visualRectangle.bottom, pageSize.height)
+    };
+}
+
 export class PdfSigner {
 
     constructor(
@@ -430,7 +450,7 @@ export class PdfSigner {
         }
 
         const signatureDictRef = getSignatureDictRef(info, this.settings, pdfDoc.context);
-        const signatureRect = info.visual ? info.visual.imageRectangle : emptyRectangle;
+        const signatureRect = getSignatureRectangle(info.visual?.imageRectangle, page.getSize());
         const signatureFieldDictRef = getSignatureFieldDictRef(signatureNumber, page.ref, normalAppearanceDict, signatureDictRef, signatureRect, pdfDoc.context);
         if(pdfDoc.context.pdfFileDetails.useObjectStreams) {
             addSignatureFieldDictStreams(signatureFieldDictRef, page, pdfDoc);
