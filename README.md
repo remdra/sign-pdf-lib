@@ -45,7 +45,7 @@ const info: SignatureInfo = {
     contactInfo: 'signer@semnezonline.ro',
 
     visual: {
-        jpgImage: pdfSignerAssets13.signatureImage,
+        image: await fse.readFile(...),
         imageRectangle: { 
             left: 50, 
             top: 641, 

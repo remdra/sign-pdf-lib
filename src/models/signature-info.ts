@@ -10,7 +10,7 @@ export interface SignatureInfo {
     contactInfo?: string
 
     visual?: {
-        jpgImage: Buffer;
+        image: Buffer;
         imageRectangle: Rectangle;
     }
 };
