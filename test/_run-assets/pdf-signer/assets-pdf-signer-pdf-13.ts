@@ -7,15 +7,22 @@ const _paths = {
   pdf:            path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'document.pdf'),
 
   placeholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'placeholder.pdf'),
+  positiveCoordinatesPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'placeholder-positive-coordinates.pdf'),
+  negativeCoordinatesPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'placeholder-negative-coordinates.pdf'),
   differentPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'placeholder-different.pdf'),
   noInfoPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'placeholder-no-info.pdf'),
-  imagePlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'placeholder-image.pdf'),
+  jpgImagePlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'placeholder-jpg-image.pdf'),
+  pngImagePlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'placeholder-png-image.pdf'),
 
-  signatureImage: path.join('test', '_assets', 'pdf-signer', 'signature.jpg'),
+  signatureJpgImage: path.join('test', '_assets', 'pdf-signer', 'signature.jpg'),
+  signaturePngImage: path.join('test', '_assets', 'pdf-signer', 'signature.png'),
 
   signedPdf:      path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'signed.pdf'),
+  positiveCoordinatesSignedPdf:      path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'signed-positive-coordinates.pdf'),
+  negativeCoordinatesSignedPdf:      path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'signed-negative-coordinates.pdf'),
   twiceSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'signed-twice.pdf'),
-  imageTwiceSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'signed-twice-image.pdf'),
+  jpgImageTwiceSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'signed-twice-jpg-image.pdf'),
+  pngImageTwiceSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'signed-twice-png-image.pdf'),
 
   tamperedSignedPdf:      path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'tampered-signed.pdf'),
   tamperedOnlyFirstTwiceSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'tampered-signed-twice-only-first-tampered.pdf'),
@@ -35,15 +42,22 @@ class PdfSignerAssets13 {
   private _pdf = new BinaryAssetFile(_paths.pdf);
 
   private _placeholderPdf = new BinaryAssetFile(_paths.placeholderPdf);
+  private _positiveCoordinatesPlaceholderPdf = new BinaryAssetFile(_paths.positiveCoordinatesPlaceholderPdf);
+  private _negativeCoordinatesPlaceholderPdf = new BinaryAssetFile(_paths.negativeCoordinatesPlaceholderPdf);
   private _differentPlaceholderPdf = new BinaryAssetFile(_paths.differentPlaceholderPdf);
   private _noInfoPlaceholderPdf = new BinaryAssetFile(_paths.noInfoPlaceholderPdf);
-  private _imagePlaceholderPdf = new BinaryAssetFile(_paths.imagePlaceholderPdf);
+  private _jpgImagePlaceholderPdf = new BinaryAssetFile(_paths.jpgImagePlaceholderPdf);
+  private _pngImagePlaceholderPdf = new BinaryAssetFile(_paths.pngImagePlaceholderPdf);
 
-  private _signatureImage = new BinaryAssetFile(_paths.signatureImage);
+  private _signatureJpgImage = new BinaryAssetFile(_paths.signatureJpgImage);
+  private _signaturePngImage = new BinaryAssetFile(_paths.signaturePngImage);
 
   private _signedPdf = new BinaryAssetFile(_paths.signedPdf);
+  private _positiveCoordinatesSignedPdf = new BinaryAssetFile(_paths.positiveCoordinatesSignedPdf);
+  private _negativeCoordinatesSignedPdf = new BinaryAssetFile(_paths.negativeCoordinatesSignedPdf);
   private _twiceSignedPdf = new BinaryAssetFile(_paths.twiceSignedPdf);
-  private _imageTwiceSignedPdf = new BinaryAssetFile(_paths.imageTwiceSignedPdf);
+  private _jpgImageTwiceSignedPdf = new BinaryAssetFile(_paths.jpgImageTwiceSignedPdf);
+  private _pngImageTwiceSignedPdf = new BinaryAssetFile(_paths.pngImageTwiceSignedPdf);
 
   private _tamperedSignedPdf = new BinaryAssetFile(_paths.tamperedSignedPdf);
   private _tamperedOnlyFirstTwiceSignedPdf = new BinaryAssetFile(_paths.tamperedOnlyFirstTwiceSignedPdf);
@@ -59,13 +73,19 @@ class PdfSignerAssets13 {
   public paths = {
     pdf: _paths.pdf,
     placeholderPdf: _paths.placeholderPdf,
+    positiveCoordinatesPlaceholderPdf: _paths.positiveCoordinatesPlaceholderPdf,
+    negativeCoordinatesPlaceholderPdf: _paths.negativeCoordinatesPlaceholderPdf,
     differentPlaceholderPdf: _paths.differentPlaceholderPdf,
     noInfoPlaceholderPdf: _paths.noInfoPlaceholderPdf,
-    imagePlaceholderPdf: _paths.imagePlaceholderPdf,
+    jpgImagePlaceholderPdf: _paths.jpgImagePlaceholderPdf,
+    pngImagePlaceholderPdf: _paths.pngImagePlaceholderPdf,
 
     signedPdf: _paths.signedPdf,
+    positiveCoordinatesSignedPdf: _paths.positiveCoordinatesSignedPdf,
+    negativeCoordinatesSignedPdf: _paths.negativeCoordinatesSignedPdf,
     twiceSignedPdf: _paths.twiceSignedPdf,
-    imageTwiceSignedPdf: _paths.imageTwiceSignedPdf,
+    jpgImageTwiceSignedPdf: _paths.jpgImageTwiceSignedPdf,
+    pngImageTwiceSignedPdf: _paths.pngImageTwiceSignedPdf,
 
     tamperedSignedPdf: _paths.tamperedSignedPdf,
     tamperedOnlyFirstTwiceSignedPdf: _paths.tamperedOnlyFirstTwiceSignedPdf,
@@ -87,6 +107,14 @@ class PdfSignerAssets13 {
     return this._placeholderPdf.content;
   }
 
+  get positiveCoordinatesPlaceholderPdf() {
+    return this._positiveCoordinatesPlaceholderPdf.content;
+  }
+
+  get negativeCoordinatesPlaceholderPdf() {
+    return this._negativeCoordinatesPlaceholderPdf.content;
+  }
+
   get differentPlaceholderPdf() {
     return this._differentPlaceholderPdf.content;
   }
@@ -95,24 +123,44 @@ class PdfSignerAssets13 {
     return this._noInfoPlaceholderPdf.content;
   }
 
-  get imagePlaceholderPdf() {
-    return this._imagePlaceholderPdf.content;
+  get jpgImagePlaceholderPdf() {
+    return this._jpgImagePlaceholderPdf.content;
   }
 
-  get signatureImage() {
-    return this._signatureImage.content;
+  get pngImagePlaceholderPdf() {
+    return this._pngImagePlaceholderPdf.content;
+  }
+
+  get signatureJpgImage() {
+    return this._signatureJpgImage.content;
+  }
+  
+  get signaturePngImage() {
+    return this._signaturePngImage.content;
   }
   
   get signedPdf() {
     return this._signedPdf.content;
   }
 
+  get positiveCoordinatesSignedPdf() {
+    return this._positiveCoordinatesSignedPdf.content;
+  }
+
+  get negativeCoordinatesSignedPdf() {
+    return this._negativeCoordinatesSignedPdf.content;
+  }
+
   get twiceSignedPdf() {
     return this._twiceSignedPdf.content;
   }
 
-  get imageTwiceSignedPdf() {
-    return this._imageTwiceSignedPdf.content;
+  get jpgImageTwiceSignedPdf() {
+    return this._jpgImageTwiceSignedPdf.content;
+  }
+
+  get pngImageTwiceSignedPdf() {
+    return this._pngImageTwiceSignedPdf.content;
   }
 
   get tamperedSignedPdf() {

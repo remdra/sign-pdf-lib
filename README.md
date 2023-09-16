@@ -41,11 +41,10 @@ const info: SignatureInfo = {
     name: 'Test Signer',
     location: 'Timisoara',
     reason: 'Signing',
-    modified: new Date(2023, 1, 20, 18, 47, 35), 
     contactInfo: 'signer@semnezonline.ro',
 
     visual: {
-        jpgImage: pdfSignerAssets13.signatureImage,
+        image: await fse.readFile(...),
         imageRectangle: { 
             left: 50, 
             top: 641, 
@@ -55,6 +54,7 @@ const info: SignatureInfo = {
     }
 };
 ```
+IMPORTANT: if coordinate are negative, they are considered from right or bottom.
 
 For non visual signatures, just omit visual field:
 ```
@@ -64,7 +64,6 @@ const info: SignatureInfo = {
     name: 'Test Signer',
     location: 'Timisoara',
     reason: 'Signing',
-    modified: new Date(2023, 1, 20, 18, 47, 35), 
     contactInfo: 'signer@semnezonline.ro',
 };
 ```

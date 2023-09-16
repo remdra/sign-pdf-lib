@@ -149,7 +149,6 @@ describe('PdfSigner (pdf 1.3)', function () {
             await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noInfoPlaceholderPdf, res);
             expect(res).to.be.deep.equal(pdfSignerAssets13.noInfoPlaceholderPdf);
         })
-        
 
         it('throws when not enough space for range', async function() {
             const pdfSigner = new PdfSigner({ ...settings, rangePlaceHolder: 9 });
@@ -157,15 +156,48 @@ describe('PdfSigner (pdf 1.3)', function () {
             await expect(pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info)).to.be.rejected;
         })
 
-        it('adds placeholder with image', async function() {
+        it('adds placeholder for positive coordinates', async function() {
             info.visual = {
-                jpgImage: pdfSignerAssets13.signatureImage,
-                imageRectangle: { left: 50.0, top: 741.9 - 100, right: 50.0 + 214.0, bottom: 741.9 - 100 + 70 }
+                image: pdfSignerAssets13.signaturePngImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            };
+            const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.positiveCoordinatesPlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.positiveCoordinatesPlaceholderPdf);
+        })
+
+        it('adds placeholder for negative coordinates', async function() {
+            info.visual = {
+                image: pdfSignerAssets13.signaturePngImage,
+                imageRectangle: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
+            };
+            const res = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.negativeCoordinatesPlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.negativeCoordinatesPlaceholderPdf);
+        })
+
+        it('adds placeholder with jpg image', async function() {
+            info.visual = {
+                image: pdfSignerAssets13.signatureJpgImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.imagePlaceholderPdf, res);
-            expect(res).to.be.deep.equal(pdfSignerAssets13.imagePlaceholderPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.jpgImagePlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.jpgImagePlaceholderPdf);
+        })
+
+        it('adds placeholder with png image', async function() {
+            info.visual = {
+                image: pdfSignerAssets13.signaturePngImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            };
+            const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.pngImagePlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.pngImagePlaceholderPdf);
         })
     })
 
@@ -190,18 +222,54 @@ describe('PdfSigner (pdf 1.3)', function () {
             await expect(pdfSigner.signAsync(pdfSignerAssets13.pdf, info)).to.be.rejected;
         })
 
-        it('signs with image', async function() {
+        it('signs for positive coordinates', async function() {
             info.visual = {
-                jpgImage: pdfSignerAssets13.signatureImage,
-                imageRectangle: { left: 50.0, top: 741.9 - 100, right: 50.0 + 214.0, bottom: 741.9 - 100 + 70 }
+                image: pdfSignerAssets13.signaturePngImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            };
+            const res = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.positiveCoordinatesSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.positiveCoordinatesSignedPdf);
+        })
+
+        it('signs for negative coordinates', async function() {
+            info.visual = {
+                image: pdfSignerAssets13.signaturePngImage,
+                imageRectangle: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
+            };
+            const res = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.negativeCoordinatesSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.negativeCoordinatesSignedPdf);
+        })
+
+        it('signs with jpg image', async function() {
+            info.visual = {
+                image: pdfSignerAssets13.signatureJpgImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
             info.visual.imageRectangle.left += 250;
             info.visual.imageRectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signAsync(signedPdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.imageTwiceSignedPdf, twiceSignedPdf);
-            expect(twiceSignedPdf).to.be.deep.equal(pdfSignerAssets13.imageTwiceSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.jpgImageTwiceSignedPdf, twiceSignedPdf);
+            expect(twiceSignedPdf).to.be.deep.equal(pdfSignerAssets13.jpgImageTwiceSignedPdf);
+        })
+
+        it('signs with png image', async function() {
+            info.visual = {
+                image: pdfSignerAssets13.signaturePngImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            };
+            const signedPdf = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
+            info.visual.imageRectangle.left += 250;
+            info.visual.imageRectangle.right += 250;
+            const twiceSignedPdf = await pdfSigner.signAsync(signedPdf, info);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.pngImageTwiceSignedPdf, twiceSignedPdf);
+            expect(twiceSignedPdf).to.be.deep.equal(pdfSignerAssets13.pngImageTwiceSignedPdf);
         })
 
         it('works for missing p12 certificate', async function() {
@@ -352,15 +420,48 @@ describe('PdfSigner (pdf 1.7)', function () {
             await expect(pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info)).to.be.rejected;
         })
 
-        it('adds placeholder with image', async function() {
+        it('adds placeholder for positive coordinates', async function() {
             info.visual = {
-                jpgImage: pdfSignerAssets17.signatureImage,
-                imageRectangle: { left: 50.0, top: 741.9 - 100, right: 50.0 + 214.0, bottom: 741.9 - 100 + 70 }
+                image: pdfSignerAssets17.signaturePngImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            };
+            const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.positiveCoordinatesPlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.positiveCoordinatesPlaceholderPdf);
+        })
+
+        it('adds placeholder for negative coordinates', async function() {
+            info.visual = {
+                image: pdfSignerAssets17.signaturePngImage,
+                imageRectangle: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
+            };
+            const res = await pdfSigner.signAsync(pdfSignerAssets17.pdf, info);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.negativeCoordinatesPlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.negativeCoordinatesPlaceholderPdf);
+        })
+
+        it('adds placeholder with jpg image', async function() {
+            info.visual = {
+                image: pdfSignerAssets17.signatureJpgImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.imagePlaceholderPdf, res);
-            expect(res).to.be.deep.equal(pdfSignerAssets17.imagePlaceholderPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.jpgImagePlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.jpgImagePlaceholderPdf);
+        })
+
+        it('adds placeholder with png image', async function() {
+            info.visual = {
+                image: pdfSignerAssets17.signaturePngImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            };
+            const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.pngImagePlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.pngImagePlaceholderPdf);
         })
     })
 
@@ -385,18 +486,54 @@ describe('PdfSigner (pdf 1.7)', function () {
             await expect(pdfSigner.signAsync(pdfSignerAssets17.pdf, info)).to.be.rejected;
         })
 
-        it('signs with image', async function() {
+        it('signs for positive coordinates', async function() {
             info.visual = {
-                jpgImage: pdfSignerAssets17.signatureImage,
-                imageRectangle: { left: 50.0, top: 741.9 - 100, right: 50.0 + 214.0, bottom: 741.9 - 100 + 70 }
+                image: pdfSignerAssets17.signaturePngImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            };
+            const res = await pdfSigner.signAsync(pdfSignerAssets17.pdf, info);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.positiveCoordinatesSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.positiveCoordinatesSignedPdf);
+        })
+
+        it('signs for negative coordinates', async function() {
+            info.visual = {
+                image: pdfSignerAssets17.signaturePngImage,
+                imageRectangle: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
+            };
+            const res = await pdfSigner.signAsync(pdfSignerAssets17.pdf, info);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.negativeCoordinatesSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.negativeCoordinatesSignedPdf);
+        })
+
+        it('signs with jpg image', async function() {
+            info.visual = {
+                image: pdfSignerAssets17.signatureJpgImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets17.pdf, info);
             info.visual.imageRectangle.left += 250;
             info.visual.imageRectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signAsync(signedPdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.imageTwiceSignedPdf, twiceSignedPdf);
-            expect(twiceSignedPdf).to.be.deep.equal(pdfSignerAssets17.imageTwiceSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.jpgImageTwiceSignedPdf, twiceSignedPdf);
+            expect(twiceSignedPdf).to.be.deep.equal(pdfSignerAssets17.jpgImageTwiceSignedPdf);
+        })
+
+        it('signs with png image', async function() {
+            info.visual = {
+                image: pdfSignerAssets17.signaturePngImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            };
+            const signedPdf = await pdfSigner.signAsync(pdfSignerAssets17.pdf, info);
+            info.visual.imageRectangle.left += 250;
+            info.visual.imageRectangle.right += 250;
+            const twiceSignedPdf = await pdfSigner.signAsync(signedPdf, info);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.pngImageTwiceSignedPdf, twiceSignedPdf);
+            expect(twiceSignedPdf).to.be.deep.equal(pdfSignerAssets17.pngImageTwiceSignedPdf);
         })
 
         it('works for missing p12 certificate', async function() {
@@ -547,15 +684,48 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
             await expect(pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info)).to.be.rejected;
         })
 
-        it('adds placeholder with image', async function() {
+        it('adds placeholder for positive coordinates', async function() {
             info.visual = {
-                jpgImage: pdfSignerAssets17Streams.signatureImage,
-                imageRectangle: { left: 50.0, top: 741.9 - 100, right: 50.0 + 214.0, bottom: 741.9 - 100 + 70 }
+                image: pdfSignerAssets17Streams.signaturePngImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            };
+            const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.positiveCoordinatesPlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.positiveCoordinatesPlaceholderPdf);
+        })
+
+        it('adds placeholder for negative coordinates', async function() {
+            info.visual = {
+                image: pdfSignerAssets17Streams.signaturePngImage,
+                imageRectangle: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
+            };
+            const res = await pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.negativeCoordinatesPlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.negativeCoordinatesPlaceholderPdf);
+        })
+
+        it('adds placeholder with jpg image', async function() {
+            info.visual = {
+                image: pdfSignerAssets17Streams.signatureJpgImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             }
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.imagePlaceholderPdf, res);
-            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.imagePlaceholderPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.jpgImagePlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.jpgImagePlaceholderPdf);
+        })
+
+        it('adds placeholder with png image', async function() {
+            info.visual = {
+                image: pdfSignerAssets17Streams.signaturePngImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            }
+            const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.pngImagePlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.pngImagePlaceholderPdf);
         })
     })
 
@@ -580,18 +750,54 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
             await expect(pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info)).to.be.rejected;
         })
 
-        it('signs with image', async function() {
+        it('signs for positive coordinates', async function() {
             info.visual = {
-                jpgImage: pdfSignerAssets17Streams.signatureImage,
-                imageRectangle: { left: 50.0, top: 741.9 - 100, right: 50.0 + 214.0, bottom: 741.9 - 100 + 70 }
+                image: pdfSignerAssets17Streams.signaturePngImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            };
+            const res = await pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.positiveCoordinatesSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.positiveCoordinatesSignedPdf);
+        })
+
+        it('signs for negative coordinates', async function() {
+            info.visual = {
+                image: pdfSignerAssets17Streams.signaturePngImage,
+                imageRectangle: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
+            };
+            const res = await pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.negativeCoordinatesSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.negativeCoordinatesSignedPdf);
+        })
+
+        it('signs with jpg image', async function() {
+            info.visual = {
+                image: pdfSignerAssets17Streams.signatureJpgImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info);
             info.visual.imageRectangle.left += 250;
             info.visual.imageRectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signAsync(signedPdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.imageTwiceSignedPdf, twiceSignedPdf);
-            expect(twiceSignedPdf).to.be.deep.equal(pdfSignerAssets17Streams.imageTwiceSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.jpgImageTwiceSignedPdf, twiceSignedPdf);
+            expect(twiceSignedPdf).to.be.deep.equal(pdfSignerAssets17Streams.jpgImageTwiceSignedPdf);
+        })
+
+        it('signs with png image', async function() {
+            info.visual = {
+                image: pdfSignerAssets17Streams.signaturePngImage,
+                imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            };
+            const signedPdf = await pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info);
+            info.visual.imageRectangle.left += 250;
+            info.visual.imageRectangle.right += 250;
+            const twiceSignedPdf = await pdfSigner.signAsync(signedPdf, info);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.pngImageTwiceSignedPdf, twiceSignedPdf);
+            expect(twiceSignedPdf).to.be.deep.equal(pdfSignerAssets17Streams.pngImageTwiceSignedPdf);
         })
 
         it('works for missing p12 certificate', async function() {

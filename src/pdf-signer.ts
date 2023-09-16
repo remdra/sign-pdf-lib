@@ -1,13 +1,13 @@
-import { DocumentSnapshot, PDFArray, PDFContext, PDFDict, PDFDocument, PDFHexString, PDFName, PDFNumber, PDFObject, PDFPage, PDFRawStream, PDFRef, PDFString } from 'pdf-lib';
+import { PDFArray, PDFContext, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFPage, PDFRawStream, PDFRef, PDFString } from 'pdf-lib';
 import * as _ from 'lodash';
 import * as forge from 'node-forge';
-
 
 import { PdfCheckResult, SignatureCheckResult, SignatureDetails } from './models/check-result';
 import { PdfByteRanges } from './models/byte-range';
 import { SignatureSettings } from './models/signature-settings';
 import { SignatureInfo } from './models/signature-info';
 import { emptyRectangle, Rectangle } from './models/rectangle';
+import { Size } from './models/size';
 
 
 function getSignatureDictRef(info: SignatureInfo, settings: SignatureSettings, context: PDFContext) {
@@ -87,7 +87,12 @@ function getPageAnnots(page: PDFPage, context: PDFContext) {
 }
 
 async function getSignatureStreamRefAsync(signature: Buffer, pdfDoc: PDFDocument): Promise<PDFRef> {
-    const img = await pdfDoc.embedJpg(signature);
+    let img: PDFImage;
+    try { 
+        img = await pdfDoc.embedJpg(signature);
+    } catch {
+        img = await pdfDoc.embedPng(signature)
+    }
     await img.embed();
     const found = pdfDoc.context.enumerateIndirectObjects()
         .find(([ref, obj]) => ref.objectNumber == img.ref.objectNumber);
@@ -400,6 +405,25 @@ function getSigningSettingsPem(pemCertificate: string, pemKey: string, certifica
     };
 }
 
+function getCoordinate(coordinate: number, limit: number): number {
+    return coordinate >= 0
+        ? coordinate
+        : (limit + coordinate);
+}
+
+function getSignatureRectangle(visualRectangle: Rectangle | undefined, pageSize: Size): Rectangle {
+    if(!visualRectangle){
+        return emptyRectangle;
+    }
+
+    return {
+        left: getCoordinate(visualRectangle.left, pageSize.width),
+        top: pageSize.height - getCoordinate(visualRectangle.top, pageSize.height),
+        right: getCoordinate(visualRectangle.right, pageSize.width),
+        bottom: pageSize.height - getCoordinate(visualRectangle.bottom, pageSize.height)
+    };
+}
+
 export class PdfSigner {
 
     constructor(
@@ -416,7 +440,7 @@ export class PdfSigner {
 
         let normalAppearanceDict;
         if(info.visual) {
-            const signatureImageStreamRef = await getSignatureStreamRefAsync(info.visual.jpgImage, pdfDoc);
+            const signatureImageStreamRef = await getSignatureStreamRefAsync(info.visual.image, pdfDoc);
             const signatureImageStreamRef2 = getSignatureImageStreamRef(signatureImageStreamRef, signatureNumber, pdfDoc.context);
             const appearanceStreamRef = getAppearanceStreamRef(signatureImageStreamRef2, signatureNumber, pdfDoc.context);
             normalAppearanceDict = getNormalAppearanceDict(appearanceStreamRef, pdfDoc.context); 
@@ -426,7 +450,7 @@ export class PdfSigner {
         }
 
         const signatureDictRef = getSignatureDictRef(info, this.settings, pdfDoc.context);
-        const signatureRect = info.visual ? info.visual.imageRectangle : emptyRectangle;
+        const signatureRect = getSignatureRectangle(info.visual?.imageRectangle, page.getSize());
         const signatureFieldDictRef = getSignatureFieldDictRef(signatureNumber, page.ref, normalAppearanceDict, signatureDictRef, signatureRect, pdfDoc.context);
         if(pdfDoc.context.pdfFileDetails.useObjectStreams) {
             addSignatureFieldDictStreams(signatureFieldDictRef, page, pdfDoc);
