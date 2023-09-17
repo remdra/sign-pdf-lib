@@ -1,6 +1,6 @@
 {
   "name": "sign-pdf-lib",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "Signs PDF files or just add a placeholder for signature.",
   "main": "dist/src/index.js",
   "scripts": {
