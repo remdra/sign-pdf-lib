@@ -74,7 +74,7 @@ const pdf = await fse.readFile(...);
 const signedPdf = await pdfSigner.signAsync(pdf, info);
 ```
           
-## Add signaturePlaceholder
+## Add signature placeholder
 ```
 const pdf = await fse.readFile(...); 
 const placeholderPdf = await pdfSigner.addPlaceholderAsync(pdf, info);
