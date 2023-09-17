@@ -3,7 +3,6 @@
   "version": "1.0.13",
   "description": "Signs PDF files or just add a placeholder for signature.",
   "main": "dist/src/index.js",
-  "types": "dist/src/index.d.js",
   "scripts": {
     "build": "tsc",
     "test": "ts-mocha --type-check src/**/*.spec.ts",
