@@ -11,12 +11,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/remdra/sign-pdf.git"
+    "url": "git+https://github.com/remdra/sign-pdf-lib.git"
   },
   "author": "Remus DRAICA (remus.draica@gmail.com)",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/remdra/sign-pdf/issues"
+    "url": "https://github.com/remdra/sign-pdf-lib/issues"
   },
   "keywords": [
     "pdf",
@@ -24,7 +24,7 @@
     "signature",
     "placeholder"
   ],
-  "homepage": "https://github.com/remdra/sign-pdf#readme",
+  "homepage": "https://github.com/remdra/sign-pdf-lib#readme",
   "dependencies": {
     "@pdf-lib/standard-fonts": "^1.0.0",
     "@pdf-lib/upng": "^1.0.1",
