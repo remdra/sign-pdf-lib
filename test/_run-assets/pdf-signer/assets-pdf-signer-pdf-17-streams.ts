@@ -1,14 +1,14 @@
+import { transformPdfCheckResult } from '../../_helpers/check-result-helpers';
 import { BinaryAssetFile } from '../../_helpers/assets/binary-asset-file';
 import { JsonAssetFile } from '../../_helpers/assets/json-asset-file';
 import * as path from 'path';
-import { PdfCheckResult, SignatureCheckResult, SignatureDetails } from 'src/models/check-result';
 
 const _paths = {
   pdf:            path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'document.pdf'),
 
   placeholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder.pdf'),
-  positiveCoordinatesPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-stream', 'placeholder-positive-coordinates.pdf'),
-  negativeCoordinatesPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-stream', 'placeholder-negative-coordinates.pdf'),
+  positiveCoordinatesPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder-positive-coordinates.pdf'),
+  negativeCoordinatesPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder-negative-coordinates.pdf'),
   differentPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder-different.pdf'),
   noInfoPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder-no-info.pdf'),
   jpgImagePlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder-jpg-image.pdf'),
@@ -34,6 +34,13 @@ const _paths = {
   checkTamperedSignedPdf:      path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'tampered-signed.check.json'),
   checkTamperedOnlyFirstTwiceSignedPdf:      path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'tampered-signed-twice-only-first-tampered.check.json'),
   checkTamperedAppendedSignedPdf:      path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'tampered-signed-appended.check.json'),
+
+  signedVisualPdf:      path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'visual-signed.pdf'),
+  positiveCoordinatesSignedVisualPdf:      path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'visual-signed-positive-coordinates.pdf'),
+  negativeCoordinatesSignedVisualPdf:      path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'visual-signed-negative-coordinates.pdf'),
+
+  jpgImageTwiceSignedVisualPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'visual-signed-twice-jpg-image.pdf'),
+  pngImageTwiceSignedVisualPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'visual-signed-twice-png-image.pdf'),
 };
 
 
@@ -70,6 +77,13 @@ class PdfSignerAssets17Streams {
   private _checkTamperedOnlyFirstTwiceSignedPdf = new JsonAssetFile(_paths.checkTamperedOnlyFirstTwiceSignedPdf);
   private _checkTamperedAppendedSignedPdf = new JsonAssetFile(_paths.checkTamperedAppendedSignedPdf);
 
+  private _signedVisualPdf = new BinaryAssetFile(_paths.signedVisualPdf);
+  private _positiveCoordinatesSignedVisualPdf = new BinaryAssetFile(_paths.positiveCoordinatesSignedVisualPdf);
+  private _negativeCoordinatesSignedVisualPdf = new BinaryAssetFile(_paths.negativeCoordinatesSignedVisualPdf);
+
+  private _jpgImageTwiceSignedVisualPdf = new BinaryAssetFile(_paths.jpgImageTwiceSignedVisualPdf);
+  private _pngImageTwiceSignedVisualPdf = new BinaryAssetFile(_paths.pngImageTwiceSignedVisualPdf);
+
   public paths = {
     pdf: _paths.pdf,
     placeholderPdf: _paths.placeholderPdf,
@@ -96,7 +110,14 @@ class PdfSignerAssets17Streams {
 
     checkTamperedSignedPdf: _paths.checkTamperedSignedPdf,
     checkTamperedOnlyFirstTwiceSignedPdf: _paths.checkTamperedOnlyFirstTwiceSignedPdf,
-    checkTamperedAppendedSignedPdf: _paths.checkTamperedAppendedSignedPdf
+    checkTamperedAppendedSignedPdf: _paths.checkTamperedAppendedSignedPdf,
+
+    signedVisualPdf: _paths.signedVisualPdf,
+    positiveCoordinatesSignedVisualPdf: _paths.positiveCoordinatesSignedVisualPdf,
+    negativeCoordinatesSignedVisualPdf: _paths.negativeCoordinatesSignedVisualPdf,
+
+    jpgImageTwiceSignedVisualPdf: _paths.jpgImageTwiceSignedVisualPdf,
+    pngImageTwiceSignedVisualPdf: _paths.pngImageTwiceSignedVisualPdf,
   }
 
   get pdf() {
@@ -151,7 +172,7 @@ class PdfSignerAssets17Streams {
     return this._negativeCoordinatesSignedPdf.content;
   }
 
- get twiceSignedPdf() {
+  get twiceSignedPdf() {
     return this._twiceSignedPdf.content;
   }
 
@@ -176,47 +197,43 @@ class PdfSignerAssets17Streams {
   }
 
   get checkSignedPdf() {
-    return this.transformPdfCheckResult(this._checkSignedPdf.content);
+    return transformPdfCheckResult(this._checkSignedPdf.content);
   }
 
   get checkTwiceSignedPdf() {
-    return this.transformPdfCheckResult(this._checkTwiceSignedPdf.content);
+    return transformPdfCheckResult(this._checkTwiceSignedPdf.content);
   }
 
   get checkTamperedSignedPdf() {
-    return this.transformPdfCheckResult(this._checkTamperedSignedPdf.content);
+    return transformPdfCheckResult(this._checkTamperedSignedPdf.content);
   }
 
   get checkTamperedOnlyFirstTwiceSignedPdf() {
-    return this.transformPdfCheckResult(this._checkTamperedOnlyFirstTwiceSignedPdf.content);
+    return transformPdfCheckResult(this._checkTamperedOnlyFirstTwiceSignedPdf.content);
   }
 
   get checkTamperedAppendedSignedPdf() {
-    return this.transformPdfCheckResult(this._checkTamperedAppendedSignedPdf.content);
+    return transformPdfCheckResult(this._checkTamperedAppendedSignedPdf.content);
   }
 
-  private transformPdfCheckResult(check: any): PdfCheckResult {
-    return {
-      ...check,
-      signatures: check.signatures.map((signature: any) => this.transformSignatureCheckResult(signature))
-    }
+  get signedVisualPdf() {
+    return this._signedVisualPdf.content;
   }
 
-  private transformSignatureCheckResult(check: any): SignatureCheckResult {
-    return {
-      ...check,
-      details: this.transformSignatureDetails(check.details)
-    }
+  get positiveCoordinatesSignedVisualPdf() {
+    return this._positiveCoordinatesSignedVisualPdf.content;
   }
 
-  private transformSignatureDetails(details: any): SignatureDetails {
+  get negativeCoordinatesSignedVisualPdf() {
+    return this._negativeCoordinatesSignedVisualPdf.content;
+  }
 
-    details = { ...details };
-    if(details.date) {
-      details.date = new Date(Date.parse(details.date));
-    }
+  get jpgImageTwiceSignedVisualPdf() {
+    return this._jpgImageTwiceSignedVisualPdf.content;
+  }
 
-    return details;
+  get pngImageTwiceSignedVisualPdf() {
+    return this._pngImageTwiceSignedVisualPdf.content;
   }
 };
 

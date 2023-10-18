@@ -6,6 +6,7 @@ import { PdfCheckResult, SignatureCheckResult, SignatureDetails } from './models
 import { PdfByteRanges } from './models/byte-range';
 import { SignatureSettings } from './models/signature-settings';
 import { SignatureInfo } from './models/signature-info';
+import { VisualSignatureInfo } from './models/visual-signature-info';
 import { emptyRectangle, Rectangle } from './models/rectangle';
 import { Size } from './models/size';
 
@@ -86,7 +87,7 @@ function getPageAnnots(page: PDFPage, context: PDFContext) {
     return annots;
 }
 
-async function getSignatureStreamRefAsync(signature: Buffer, pdfDoc: PDFDocument): Promise<PDFRef> {
+async function embedSignatureAsync(signature: Buffer, pdfDoc: PDFDocument): Promise<PDFImage> {
     let img: PDFImage;
     try { 
         img = await pdfDoc.embedJpg(signature);
@@ -94,6 +95,12 @@ async function getSignatureStreamRefAsync(signature: Buffer, pdfDoc: PDFDocument
         img = await pdfDoc.embedPng(signature)
     }
     await img.embed();
+
+    return img;
+}
+
+async function getSignatureStreamRefAsync(signature: Buffer, pdfDoc: PDFDocument): Promise<PDFRef> {
+    const img = await embedSignatureAsync(signature, pdfDoc);
     const found = pdfDoc.context.enumerateIndirectObjects()
         .find(([ref, obj]) => ref.objectNumber == img.ref.objectNumber);
     
@@ -457,6 +464,7 @@ export class PdfSigner {
         } else {
             addSignatureFieldDict(signatureFieldDictRef, page, pdfDoc);
         }
+
         let incrementalPdf = Buffer.from(await pdfDoc.saveIncremental(docSnapshot));
         incrementalPdf = updateByteRange(incrementalPdf, pdf, pdfDoc.context);
 
@@ -473,6 +481,28 @@ export class PdfSigner {
         const signature = this.computeSignature(toBeSignedBuffer, info.modified || new Date());
         return embedSignature(signature, placeholderPdf, pdfRanges);
     }
+
+    public async signVisualAsync(pdf: Buffer, info: VisualSignatureInfo): Promise<Buffer> {
+        const pdfDoc = await PDFDocument.load(pdf);
+        const signatureCount = getSignatureCount(pdfDoc.context);
+        if(signatureCount) {
+            throw new Error('Digital signature found.');
+        }
+
+        if(pdfDoc.context.pdfFileDetails.useObjectStreams) { pdfDoc.context.largestObjectNumber += 1; };
+        const docSnapshot = pdfDoc.takeSnapshot({ pageIndex: info.pageNumber - 1 });
+        const page = pdfDoc.getPage(info.pageNumber - 1);
+        const signatureRect = getSignatureRectangle(info.imageRectangle, page.getSize());
+
+        const image = await embedSignatureAsync(info.image, pdfDoc);
+        page.drawImage(image, { x: signatureRect.left, y: signatureRect.bottom, width: signatureRect.right - signatureRect.left, height: -signatureRect.bottom + signatureRect.top });
+        
+        const incrementalPdf = Buffer.from(await pdfDoc.saveIncremental(docSnapshot));
+
+        return Buffer.concat([
+            pdf,
+            incrementalPdf
+        ]);    }
 
     public async verifySignaturesAsync(pdf: Buffer): Promise<PdfCheckResult | undefined> {
         const pdfDoc = await PDFDocument.load(pdf);
