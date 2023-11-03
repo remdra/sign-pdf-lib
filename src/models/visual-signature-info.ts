@@ -1,7 +1,7 @@
 import { Rectangle } from "./rectangle";
 
 export interface VisualSignatureInfo {
-    pageNumber: number,
+    pageNumber: number;
     
     image: Buffer;
     imageRectangle: Rectangle;

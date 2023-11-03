@@ -7,9 +7,13 @@ const _paths = {
   pdf:            path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'document.pdf'),
 
   placeholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder.pdf'),
+  fieldPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'field.pdf'),
   positiveCoordinatesPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder-positive-coordinates.pdf'),
+  positiveCoordinatesFieldPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'field-positive-coordinates.pdf'),
   negativeCoordinatesPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder-negative-coordinates.pdf'),
+  negativeCoordinatesFieldPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'field-negative-coordinates.pdf'),
   differentPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder-different.pdf'),
+  differentFieldPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'field-different.pdf'),
   noInfoPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder-no-info.pdf'),
   jpgImagePlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder-jpg-image.pdf'),
   pngImagePlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder-png-image.pdf'),
@@ -41,6 +45,11 @@ const _paths = {
 
   jpgImageTwiceSignedVisualPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'visual-signed-twice-jpg-image.pdf'),
   pngImageTwiceSignedVisualPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'visual-signed-twice-png-image.pdf'),
+
+  fieldSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'field-signed.pdf'),
+  specifiedFieldSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'field-signed-specified-field.pdf'),
+  jpgImageFieldSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'field-signed-jpg-image.pdf'),
+  pngImageFieldSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'field-signed-png-image.pdf')
 };
 
 
@@ -49,9 +58,13 @@ class PdfSignerAssets17Streams {
   private _pdf = new BinaryAssetFile(_paths.pdf);
 
   private _placeholderPdf = new BinaryAssetFile(_paths.placeholderPdf);
+  private _fieldPdf = new BinaryAssetFile(_paths.fieldPdf);
   private _positiveCoordinatesPlaceholderPdf = new BinaryAssetFile(_paths.positiveCoordinatesPlaceholderPdf);
+  private _positiveCoordinatesFieldPdf = new BinaryAssetFile(_paths.positiveCoordinatesFieldPdf);
   private _negativeCoordinatesPlaceholderPdf = new BinaryAssetFile(_paths.negativeCoordinatesPlaceholderPdf);
+  private _negativeCoordinatesFieldPdf = new BinaryAssetFile(_paths.negativeCoordinatesFieldPdf);
   private _differentPlaceholderPdf = new BinaryAssetFile(_paths.differentPlaceholderPdf);
+  private _differentFieldPdf = new BinaryAssetFile(_paths.differentFieldPdf);
   private _noInfoPlaceholderPdf = new BinaryAssetFile(_paths.noInfoPlaceholderPdf);
   private _jpgImagePlaceholderPdf = new BinaryAssetFile(_paths.jpgImagePlaceholderPdf);
   private _pngImagePlaceholderPdf = new BinaryAssetFile(_paths.pngImagePlaceholderPdf);
@@ -84,12 +97,21 @@ class PdfSignerAssets17Streams {
   private _jpgImageTwiceSignedVisualPdf = new BinaryAssetFile(_paths.jpgImageTwiceSignedVisualPdf);
   private _pngImageTwiceSignedVisualPdf = new BinaryAssetFile(_paths.pngImageTwiceSignedVisualPdf);
 
+  private _fieldSignedPdf = new BinaryAssetFile(_paths.fieldSignedPdf);
+  private _specifiedFieldSignedPdf = new BinaryAssetFile(_paths.specifiedFieldSignedPdf);
+  private _jpgImageFieldSignedPdf = new BinaryAssetFile(_paths.jpgImageFieldSignedPdf);
+  private _pngImageFieldSignedPdf = new BinaryAssetFile(_paths.pngImageFieldSignedPdf);
+
   public paths = {
     pdf: _paths.pdf,
     placeholderPdf: _paths.placeholderPdf,
+    fieldPdf: _paths.fieldPdf,
     positiveCoordinatesPlaceholderPdf: _paths.positiveCoordinatesPlaceholderPdf,
+    positiveCoordinatesFieldPdf: _paths.positiveCoordinatesFieldPdf,
     negativeCoordinatesPlaceholderPdf: _paths.negativeCoordinatesPlaceholderPdf,
+    negativeCoordinatesFieldPdf: _paths.negativeCoordinatesFieldPdf,
     differentPlaceholderPdf: _paths.differentPlaceholderPdf,
+    differentFieldPdf: _paths.differentFieldPdf,
     noInfoPlaceholderPdf: _paths.noInfoPlaceholderPdf,
     jpgImagePlaceholderPdf: _paths.jpgImagePlaceholderPdf,
     pngImagePlaceholderPdf: _paths.pngImagePlaceholderPdf,
@@ -118,6 +140,11 @@ class PdfSignerAssets17Streams {
 
     jpgImageTwiceSignedVisualPdf: _paths.jpgImageTwiceSignedVisualPdf,
     pngImageTwiceSignedVisualPdf: _paths.pngImageTwiceSignedVisualPdf,
+
+    fieldSignedPdf: _paths.fieldSignedPdf,
+    specifiedFieldSignedPdf: _paths.specifiedFieldSignedPdf,
+    jpgImageFieldSignedPdf: _paths.jpgImageFieldSignedPdf,
+    pngImageFieldSignedPdf: _paths.pngImageFieldSignedPdf
   }
 
   get pdf() {
@@ -128,16 +155,32 @@ class PdfSignerAssets17Streams {
     return this._placeholderPdf.content;
   }
 
+  get fieldPdf() {
+    return this._fieldPdf.content;
+  }
+
   get positiveCoordinatesPlaceholderPdf() {
     return this._positiveCoordinatesPlaceholderPdf.content;
+  }
+
+  get positiveCoordinatesFieldPdf() {
+    return this._positiveCoordinatesFieldPdf.content;
   }
 
   get negativeCoordinatesPlaceholderPdf() {
     return this._negativeCoordinatesPlaceholderPdf.content;
   }
 
+  get negativeCoordinatesFieldPdf() {
+    return this._negativeCoordinatesFieldPdf.content;
+  }
+
   get differentPlaceholderPdf() {
     return this._differentPlaceholderPdf.content;
+  }
+  
+  get differentFieldPdf() {
+    return this._differentFieldPdf.content;
   }
   
   get noInfoPlaceholderPdf() {
@@ -235,7 +278,22 @@ class PdfSignerAssets17Streams {
   get pngImageTwiceSignedVisualPdf() {
     return this._pngImageTwiceSignedVisualPdf.content;
   }
+
+  get fieldSignedPdf() {
+    return this._fieldSignedPdf.content;
+  }
+  
+  get specifiedFieldSignedPdf() {
+    return this._specifiedFieldSignedPdf.content;
+  }
+
+  get jpgImageFieldSignedPdf() {
+    return this._jpgImageFieldSignedPdf.content;
+  }
+
+  get pngImageFieldSignedPdf() {
+    return this._pngImageFieldSignedPdf.content;
+  }
 };
 
 export const pdfSignerAssets17Streams = new PdfSignerAssets17Streams();
-

@@ -1,6 +1,8 @@
 import { PDFDocument } from 'pdf-lib';
 import { PdfSigner } from './pdf-signer';
 import { SignatureInfo } from 'src/models/signature-info';
+import { FieldSignatureInfo } from './models/field-signature-info';
+import { AddSignatureFieldInfo } from './models/add-signature-field-info';
 import { VisualSignatureInfo } from './models/visual-signature-info';
 import { SignatureSettings } from 'src/models/signature-settings';
 
@@ -82,6 +84,8 @@ describe('PdfSigner (pdf 1.3)', function () {
 
     let pdfSigner: PdfSigner;
     let info: SignatureInfo;
+    let fieldInfo: FieldSignatureInfo;
+    let addFieldInfo: AddSignatureFieldInfo;
     let visualInfo: VisualSignatureInfo;
     let settings: SignatureSettings;
 
@@ -95,6 +99,23 @@ describe('PdfSigner (pdf 1.3)', function () {
             modified: new Date(2023, 1, 20, 18, 47, 35), 
             contactInfo: 'signer@semnezonline.ro'
         };
+
+        fieldInfo = {
+            fieldName: 'Signature1',
+
+            name1: 'Test Signer',
+            location: 'Timisoara',
+            reason: 'Signing',
+            modified: new Date(2023, 1, 20, 18, 47, 35), 
+            contactInfo: 'signer@semnezonline.ro',
+
+            image: pdfSignerAssets13.signatureJpgImage
+        };
+
+        addFieldInfo = {
+            pageNumber: 1,
+            signatureRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+        }
 
         visualInfo = {
             pageNumber: 1,
@@ -152,7 +173,6 @@ describe('PdfSigner (pdf 1.3)', function () {
             const info: SignatureInfo = {
                 pageNumber: 1
             }
-            await expect(pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info)).to.be.fulfilled;
             
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
 
@@ -182,7 +202,7 @@ describe('PdfSigner (pdf 1.3)', function () {
                 image: pdfSignerAssets13.signaturePngImage,
                 imageRectangle: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
             };
-            const res = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
+            const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
             
             await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.negativeCoordinatesPlaceholderPdf, res);
             expect(res).to.be.deep.equal(pdfSignerAssets13.negativeCoordinatesPlaceholderPdf);
@@ -211,6 +231,41 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
     })
 
+    describe('addFieldAsync', function() {
+        it('adds field', async function() {
+            const res = await pdfSigner.addFieldAsync(pdfSignerAssets13.pdf, addFieldInfo);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.fieldPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.fieldPdf);
+        })
+
+        it('adds field for different settings', async function() {
+            const pdfSigner = new PdfSigner({ ...settings, signatureLength: 5000, rangePlaceHolder: 9999 });
+            const res = await pdfSigner.addFieldAsync(pdfSignerAssets13.pdf, addFieldInfo);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.differentFieldPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.differentFieldPdf);
+        })
+
+        it('adds field for positive coordinates', async function() {
+            addFieldInfo.signatureRectangle = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
+            
+            const res = await pdfSigner.addFieldAsync(pdfSignerAssets13.pdf, addFieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.positiveCoordinatesFieldPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.positiveCoordinatesFieldPdf);
+        })
+
+        it('adds field for negative coordinates', async function() {
+            addFieldInfo.signatureRectangle = { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 };
+
+            const res = await pdfSigner.addFieldAsync(pdfSignerAssets13.pdf, addFieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.negativeCoordinatesFieldPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.negativeCoordinatesFieldPdf);
+        })
+    })
+    
     describe('signAsync', function() {
         it('signs document', async function() {
             const res = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
@@ -307,6 +362,80 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
     })
 
+    describe('signFieldAsync', function() {
+        it('signs document', async function() {
+            const res = await pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.fieldSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.fieldSignedPdf);
+        })
+
+        it('signs specified field', async function() {
+            addFieldInfo.signatureRectangle.left += 250;
+            addFieldInfo.signatureRectangle.right += 250;
+            const twoFieldsPdf = await pdfSigner.addFieldAsync(pdfSignerAssets13.fieldPdf, addFieldInfo);
+
+            fieldInfo.fieldName = 'Signature2';
+
+            const res = await pdfSigner.signFieldAsync(twoFieldsPdf, fieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.specifiedFieldSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.specifiedFieldSignedPdf);
+        })
+
+        it('throws when field not found', async function() {
+            fieldInfo.fieldName = 'Another name';
+
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo)).to.be.rejected;
+        })
+
+        it('throws for signature', async function() {
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets13.signedPdf, fieldInfo)).to.be.rejected;
+        })
+
+        it('signs with jpg image', async function() {
+            fieldInfo.image = pdfSignerAssets13.signatureJpgImage;
+
+            const signedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.jpgImageFieldSignedPdf, signedPdf);
+            expect(signedPdf).to.be.deep.equal(pdfSignerAssets13.jpgImageFieldSignedPdf);
+        })
+
+        it('signs with png image', async function() {
+            fieldInfo.image = pdfSignerAssets13.signaturePngImage;
+
+            const signedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.pngImageFieldSignedPdf, signedPdf);
+            expect(signedPdf).to.be.deep.equal(pdfSignerAssets13.pngImageFieldSignedPdf);
+        })
+
+        it('works for missing p12 certificate', async function() {
+            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined });
+
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo)).to.be.fulfilled;
+        })
+
+        it('works for missing pem certificate', async function() {
+            const pdfSigner = new PdfSigner({ ...settings, pemCertificate: undefined });
+
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo)).to.be.fulfilled;
+        })
+
+        it('works for missing pem key', async function() {
+            const pdfSigner = new PdfSigner({ ...settings, pemKey: undefined });
+
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo)).to.be.fulfilled;
+        })
+
+        it('throws for missing p12 certificate, pem certificate and pem key', async function() {
+            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined, pemCertificate: undefined, pemKey: undefined });
+
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo)).to.be.rejected;
+        })
+    })
+    
     describe('signVisualAsync', function() {
         it('signs document', async function() {
             const res = await pdfSigner.signVisualAsync(pdfSignerAssets13.pdf, visualInfo);
@@ -368,6 +497,11 @@ describe('PdfSigner (pdf 1.3)', function () {
             expect(res).to.be.undefined;
         })
 
+        it('returns undefined for signature field', async function() {
+            const res = await pdfSigner.verifySignaturesAsync(pdfSignerAssets13.fieldPdf);
+            expect(res).to.be.undefined;
+        })
+
         it('validates one signature', async function() {
             const res = await pdfSigner.verifySignaturesAsync(pdfSignerAssets13.signedPdf);
 
@@ -403,12 +537,37 @@ describe('PdfSigner (pdf 1.3)', function () {
             expect(res).to.be.deep.equal(pdfSignerAssets13.checkTamperedAppendedSignedPdf);
         })
     })
+
+    describe('getFieldsAsync', function() {
+        it('returns no fields', async function() {
+            const res = await pdfSigner.getFieldsAsync(pdfSignerAssets13.pdf);
+            expect(res).to.be.deep.equal([]);
+        })
+
+        it('returns one field', async function() {
+            const res = await pdfSigner.getFieldsAsync(pdfSignerAssets13.fieldPdf);
+            expect(res).to.be.deep.equal([ 'Signature1' ]);
+        })
+
+        it('returns two fields', async function() {
+            const twoFieldsPdf = await pdfSigner.addFieldAsync(pdfSignerAssets13.fieldPdf, addFieldInfo);
+            const res = await pdfSigner.getFieldsAsync(twoFieldsPdf);
+            expect(res).to.be.deep.equal([ 'Signature1', 'Signature2' ]);
+        })
+
+        it('returns no fields for signed pdf', async function() {
+            const res = await pdfSigner.getFieldsAsync(pdfSignerAssets13.signedPdf);
+            expect(res).to.be.deep.equal([]);
+        })
+    })
 })
 
 describe('PdfSigner (pdf 1.7)', function () {
 
     let pdfSigner: PdfSigner;
     let info: SignatureInfo;
+    let fieldInfo: FieldSignatureInfo;
+    let addFieldInfo: AddSignatureFieldInfo;
     let visualInfo: VisualSignatureInfo;
     let settings: SignatureSettings;
 
@@ -423,10 +582,27 @@ describe('PdfSigner (pdf 1.7)', function () {
             contactInfo: 'signer@semnezonline.ro'
         };
 
+        fieldInfo = {
+            fieldName: 'Signature1',
+
+            name1: 'Test Signer',
+            location: 'Timisoara',
+            reason: 'Signing',
+            modified: new Date(2023, 1, 20, 18, 47, 35), 
+            contactInfo: 'signer@semnezonline.ro',
+
+            image: pdfSignerAssets13.signatureJpgImage
+        };
+
+        addFieldInfo = {
+            pageNumber: 1,
+            signatureRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+        }
+
         visualInfo = {
             pageNumber: 1,
 
-            image: pdfSignerAssets13.signaturePngImage,
+            image: pdfSignerAssets17.signaturePngImage,
             imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
         };
 
@@ -479,8 +655,7 @@ describe('PdfSigner (pdf 1.7)', function () {
             const info: SignatureInfo = {
                 pageNumber: 1
             }
-            await expect(pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info)).to.be.fulfilled;
-            
+           
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.noInfoPlaceholderPdf, res);
@@ -510,7 +685,7 @@ describe('PdfSigner (pdf 1.7)', function () {
                 image: pdfSignerAssets17.signaturePngImage,
                 imageRectangle: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
             };
-            const res = await pdfSigner.signAsync(pdfSignerAssets17.pdf, info);
+            const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info);
             
             await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.negativeCoordinatesPlaceholderPdf, res);
             expect(res).to.be.deep.equal(pdfSignerAssets17.negativeCoordinatesPlaceholderPdf);
@@ -539,6 +714,42 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
     })
 
+    describe('addFieldAsync', function() {
+        it('adds field', async function() {
+            const res = await pdfSigner.addFieldAsync(pdfSignerAssets17.pdf, addFieldInfo);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.fieldPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.fieldPdf);
+        })
+
+        it('adds field for different settings', async function() {
+            const pdfSigner = new PdfSigner({ ...settings, signatureLength: 5000, rangePlaceHolder: 9999 });
+            const res = await pdfSigner.addFieldAsync(pdfSignerAssets17.pdf, addFieldInfo);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.differentFieldPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.differentFieldPdf);
+        })
+
+        it('adds field for positive coordinates', async function() {
+            addFieldInfo.signatureRectangle = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
+            
+            const res = await pdfSigner.addFieldAsync(pdfSignerAssets17.pdf, addFieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.positiveCoordinatesFieldPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.positiveCoordinatesFieldPdf);
+        })
+
+        it('adds field for negative coordinates', async function() {
+            addFieldInfo.signatureRectangle = { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 };
+
+            const res = await pdfSigner.addFieldAsync(pdfSignerAssets17.pdf, addFieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.negativeCoordinatesFieldPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.negativeCoordinatesFieldPdf);
+        })
+    })
+    
+    
     describe('signAsync', function() {
         it('signs document', async function() {
             const res = await pdfSigner.signAsync(pdfSignerAssets17.pdf, info);
@@ -635,6 +846,80 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
     })
 
+    describe('signFieldAsync', function() {
+        it('signs document', async function() {
+            const res = await pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.fieldSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.fieldSignedPdf);
+        })
+
+        it('signs specified field', async function() {
+            addFieldInfo.signatureRectangle.left += 250;
+            addFieldInfo.signatureRectangle.right += 250;
+            const twoFieldsPdf = await pdfSigner.addFieldAsync(pdfSignerAssets17.fieldPdf, addFieldInfo);
+
+            fieldInfo.fieldName = 'Signature2';
+
+            const res = await pdfSigner.signFieldAsync(twoFieldsPdf, fieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.specifiedFieldSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.specifiedFieldSignedPdf);
+        })
+
+        it('throws when field not found', async function() {
+            fieldInfo.fieldName = 'Another name';
+
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo)).to.be.rejected;
+        })
+
+        it('throws for signature', async function() {
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17.signedPdf, fieldInfo)).to.be.rejected;
+        })
+
+        it('signs with jpg image', async function() {
+            fieldInfo.image = pdfSignerAssets17.signatureJpgImage;
+
+            const signedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.jpgImageFieldSignedPdf, signedPdf);
+            expect(signedPdf).to.be.deep.equal(pdfSignerAssets17.jpgImageFieldSignedPdf);
+        })
+
+        it('signs with png image', async function() {
+            fieldInfo.image = pdfSignerAssets17.signaturePngImage;
+
+            const signedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.pngImageFieldSignedPdf, signedPdf);
+            expect(signedPdf).to.be.deep.equal(pdfSignerAssets17.pngImageFieldSignedPdf);
+        })
+
+        it('works for missing p12 certificate', async function() {
+            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined });
+
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo)).to.be.fulfilled;
+        })
+
+        it('works for missing pem certificate', async function() {
+            const pdfSigner = new PdfSigner({ ...settings, pemCertificate: undefined });
+
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo)).to.be.fulfilled;
+        })
+
+        it('works for missing pem key', async function() {
+            const pdfSigner = new PdfSigner({ ...settings, pemKey: undefined });
+
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo)).to.be.fulfilled;
+        })
+
+        it('throws for missing p12 certificate, pem certificate and pem key', async function() {
+            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined, pemCertificate: undefined, pemKey: undefined });
+
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo)).to.be.rejected;
+        })
+    })
+    
     describe('signVisualAsync', function() {
         it('signs document', async function() {
             const res = await pdfSigner.signVisualAsync(pdfSignerAssets17.pdf, visualInfo);
@@ -696,6 +981,11 @@ describe('PdfSigner (pdf 1.7)', function () {
             expect(res).to.be.undefined;
         })
 
+        it('returns undefined for signature field', async function() {
+            const res = await pdfSigner.verifySignaturesAsync(pdfSignerAssets17.fieldPdf);
+            expect(res).to.be.undefined;
+        })
+
         it('validates one signature', async function() {
             const res = await pdfSigner.verifySignaturesAsync(pdfSignerAssets17.signedPdf);
 
@@ -731,12 +1021,37 @@ describe('PdfSigner (pdf 1.7)', function () {
             expect(res).to.be.deep.equal(pdfSignerAssets17.checkTamperedAppendedSignedPdf);
         })
     })
+
+    describe('getFieldsAsync', function() {
+        it('returns no fields', async function() {
+            const res = await pdfSigner.getFieldsAsync(pdfSignerAssets17.pdf);
+            expect(res).to.be.deep.equal([]);
+        })
+
+        it('returns one field', async function() {
+            const res = await pdfSigner.getFieldsAsync(pdfSignerAssets17.fieldPdf);
+            expect(res).to.be.deep.equal([ 'Signature1' ]);
+        })
+
+        it('returns two fields', async function() {
+            const twoFieldsPdf = await pdfSigner.addFieldAsync(pdfSignerAssets17.fieldPdf, addFieldInfo);
+            const res = await pdfSigner.getFieldsAsync(twoFieldsPdf);
+            expect(res).to.be.deep.equal([ 'Signature1', 'Signature2' ]);
+        })
+
+        it('returns no fields for signed pdf', async function() {
+            const res = await pdfSigner.getFieldsAsync(pdfSignerAssets17.signedPdf);
+            expect(res).to.be.deep.equal([]);
+        })
+    })
 })
 
 describe('PdfSigner (pdf 1.7 streams)', function () {
 
     let pdfSigner: PdfSigner;
     let info: SignatureInfo;
+    let fieldInfo: FieldSignatureInfo;
+    let addFieldInfo: AddSignatureFieldInfo;
     let visualInfo: VisualSignatureInfo;
     let settings: SignatureSettings;
 
@@ -751,10 +1066,27 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
             contactInfo: 'signer@semnezonline.ro'
         };
 
+        fieldInfo = {
+            fieldName: 'Signature1',
+
+            name1: 'Test Signer',
+            location: 'Timisoara',
+            reason: 'Signing',
+            modified: new Date(2023, 1, 20, 18, 47, 35), 
+            contactInfo: 'signer@semnezonline.ro',
+
+            image: pdfSignerAssets13.signatureJpgImage
+        };
+
+        addFieldInfo = {
+            pageNumber: 1,
+            signatureRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+        }
+
         visualInfo = {
             pageNumber: 1,
 
-            image: pdfSignerAssets13.signaturePngImage,
+            image: pdfSignerAssets17Streams.signaturePngImage,
             imageRectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
         };
 
@@ -807,7 +1139,6 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
             const info: SignatureInfo = {
                 pageNumber: 1
             }
-            await expect(pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info)).to.be.fulfilled;
             
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info);
 
@@ -838,7 +1169,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
                 image: pdfSignerAssets17Streams.signaturePngImage,
                 imageRectangle: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
             };
-            const res = await pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info);
+            const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info);
             
             await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.negativeCoordinatesPlaceholderPdf, res);
             expect(res).to.be.deep.equal(pdfSignerAssets17Streams.negativeCoordinatesPlaceholderPdf);
@@ -866,6 +1197,42 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
             expect(res).to.be.deep.equal(pdfSignerAssets17Streams.pngImagePlaceholderPdf);
         })
     })
+
+    describe('addFieldAsync', function() {
+        it('adds field', async function() {
+            const res = await pdfSigner.addFieldAsync(pdfSignerAssets17Streams.pdf, addFieldInfo);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.fieldPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.fieldPdf);
+        })
+
+        it('adds field for different settings', async function() {
+            const pdfSigner = new PdfSigner({ ...settings, signatureLength: 5000, rangePlaceHolder: 9999 });
+            const res = await pdfSigner.addFieldAsync(pdfSignerAssets17Streams.pdf, addFieldInfo);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.differentFieldPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.differentFieldPdf);
+        })
+
+        it('adds field for positive coordinates', async function() {
+            addFieldInfo.signatureRectangle = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
+            
+            const res = await pdfSigner.addFieldAsync(pdfSignerAssets17Streams.pdf, addFieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.positiveCoordinatesFieldPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.positiveCoordinatesFieldPdf);
+        })
+
+        it('adds field for negative coordinates', async function() {
+            addFieldInfo.signatureRectangle = { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 };
+
+            const res = await pdfSigner.addFieldAsync(pdfSignerAssets17Streams.pdf, addFieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.negativeCoordinatesFieldPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.negativeCoordinatesFieldPdf);
+        })
+    })
+    
 
     describe('signAsync', function() {
         it('signs document', async function() {
@@ -963,6 +1330,80 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
     })
 
+    describe('signFieldAsync', function() {
+        it('signs document', async function() {
+            const res = await pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.fieldSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.fieldSignedPdf);
+        })
+
+        it('signs specified field', async function() {
+            addFieldInfo.signatureRectangle.left += 250;
+            addFieldInfo.signatureRectangle.right += 250;
+            const twoFieldsPdf = await pdfSigner.addFieldAsync(pdfSignerAssets17Streams.fieldPdf, addFieldInfo);
+
+            fieldInfo.fieldName = 'Signature2';
+
+            const res = await pdfSigner.signFieldAsync(twoFieldsPdf, fieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.specifiedFieldSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.specifiedFieldSignedPdf);
+        })
+
+        it('throws when field not found', async function() {
+            fieldInfo.fieldName = 'Another name';
+
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo)).to.be.rejected;
+        })
+
+        it('throws for signature', async function() {
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17Streams.signedPdf, fieldInfo)).to.be.rejected;
+        })
+
+        it('signs with jpg image', async function() {
+            fieldInfo.image = pdfSignerAssets17Streams.signatureJpgImage;
+
+            const signedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.jpgImageFieldSignedPdf, signedPdf);
+            expect(signedPdf).to.be.deep.equal(pdfSignerAssets17Streams.jpgImageFieldSignedPdf);
+        })
+
+        it('signs with png image', async function() {
+            fieldInfo.image = pdfSignerAssets17Streams.signaturePngImage;
+
+            const signedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.pngImageFieldSignedPdf, signedPdf);
+            expect(signedPdf).to.be.deep.equal(pdfSignerAssets17Streams.pngImageFieldSignedPdf);
+        })
+
+        it('works for missing p12 certificate', async function() {
+            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined });
+
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo)).to.be.fulfilled;
+        })
+
+        it('works for missing pem certificate', async function() {
+            const pdfSigner = new PdfSigner({ ...settings, pemCertificate: undefined });
+
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo)).to.be.fulfilled;
+        })
+
+        it('works for missing pem key', async function() {
+            const pdfSigner = new PdfSigner({ ...settings, pemKey: undefined });
+
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo)).to.be.fulfilled;
+        })
+
+        it('throws for missing p12 certificate, pem certificate and pem key', async function() {
+            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined, pemCertificate: undefined, pemKey: undefined });
+
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo)).to.be.rejected;
+        })
+    })
+    
     describe('signVisualAsync', function() {
         it('signs document', async function() {
             const res = await pdfSigner.signVisualAsync(pdfSignerAssets17Streams.pdf, visualInfo);
@@ -1024,6 +1465,11 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
             expect(res).to.be.undefined;
         })
 
+        it('returns undefined for signature field', async function() {
+            const res = await pdfSigner.verifySignaturesAsync(pdfSignerAssets17Streams.fieldPdf);
+            expect(res).to.be.undefined;
+        })
+
         it('validates one signature', async function() {
             const res = await pdfSigner.verifySignaturesAsync(pdfSignerAssets17Streams.signedPdf);
 
@@ -1057,6 +1503,30 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
 
             await generateAsset.generateJsonAsync(pdfSignerAssets17Streams.paths.checkTamperedAppendedSignedPdf, res);
             expect(res).to.be.deep.equal(pdfSignerAssets17Streams.checkTamperedAppendedSignedPdf);
+        })
+    })
+
+    describe('getFieldsAsync', function() {
+        it('returns no fields', async function() {
+            const res = await pdfSigner.getFieldsAsync(pdfSignerAssets17Streams.pdf);
+            expect(res).to.be.deep.equal([]);
+        })
+
+        it('returns one field', async function() {
+            const res = await pdfSigner.getFieldsAsync(pdfSignerAssets17Streams.fieldPdf);
+            expect(res).to.be.deep.equal([ 'Signature1' ]);
+        })
+
+        it('returns two fields', async function() {
+            const twoFieldsPdf = await pdfSigner.addFieldAsync(pdfSignerAssets17Streams.fieldPdf, addFieldInfo);
+            const res = await pdfSigner.getFieldsAsync(twoFieldsPdf);
+            expect(res).to.be.deep.equal([ 'Signature1', 'Signature2' ]);
+        })
+
+
+        it('returns no fields for signed pdf', async function() {
+            const res = await pdfSigner.getFieldsAsync(pdfSignerAssets17Streams.signedPdf);
+            expect(res).to.be.deep.equal([]);
         })
     })
 })

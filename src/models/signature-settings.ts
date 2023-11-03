@@ -5,8 +5,8 @@ export interface SignatureSettings {
     signatureLength: number;
     rangePlaceHolder: number;
 
-    p12Certificate?: Buffer,
-    pemCertificate?: string,
-    pemKey?: string,
-    certificatePassword: string
+    p12Certificate?: Buffer;
+    pemCertificate?: string;
+    pemKey?: string;
+    certificatePassword: string;
 }

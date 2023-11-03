@@ -6,12 +6,15 @@ import { PdfCheckResult, SignatureCheckResult, SignatureDetails } from './models
 import { PdfByteRanges } from './models/byte-range';
 import { SignatureSettings } from './models/signature-settings';
 import { SignatureInfo } from './models/signature-info';
+import { SignatureCore } from './models/signature-core';
+import { FieldSignatureInfo } from './models/field-signature-info';
+import { AddSignatureFieldInfo } from './models/add-signature-field-info';
 import { VisualSignatureInfo } from './models/visual-signature-info';
 import { emptyRectangle, Rectangle } from './models/rectangle';
 import { Size } from './models/size';
 
 
-function getSignatureDictRef(info: SignatureInfo, settings: SignatureSettings, context: PDFContext) {
+function getSignatureDictRef(info: SignatureCore, settings: SignatureSettings, context: PDFContext) {
 
     const byteRange = context.obj([ 0, settings.rangePlaceHolder, settings.rangePlaceHolder, settings.rangePlaceHolder ]);
 
@@ -30,6 +33,11 @@ function getSignatureDictRef(info: SignatureInfo, settings: SignatureSettings, c
     return context.register(signatureDict);
 }
 
+function addSignatureValue(pdfDoc: PDFDocument, signatureFieldDictRef: PDFRef, signatureDictRef: PDFRef) {
+    const signatureFieldDict = pdfDoc.context.lookup(signatureFieldDictRef, PDFDict);
+    signatureFieldDict.set(PDFName.of('V'), signatureDictRef);
+}
+
 function getAppearanceDict(context: PDFContext) {
     const appearanceDict = PDFDict.withContext(context);
     appearanceDict.set(PDFName.of('FT'), PDFName.of('XObject'));
@@ -38,16 +46,24 @@ function getAppearanceDict(context: PDFContext) {
     return appearanceDict;
 }
 
-function getAppearanceStreamRef(signatureRef: PDFRef, signatureNumber: number, context: PDFContext): PDFRef {
-    const drawBuffer = Buffer.from(`q 1 0 0 1 0 0 cm /frm${signatureNumber} Do Q`);
+function getAppearanceStream(signatureRef: PDFRef | undefined, signatureNumber: number, context: PDFContext): PDFRawStream {
+    const drawBuffer = signatureRef 
+        ? Buffer.from(`q 1 0 0 1 0 0 cm /frm${signatureNumber} Do Q`)
+        : Buffer.from('% DSBlank');
     const boundingBox = context.obj([ 0.0, 0.0, 100.0, 100.0 ]);
 
     const appearanceDict = getAppearanceDict(context);
     appearanceDict.set(PDFName.of('BBox'), boundingBox);
-    appearanceDict.set(PDFName.of('Resources'), getSignatureObj(signatureRef, signatureNumber, context));
+    if(signatureRef) {
+        appearanceDict.set(PDFName.of('Resources'), getSignatureObj(signatureRef, signatureNumber, context));
+    }
     appearanceDict.set(PDFName.of('Length'), PDFNumber.of(drawBuffer.length));
 
-    const rawStream = PDFRawStream.of(appearanceDict, drawBuffer);
+    return PDFRawStream.of(appearanceDict, drawBuffer);
+}
+
+function getAppearanceStreamRef(signatureRef: PDFRef | undefined, signatureNumber: number, context: PDFContext): PDFRef {
+    const rawStream = getAppearanceStream(signatureRef, signatureNumber, context);
     return context.register(rawStream);
 }
 
@@ -58,7 +74,7 @@ function getNormalAppearanceDict(appearanceStreamRef: PDFRef, context: PDFContex
     return normalAppearanceDict;
 }
 
-function getSignatureFieldDictRef(signatureNumber: number, pageRef: PDFRef, normalAppearanceDict:PDFDict | undefined, signatureDictRef: PDFRef, signatureRect: Rectangle, context: PDFContext): PDFRef {
+function getSignatureFieldDictRef(signatureNumber: number, pageRef: PDFRef, normalAppearanceDict:PDFDict | undefined, signatureRect: Rectangle, context: PDFContext): PDFRef {
     const signatureFieldDict = PDFDict.withContext(context);
     signatureFieldDict.set(PDFName.of('FT'), PDFName.of('Sig'));
     signatureFieldDict.set(PDFName.of('Type'), PDFName.of('Annot'));
@@ -66,7 +82,6 @@ function getSignatureFieldDictRef(signatureNumber: number, pageRef: PDFRef, norm
     signatureFieldDict.set(PDFName.of('T'), PDFString.of(`Signature${signatureNumber}`));
     signatureFieldDict.set(PDFName.of('F'), PDFNumber.of(132));
     signatureFieldDict.set(PDFName.of('P'), pageRef);
-    signatureFieldDict.set(PDFName.of('V'), signatureDictRef);
     if(normalAppearanceDict) {
         signatureFieldDict.set(PDFName.of('AP'), normalAppearanceDict);
     }
@@ -128,9 +143,11 @@ function getSignatureImageStreamRef(signatureImageStreamRef: PDFRef, signatureNu
     return context.register(rawStream);
 }
 
-function getSignatureObj(ref: PDFRef, signatureNumber: number, context: PDFContext): PDFDict {
+function getSignatureObj(ref: PDFRef | undefined, signatureNumber: number, context: PDFContext): PDFDict {
     const frmDict = PDFDict.withContext(context);
-    frmDict.set(PDFName.of(`frm${signatureNumber}`), ref);
+    if(ref) {
+        frmDict.set(PDFName.of(`frm${signatureNumber}`), ref);
+    }
     
     const dict = PDFDict.withContext(context);
     dict.set(PDFName.of('XObject'), frmDict);
@@ -138,16 +155,34 @@ function getSignatureObj(ref: PDFRef, signatureNumber: number, context: PDFConte
     return dict;
 }
 
-function getSignatureCount(context: PDFContext) {
-    return context.enumerateIndirectObjects()
+function getSignatureEntries(pdfDoc: PDFDocument) {
+    return pdfDoc.context.enumerateIndirectObjects()
         .filter(([, obj]) => obj instanceof PDFDict)
         .map(([, dict]) => (dict as PDFDict))
         .filter(dict => {
             return dict.lookupMaybe(PDFName.of('FT'), PDFName) == PDFName.of('Sig')
                 && dict.lookupMaybe(PDFName.of('Type'), PDFName) == PDFName.of('Annot')
                 && dict.lookupMaybe(PDFName.of('Subtype'), PDFName) == PDFName.of('Widget');
-        })
-        .length;
+        });
+}
+
+function getSignatureFields(pdfDoc: PDFDocument) {
+    return getSignatureEntries(pdfDoc)
+        .filter(dict => !dict.has(PDFName.of('V')))
+        .map(field => field as PDFDict);
+}
+
+function getSignatureField(pdfDoc: PDFDocument, name: string): PDFDict {
+    const fields = getSignatureFields(pdfDoc);
+    const found = fields.find(field => field.lookup(PDFName.of('T'), PDFString).asString() === name);
+    if(!found) {
+        throw new Error(`Signature field '${name}' not found.`);
+    }
+    return found;
+}
+
+function getSignatureCount(pdfDoc: PDFDocument) {
+    return getSignatureEntries(pdfDoc).length;
 }
 
 function getSignatureRange(pdf: Buffer) {
@@ -442,7 +477,7 @@ export class PdfSigner {
         const pdfDoc = await PDFDocument.load(pdf);
         if(pdfDoc.context.pdfFileDetails.useObjectStreams) { pdfDoc.context.largestObjectNumber += 1; };
         const docSnapshot = pdfDoc.takeSnapshot({ pageIndex: info.pageNumber - 1 });
-        const signatureNumber = getSignatureCount(pdfDoc.context) + 1;
+        const signatureNumber = getSignatureCount(pdfDoc) + 1;
         const page = pdfDoc.getPage(info.pageNumber - 1);
 
         let normalAppearanceDict;
@@ -458,7 +493,8 @@ export class PdfSigner {
 
         const signatureDictRef = getSignatureDictRef(info, this.settings, pdfDoc.context);
         const signatureRect = getSignatureRectangle(info.visual?.imageRectangle, page.getSize());
-        const signatureFieldDictRef = getSignatureFieldDictRef(signatureNumber, page.ref, normalAppearanceDict, signatureDictRef, signatureRect, pdfDoc.context);
+        const signatureFieldDictRef = getSignatureFieldDictRef(signatureNumber, page.ref, normalAppearanceDict, signatureRect, pdfDoc.context);
+        addSignatureValue(pdfDoc, signatureFieldDictRef, signatureDictRef);
         if(pdfDoc.context.pdfFileDetails.useObjectStreams) {
             addSignatureFieldDictStreams(signatureFieldDictRef, page, pdfDoc);
         } else {
@@ -474,6 +510,35 @@ export class PdfSigner {
         ]);
     }
 
+    public async addFieldAsync(pdf: Buffer, info: AddSignatureFieldInfo): Promise<Buffer> {
+        const pdfDoc = await PDFDocument.load(pdf);
+        if(pdfDoc.context.pdfFileDetails.useObjectStreams) { pdfDoc.context.largestObjectNumber += 1; };
+        const docSnapshot = pdfDoc.takeSnapshot({ pageIndex: info.pageNumber - 1 });
+        const signatureNumber = getSignatureCount(pdfDoc) + 1;
+        const page = pdfDoc.getPage(info.pageNumber - 1);
+
+
+        const appearanceStreamRef = getAppearanceStreamRef(undefined, signatureNumber, pdfDoc.context);
+        const normalAppearanceDict = getNormalAppearanceDict(appearanceStreamRef, pdfDoc.context); 
+
+        const form = pdfDoc.getForm();
+        form.acroForm.dict.set(PDFName.of('DR'), getSignatureObj(undefined, signatureNumber, pdfDoc.context));
+
+        const signatureRect = getSignatureRectangle(info.signatureRectangle, page.getSize());
+        const signatureFieldDictRef = getSignatureFieldDictRef(signatureNumber, page.ref, normalAppearanceDict, signatureRect, pdfDoc.context);
+        if(pdfDoc.context.pdfFileDetails.useObjectStreams) {
+            addSignatureFieldDictStreams(signatureFieldDictRef, page, pdfDoc);
+        } else {
+            addSignatureFieldDict(signatureFieldDictRef, page, pdfDoc);
+        }
+        const incrementalPdf = Buffer.from(await pdfDoc.saveIncremental(docSnapshot));
+
+        return Buffer.concat([
+            pdf,
+            incrementalPdf
+        ]);
+    }
+
     public async signAsync(pdf: Buffer, info: SignatureInfo): Promise<Buffer> {
         const placeholderPdf = await this.addPlaceholderAsync(pdf, info);
         const pdfRanges = await getPdfRangesAsync(placeholderPdf);
@@ -482,9 +547,51 @@ export class PdfSigner {
         return embedSignature(signature, placeholderPdf, pdfRanges);
     }
 
+    public async signFieldAsync(pdf: Buffer, info: FieldSignatureInfo): Promise<Buffer> {
+        const pageNumber = 1;////////////////
+
+        const pdfDoc = await PDFDocument.load(pdf);
+
+        const signatureNumber = getSignatureCount(pdfDoc);
+        const form = pdfDoc.getForm();
+        const formRef = pdfDoc.context.getObjectRef(form.acroForm.dict); 
+
+        if(pdfDoc.context.pdfFileDetails.useObjectStreams) { pdfDoc.context.largestObjectNumber += 1; };
+        const docSnapshot = pdfDoc.takeSnapshot({ pageIndex: pageNumber - 1 });
+
+        const signatureFieldDict = getSignatureField(pdfDoc, info.fieldName);
+        const signatureFieldDictRef = pdfDoc.context.getObjectRef(signatureFieldDict);
+        const signatureDictRef = getSignatureDictRef(info, this.settings, pdfDoc.context);
+        addSignatureValue(pdfDoc, signatureFieldDictRef!, signatureDictRef);
+        (docSnapshot as any).indirectObjects = [];
+        
+        const signatureImageStreamRef = await getSignatureStreamRefAsync(info.image, pdfDoc);
+        const signatureImageStreamRef2 = getSignatureImageStreamRef(signatureImageStreamRef, signatureNumber, pdfDoc.context);
+        const dict = pdfDoc.context.lookup(formRef!, PDFDict).lookup(PDFName.of('DR'), PDFDict).lookup(PDFName.of('XObject'), PDFDict);
+        dict.set(PDFName.of(`frm${signatureNumber}`), signatureImageStreamRef2);
+
+        const nRawStream = signatureFieldDict.lookup(PDFName.of('AP'), PDFDict).lookup(PDFName.of('N')) as PDFRawStream;
+        const nRef = pdfDoc.context.getObjectRef(nRawStream!);
+        const appearanceStream = getAppearanceStream(signatureImageStreamRef2, signatureNumber, pdfDoc.context);
+        pdfDoc.context.assign(nRef!, appearanceStream);
+
+        (docSnapshot as any).indirectObjects.push(signatureFieldDictRef?.objectNumber);
+        (docSnapshot as any).indirectObjects.push(formRef!.objectNumber, nRef!.objectNumber, signatureImageStreamRef2.objectNumber);
+
+        let incrementalPdf = Buffer.from(await pdfDoc.saveIncremental(docSnapshot));
+        incrementalPdf = updateByteRange(incrementalPdf, pdf, pdfDoc.context);
+
+        const placeholderPdf = Buffer.concat([ pdf, incrementalPdf ]);
+        const pdfRanges = await getPdfRangesAsync(placeholderPdf);
+        const toBeSignedBuffer = getSignBuffer(placeholderPdf, pdfRanges);
+        const signature = this.computeSignature(toBeSignedBuffer, info.modified || new Date());
+
+        return embedSignature(signature, placeholderPdf, pdfRanges);
+    }
+
     public async signVisualAsync(pdf: Buffer, info: VisualSignatureInfo): Promise<Buffer> {
         const pdfDoc = await PDFDocument.load(pdf);
-        const signatureCount = getSignatureCount(pdfDoc.context);
+        const signatureCount = getSignatureCount(pdfDoc);
         if(signatureCount) {
             throw new Error('Digital signature found.');
         }
@@ -502,7 +609,8 @@ export class PdfSigner {
         return Buffer.concat([
             pdf,
             incrementalPdf
-        ]);    }
+        ]);    
+    }
 
     public async verifySignaturesAsync(pdf: Buffer): Promise<PdfCheckResult | undefined> {
         const pdfDoc = await PDFDocument.load(pdf);
@@ -523,6 +631,12 @@ export class PdfSigner {
             integrity: checks.every(check => check.integrity),
             signatures: checks
         };
+    }
+
+    public async getFieldsAsync(pdf: Buffer): Promise<string[]> {
+        const pdfDoc = await PDFDocument.load(pdf);
+        return getSignatureFields(pdfDoc)
+            .map(dict => dict.lookup(PDFName.of('T'), PDFString).asString());
     }
 
     private async verifySignatureAsync(signature: PDFDict, pdf: Buffer, isLast: boolean, pdfDoc: PDFDocument): Promise<SignatureCheckResult> {
