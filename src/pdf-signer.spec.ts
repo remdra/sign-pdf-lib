@@ -103,7 +103,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         fieldInfo = {
             fieldName: 'Signature1',
 
-            name1: 'Test Signer',
+            name: 'Test Signer',
             location: 'Timisoara',
             reason: 'Signing',
             modified: new Date(2023, 1, 20, 18, 47, 35), 
@@ -585,7 +585,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         fieldInfo = {
             fieldName: 'Signature1',
 
-            name1: 'Test Signer',
+            name: 'Test Signer',
             location: 'Timisoara',
             reason: 'Signing',
             modified: new Date(2023, 1, 20, 18, 47, 35), 
@@ -1069,7 +1069,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         fieldInfo = {
             fieldName: 'Signature1',
 
-            name1: 'Test Signer',
+            name: 'Test Signer',
             location: 'Timisoara',
             reason: 'Signing',
             modified: new Date(2023, 1, 20, 18, 47, 35), 

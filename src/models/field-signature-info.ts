@@ -3,7 +3,7 @@ import { Rectangle } from "./rectangle";
 export interface FieldSignatureInfo {
     fieldName: string;
     
-    name1?: string;
+    name?: string;
     location?: string;
     reason?: string;
     modified?: Date; 
