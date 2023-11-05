@@ -1,3 +1,3 @@
 export const testSettings = {
-    generate: true
+    generate: false
 };

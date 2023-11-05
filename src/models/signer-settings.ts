@@ -1,7 +1,4 @@
-import * as fse from 'fs-extra';
-
-
-export interface SignatureSettings {
+export interface SignerSettings {
     signatureLength: number;
     rangePlaceHolder: number;
 

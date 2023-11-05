@@ -1,16 +1,16 @@
 import { Rectangle } from "./rectangle";
 
-export interface SignatureInfo {
+export interface SignDigitalParameters {
     pageNumber: number;
     
     name?: string;
     location?: string;
     reason?: string;
-    modified?: Date; 
+    date?: Date; 
     contactInfo?: string;
 
     visual?: {
-        image: Buffer;
-        imageRectangle: Rectangle;
+        background: Buffer;
+        boundingBox: Rectangle;
     }
 };

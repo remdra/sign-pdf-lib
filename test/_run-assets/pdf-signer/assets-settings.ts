@@ -1,7 +1,6 @@
 import { BinaryAssetFile } from '../../_helpers/assets/binary-asset-file';
 import { TextAssetFile } from '../../_helpers/assets/text-asset-file';
 import * as path from 'path';
-import { PdfCheckResult, SignatureCheckResult, SignatureDetails } from 'src/models/check-result';
 
 const _paths = {
     p12Certificate: path.join('test', '_assets', 'pdf-signer', 'settings', 'certificate.p12'),
