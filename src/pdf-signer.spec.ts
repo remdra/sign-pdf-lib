@@ -1233,7 +1233,6 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
     })
     
-
     describe('signAsync', function() {
         it('signs document', async function() {
             const res = await pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info);

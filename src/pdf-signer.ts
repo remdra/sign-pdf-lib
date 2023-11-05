@@ -1,4 +1,4 @@
-import { DocumentSnapshot, PDFArray, PDFContext, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFPage, PDFRawStream, PDFRef, PDFStream, PDFString } from 'pdf-lib';
+import { DocumentSnapshot, PDFArray, PDFContext, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFPage, PDFRef, PDFStream, PDFString } from 'pdf-lib';
 import * as _ from 'lodash';
 import * as forge from 'node-forge';
 
@@ -73,6 +73,32 @@ function getAppearanceDict(context: PDFContext) {
 }
 
 function getAppearanceStream(signatureRef: PDFRef | undefined, signatureNumber: number, context: PDFContext): PDFStream {
+    /* const drawBuffer = (signatureRef 
+        ? `q 1 0 0 1 0 0 cm /frm${signatureNumber} Do Q`
+        : '% DSBlank')
+        + ' q'
+        + ' 0 0 106 68 re'
+        + ' /Helvetica 1 Tf'
+        + ' 0 Tc 0 Tw 0 Ts 100 Tz 0 Tr'
+        + ' 27.849 0 0 27.849 1 43.646 Tm'
+        + ' (DRAICA)Tj'
+        + ' 0 -1.2 TD'
+        + ' (REMUS )Tj'
+        + ' 12.637 0 0 12.637 109.1188 54.087 Tm'
+        + ' [(Digitally )-0.8 (signed )-0.6 (by )]TJ'
+        + ' T*'
+        + ' (DRAICA REMUS )Tj'
+        + ' T*'
+        + ' (Date: 2023.11.03 )Tj'
+        + ' T*'
+        + ' (20:28:46 +02\'00\')Tj'
+        + ' Q';
+
+    const appearance: any = {
+        'FT': 'XObject',
+        'Subtype': 'Form',
+        'BBox': [ 0.0, 0.0, 214, 70.0 ],
+    }*/
     const drawBuffer = signatureRef 
         ? `q 1 0 0 1 0 0 cm /frm${signatureNumber} Do Q`
         : '% DSBlank';
@@ -82,10 +108,10 @@ function getAppearanceStream(signatureRef: PDFRef | undefined, signatureNumber: 
         'Subtype': 'Form',
         'BBox': [ 0.0, 0.0, 100.0, 100.0 ],
     }
+    
     if(signatureRef) { appearance['Resources'] = getSignatureObj(signatureRef, signatureNumber, context); }
 
     return context.stream(drawBuffer, appearance);
-
 }
 
 function getAppearanceStreamRef(signatureRef: PDFRef | undefined, signatureNumber: number, context: PDFContext): PDFRef {
@@ -527,7 +553,23 @@ export class PdfSigner {
         } else {
             addSignatureFieldDict(signatureFieldDictRef, page, pdfDoc);
         }
-
+        /*const fontDict = page.node.lookup(PDFName.of('Resources'), PDFDict).lookup(PDFName.of('Font'), PDFDict);
+        if(!fontDict.has(PDFName.of('Helvetica'))) {
+            const font = pdfDoc.context.obj({
+                'Type': 'Font',
+                'Subtype': 'Type1',
+                'BaseFont': 'Helvetica',
+                'Encoding': 'WinAnsiEncoding'
+            });
+            const fontRef = pdfDoc.context.register(font);
+            fontDict.set(PDFName.of('Helvetica'), fontRef);
+            if(page.node.get(PDFName.of('Resources')) instanceof PDFRef) {
+                docSnapshot.markObjForSave(page.node.lookup(PDFName.of('Resources'))!);
+            } else {
+                docSnapshot.markRefForSave(page.ref);
+            }
+        }
+        */
         let incrementalPdf = Buffer.from(await pdfDoc.saveIncremental(docSnapshot));
         incrementalPdf = updateByteRange(incrementalPdf, pdf, pdfDoc.context);
 
@@ -543,7 +585,6 @@ export class PdfSigner {
         const docSnapshot = takeSnapshot(pdfDoc, info.pageNumber);
         const signatureNumber = getSignatureCount(pdfDoc) + 1;
         const page = pdfDoc.getPage(info.pageNumber - 1);
-
 
         const appearanceStreamRef = getAppearanceStreamRef(undefined, signatureNumber, pdfDoc.context);
         const normalAppearanceDict = getNormalAppearanceDict(appearanceStreamRef, pdfDoc.context); 
@@ -592,7 +633,9 @@ export class PdfSigner {
         } else {
             const drObj = form.acroForm.dict.lookup(PDFName.of('DR'), PDFDict);
             const drRef = pdfDoc.context.getObjectRef(drObj)!;
-            pdfDoc.context.assign(drRef, signatureObj);
+            if(drRef) {
+                pdfDoc.context.assign(drRef, signatureObj);
+            }
         }
 
         const nRawStream = signatureFieldDict.lookup(PDFName.of('AP'), PDFDict).lookup(PDFName.of('N'), PDFStream)!;
@@ -602,6 +645,24 @@ export class PdfSigner {
 
         docSnapshot.markObjsForSave([ form.acroForm.dict ]);
         docSnapshot.markRefsForSave([ signatureFieldDictRef, nRef, signatureImageStreamRef2 ]);
+
+        /*const page = pdfDoc.getPage(0);
+        const fontDict = page.node.lookup(PDFName.of('Resources'), PDFDict).lookup(PDFName.of('Font'), PDFDict);
+        if(!fontDict.has(PDFName.of('Helvetica'))) {
+            const font = pdfDoc.context.obj({
+                'Type': 'Font',
+                'Subtype': 'Type1',
+                'BaseFont': 'Helvetica',
+                'Encoding': 'WinAnsiEncoding'
+            });
+            const fontRef = pdfDoc.context.register(font);
+            fontDict.set(PDFName.of('Helvetica'), fontRef);
+            if(page.node.get(PDFName.of('Resources')) instanceof PDFRef) {
+                docSnapshot.markRefForSave(page.node.get(PDFName.of('Resources')) as PDFRef);
+            } else {
+                docSnapshot.markRefForSave(page.ref);
+            }
+        }*/
 
         let incrementalPdf = Buffer.from(await pdfDoc.saveIncremental(docSnapshot));
         incrementalPdf = updateByteRange(incrementalPdf, pdf, pdfDoc.context);
