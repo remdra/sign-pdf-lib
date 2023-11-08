@@ -46,7 +46,7 @@ const parameters: SignDigitalParameters = {
 
     visual: {
         background: await fse.readFile(...),
-        boundingBox: { 
+        rectangle: { 
             left: 50, 
             top: 641, 
             right: 264, 
@@ -86,7 +86,7 @@ const placeholderPdf = await pdfSigner.addPlaceholderAsync(pdf, parameters);
 const parameters: AddFieldParameters = {
     pageNumber: 1,
 
-    boundingBox: { 
+    rectangle: { 
         left: 50, 
         top: 641, 
         right: 264, 
@@ -105,7 +105,7 @@ const fieldPdf = await pdfSigner.addFieldAsync(pdf, parameters);
 ## Get signature field list
 ```
 const pdf = await fse.readFile(...); 
-const signedPdf = await pdfSigner.getFieldsAsync(pdf);
+const fields = await pdfSigner.getFieldsAsync(pdf);
 ```
 
 ## Field signature parameters preparation:

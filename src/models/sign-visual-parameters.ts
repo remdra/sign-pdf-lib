@@ -4,5 +4,5 @@ export interface SignVisualParameters {
     pageNumber: number;
     
     background: Buffer;
-    boundingBox: Rectangle;
+    rectangle: Rectangle;
 };

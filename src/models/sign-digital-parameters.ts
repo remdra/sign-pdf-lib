@@ -11,6 +11,6 @@ export interface SignDigitalParameters {
 
     visual?: {
         background: Buffer;
-        boundingBox: Rectangle;
+        rectangle: Rectangle;
     }
 };

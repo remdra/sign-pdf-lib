@@ -8,6 +8,7 @@ import streamBuffers = require('stream-buffers');
 import { pdfSignerAssets13 } from '../test/_run-assets/pdf-signer/assets-pdf-signer-pdf-13';
 import { pdfSignerAssets17 } from '../test/_run-assets/pdf-signer/assets-pdf-signer-pdf-17';
 import { pdfSignerAssets17Streams } from '../test/_run-assets/pdf-signer/assets-pdf-signer-pdf-17-streams';
+import { pdfSignerAssetsRegression } from '../test/_run-assets/pdf-signer/assets-pdf-signer-regression';
 import { settingsAssets } from '../test/_run-assets/pdf-signer/assets-settings';
 import { generateAsset } from '../test/_helpers/generate-asset';
 import { bufferReplace } from '../test/_helpers/buffer-helpers';
@@ -125,14 +126,14 @@ describe('PdfSigner (pdf 1.3)', function () {
 
         addFieldInfo = {
             pageNumber: 1,
-            boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
         }
 
         visualInfo = {
             pageNumber: 1,
 
             background: pdfSignerAssets13.signaturePngImage,
-            boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
         };
 
         settings = {
@@ -200,7 +201,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         it('adds placeholder for positive coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets13.signaturePngImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
             
@@ -211,7 +212,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         it('adds placeholder for negative coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets13.signaturePngImage,
-                boundingBox: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
+                rectangle: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
             
@@ -222,7 +223,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         it('adds placeholder with jpg image', async function() {
             info.visual = {
                 background: pdfSignerAssets13.signatureJpgImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
 
@@ -233,7 +234,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         it('adds placeholder with png image', async function() {
             info.visual = {
                 background: pdfSignerAssets13.signaturePngImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
 
@@ -259,7 +260,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
 
         it('adds field for positive coordinates', async function() {
-            addFieldInfo.boundingBox = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
+            addFieldInfo.rectangle = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
             
             const res = await pdfSigner.addFieldAsync(pdfSignerAssets13.pdf, addFieldInfo);
             
@@ -268,7 +269,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
 
         it('adds field for negative coordinates', async function() {
-            addFieldInfo.boundingBox = { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 };
+            addFieldInfo.rectangle = { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 };
 
             const res = await pdfSigner.addFieldAsync(pdfSignerAssets13.pdf, addFieldInfo);
             
@@ -301,7 +302,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         it('signs for positive coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets13.signaturePngImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const res = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
             
@@ -312,7 +313,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         it('signs for negative coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets13.signaturePngImage,
-                boundingBox: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
+                rectangle: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
             };
             const res = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
             
@@ -323,11 +324,11 @@ describe('PdfSigner (pdf 1.3)', function () {
         it('signs with jpg image', async function() {
             info.visual = {
                 background: pdfSignerAssets13.signatureJpgImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
-            info.visual.boundingBox.left += 250;
-            info.visual.boundingBox.right += 250;
+            info.visual.rectangle.left += 250;
+            info.visual.rectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signAsync(signedPdf, info);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.jpgImageTwiceSignedPdf, twiceSignedPdf);
@@ -337,11 +338,11 @@ describe('PdfSigner (pdf 1.3)', function () {
         it('signs with png image', async function() {
             info.visual = {
                 background: pdfSignerAssets13.signaturePngImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
-            info.visual.boundingBox.left += 250;
-            info.visual.boundingBox.right += 250;
+            info.visual.rectangle.left += 250;
+            info.visual.rectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signAsync(signedPdf, info);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.pngImageTwiceSignedPdf, twiceSignedPdf);
@@ -382,8 +383,8 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
 
         it('signs specified field', async function() {
-            addFieldInfo.boundingBox.left += 250;
-            addFieldInfo.boundingBox.right += 250;
+            addFieldInfo.rectangle.left += 250;
+            addFieldInfo.rectangle.right += 250;
             const twoFieldsPdf = await pdfSigner.addFieldAsync(pdfSignerAssets13.fieldPdf, addFieldInfo);
 
             fieldInfo.fieldName = 'Signature2';
@@ -460,7 +461,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
 
         it('signs for positive coordinates', async function() {
-            visualInfo.boundingBox = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
+            visualInfo.rectangle = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
 
             const res = await pdfSigner.signVisualAsync(pdfSignerAssets13.pdf, visualInfo);
             
@@ -469,7 +470,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
 
         it('signs for negative coordinates', async function() {
-            visualInfo.boundingBox = { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 };
+            visualInfo.rectangle = { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 };
 
             const res = await pdfSigner.signVisualAsync(pdfSignerAssets13.pdf, visualInfo);
             
@@ -481,8 +482,8 @@ describe('PdfSigner (pdf 1.3)', function () {
             visualInfo.background = pdfSignerAssets13.signatureJpgImage;
 
             const signedPdf = await pdfSigner.signVisualAsync(pdfSignerAssets13.pdf, visualInfo);
-            visualInfo.boundingBox.left += 250;
-            visualInfo.boundingBox.right += 250;
+            visualInfo.rectangle.left += 250;
+            visualInfo.rectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signVisualAsync(signedPdf, visualInfo);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.jpgImageTwiceSignedVisualPdf, twiceSignedPdf);
@@ -493,8 +494,8 @@ describe('PdfSigner (pdf 1.3)', function () {
             visualInfo.background = pdfSignerAssets13.signaturePngImage;
 
             const signedPdf = await pdfSigner.signVisualAsync(pdfSignerAssets13.pdf, visualInfo);
-            visualInfo.boundingBox.left += 250;
-            visualInfo.boundingBox.right += 250;
+            visualInfo.rectangle.left += 250;
+            visualInfo.rectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signVisualAsync(signedPdf, visualInfo);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.pngImageTwiceSignedVisualPdf, twiceSignedPdf);
@@ -557,13 +558,13 @@ describe('PdfSigner (pdf 1.3)', function () {
 
         it('returns one field', async function() {
             const res = await pdfSigner.getFieldsAsync(pdfSignerAssets13.fieldPdf);
-            expect(res).to.be.deep.equal([ 'Signature1' ]);
+            expect(res).to.be.deep.equal([ { name: 'Signature1', pageNumber: 1 } ]);
         })
 
         it('returns two fields', async function() {
             const twoFieldsPdf = await pdfSigner.addFieldAsync(pdfSignerAssets13.fieldPdf, addFieldInfo);
             const res = await pdfSigner.getFieldsAsync(twoFieldsPdf);
-            expect(res).to.be.deep.equal([ 'Signature1', 'Signature2' ]);
+            expect(res).to.be.deep.equal([ { name: 'Signature1', pageNumber: 1 }, { name: 'Signature2', pageNumber: 1 } ]);
         })
 
         it('returns no fields for signed pdf', async function() {
@@ -622,14 +623,14 @@ describe('PdfSigner (pdf 1.7)', function () {
 
         addFieldInfo = {
             pageNumber: 1,
-            boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
         }
 
         visualInfo = {
             pageNumber: 1,
 
             background: pdfSignerAssets17.signaturePngImage,
-            boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
         };
 
         settings = {
@@ -698,7 +699,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         it('adds placeholder for positive coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets17.signaturePngImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info);
             
@@ -709,7 +710,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         it('adds placeholder for negative coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets17.signaturePngImage,
-                boundingBox: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
+                rectangle: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info);
             
@@ -720,7 +721,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         it('adds placeholder with jpg image', async function() {
             info.visual = {
                 background: pdfSignerAssets17.signatureJpgImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info);
 
@@ -731,7 +732,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         it('adds placeholder with png image', async function() {
             info.visual = {
                 background: pdfSignerAssets17.signaturePngImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info);
 
@@ -757,7 +758,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
 
         it('adds field for positive coordinates', async function() {
-            addFieldInfo.boundingBox = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
+            addFieldInfo.rectangle = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
             
             const res = await pdfSigner.addFieldAsync(pdfSignerAssets17.pdf, addFieldInfo);
             
@@ -766,7 +767,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
 
         it('adds field for negative coordinates', async function() {
-            addFieldInfo.boundingBox = { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 };
+            addFieldInfo.rectangle = { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 };
 
             const res = await pdfSigner.addFieldAsync(pdfSignerAssets17.pdf, addFieldInfo);
             
@@ -800,7 +801,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         it('signs for positive coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets17.signaturePngImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const res = await pdfSigner.signAsync(pdfSignerAssets17.pdf, info);
             
@@ -811,7 +812,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         it('signs for negative coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets17.signaturePngImage,
-                boundingBox: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
+                rectangle: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
             };
             const res = await pdfSigner.signAsync(pdfSignerAssets17.pdf, info);
             
@@ -822,11 +823,11 @@ describe('PdfSigner (pdf 1.7)', function () {
         it('signs with jpg image', async function() {
             info.visual = {
                 background: pdfSignerAssets17.signatureJpgImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets17.pdf, info);
-            info.visual.boundingBox.left += 250;
-            info.visual.boundingBox.right += 250;
+            info.visual.rectangle.left += 250;
+            info.visual.rectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signAsync(signedPdf, info);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.jpgImageTwiceSignedPdf, twiceSignedPdf);
@@ -836,11 +837,11 @@ describe('PdfSigner (pdf 1.7)', function () {
         it('signs with png image', async function() {
             info.visual = {
                 background: pdfSignerAssets17.signaturePngImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets17.pdf, info);
-            info.visual.boundingBox.left += 250;
-            info.visual.boundingBox.right += 250;
+            info.visual.rectangle.left += 250;
+            info.visual.rectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signAsync(signedPdf, info);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.pngImageTwiceSignedPdf, twiceSignedPdf);
@@ -881,8 +882,8 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
 
         it('signs specified field', async function() {
-            addFieldInfo.boundingBox.left += 250;
-            addFieldInfo.boundingBox.right += 250;
+            addFieldInfo.rectangle.left += 250;
+            addFieldInfo.rectangle.right += 250;
             const twoFieldsPdf = await pdfSigner.addFieldAsync(pdfSignerAssets17.fieldPdf, addFieldInfo);
 
             fieldInfo.fieldName = 'Signature2';
@@ -959,7 +960,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
 
         it('signs for positive coordinates', async function() {
-            visualInfo.boundingBox = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
+            visualInfo.rectangle = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
 
             const res = await pdfSigner.signVisualAsync(pdfSignerAssets17.pdf, visualInfo);
             
@@ -968,7 +969,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
 
         it('signs for negative coordinates', async function() {
-            visualInfo.boundingBox = { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 };
+            visualInfo.rectangle = { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 };
 
             const res = await pdfSigner.signVisualAsync(pdfSignerAssets17.pdf, visualInfo);
             
@@ -980,8 +981,8 @@ describe('PdfSigner (pdf 1.7)', function () {
             visualInfo.background = pdfSignerAssets17.signatureJpgImage;
 
             const signedPdf = await pdfSigner.signVisualAsync(pdfSignerAssets17.pdf, visualInfo);
-            visualInfo.boundingBox.left += 250;
-            visualInfo.boundingBox.right += 250;
+            visualInfo.rectangle.left += 250;
+            visualInfo.rectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signVisualAsync(signedPdf, visualInfo);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.jpgImageTwiceSignedVisualPdf, twiceSignedPdf);
@@ -992,8 +993,8 @@ describe('PdfSigner (pdf 1.7)', function () {
             visualInfo.background = pdfSignerAssets17.signaturePngImage;
 
             const signedPdf = await pdfSigner.signVisualAsync(pdfSignerAssets17.pdf, visualInfo);
-            visualInfo.boundingBox.left += 250;
-            visualInfo.boundingBox.right += 250;
+            visualInfo.rectangle.left += 250;
+            visualInfo.rectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signVisualAsync(signedPdf, visualInfo);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.pngImageTwiceSignedVisualPdf, twiceSignedPdf);
@@ -1056,13 +1057,13 @@ describe('PdfSigner (pdf 1.7)', function () {
 
         it('returns one field', async function() {
             const res = await pdfSigner.getFieldsAsync(pdfSignerAssets17.fieldPdf);
-            expect(res).to.be.deep.equal([ 'Signature1' ]);
+            expect(res).to.be.deep.equal([ { name: 'Signature1', pageNumber: 1 } ]);
         })
 
         it('returns two fields', async function() {
             const twoFieldsPdf = await pdfSigner.addFieldAsync(pdfSignerAssets17.fieldPdf, addFieldInfo);
             const res = await pdfSigner.getFieldsAsync(twoFieldsPdf);
-            expect(res).to.be.deep.equal([ 'Signature1', 'Signature2' ]);
+            expect(res).to.be.deep.equal([ { name: 'Signature1', pageNumber: 1 }, { name: 'Signature2', pageNumber: 1 } ]);
         })
 
         it('returns no fields for signed pdf', async function() {
@@ -1121,14 +1122,14 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
 
         addFieldInfo = {
             pageNumber: 1,
-            boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
         }
 
         visualInfo = {
             pageNumber: 1,
 
             background: pdfSignerAssets17Streams.signaturePngImage,
-            boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
         };
 
         settings = {
@@ -1197,7 +1198,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         it('adds placeholder for positive coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets17Streams.signaturePngImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info);
             
@@ -1208,7 +1209,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         it('adds placeholder for negative coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets17Streams.signaturePngImage,
-                boundingBox: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
+                rectangle: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info);
             
@@ -1219,7 +1220,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         it('adds placeholder with jpg image', async function() {
             info.visual = {
                 background: pdfSignerAssets17Streams.signatureJpgImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             }
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info);
 
@@ -1230,7 +1231,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         it('adds placeholder with png image', async function() {
             info.visual = {
                 background: pdfSignerAssets17Streams.signaturePngImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             }
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info);
 
@@ -1256,7 +1257,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
 
         it('adds field for positive coordinates', async function() {
-            addFieldInfo.boundingBox = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
+            addFieldInfo.rectangle = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
             
             const res = await pdfSigner.addFieldAsync(pdfSignerAssets17Streams.pdf, addFieldInfo);
             
@@ -1265,7 +1266,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
 
         it('adds field for negative coordinates', async function() {
-            addFieldInfo.boundingBox = { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 };
+            addFieldInfo.rectangle = { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 };
 
             const res = await pdfSigner.addFieldAsync(pdfSignerAssets17Streams.pdf, addFieldInfo);
             
@@ -1298,7 +1299,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         it('signs for positive coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets17Streams.signaturePngImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const res = await pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info);
             
@@ -1309,7 +1310,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         it('signs for negative coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets17Streams.signaturePngImage,
-                boundingBox: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
+                rectangle: { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 }
             };
             const res = await pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info);
             
@@ -1320,11 +1321,11 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         it('signs with jpg image', async function() {
             info.visual = {
                 background: pdfSignerAssets17Streams.signatureJpgImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info);
-            info.visual.boundingBox.left += 250;
-            info.visual.boundingBox.right += 250;
+            info.visual.rectangle.left += 250;
+            info.visual.rectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signAsync(signedPdf, info);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.jpgImageTwiceSignedPdf, twiceSignedPdf);
@@ -1334,11 +1335,11 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         it('signs with png image', async function() {
             info.visual = {
                 background: pdfSignerAssets17Streams.signaturePngImage,
-                boundingBox: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info);
-            info.visual.boundingBox.left += 250;
-            info.visual.boundingBox.right += 250;
+            info.visual.rectangle.left += 250;
+            info.visual.rectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signAsync(signedPdf, info);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.pngImageTwiceSignedPdf, twiceSignedPdf);
@@ -1370,7 +1371,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
     })
 
-    describe.skip('signFieldAsync', function() {
+    describe('signFieldAsync', function() {
         it('signs document', async function() {
             const res = await pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo);
             
@@ -1379,8 +1380,8 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
 
         it('signs specified field', async function() {
-            addFieldInfo.boundingBox.left += 250;
-            addFieldInfo.boundingBox.right += 250;
+            addFieldInfo.rectangle.left += 250;
+            addFieldInfo.rectangle.right += 250;
             const twoFieldsPdf = await pdfSigner.addFieldAsync(pdfSignerAssets17Streams.fieldPdf, addFieldInfo);
 
             fieldInfo.fieldName = 'Signature2';
@@ -1457,7 +1458,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
 
         it('signs for positive coordinates', async function() {
-            visualInfo.boundingBox = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
+            visualInfo.rectangle = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
 
             const res = await pdfSigner.signVisualAsync(pdfSignerAssets17Streams.pdf, visualInfo);
             
@@ -1466,7 +1467,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
 
         it('signs for negative coordinates', async function() {
-            visualInfo.boundingBox = { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 };
+            visualInfo.rectangle = { left: -50.0 - 214.0, top: -100 - 70, right: -50.0, bottom: -100 };
 
             const res = await pdfSigner.signVisualAsync(pdfSignerAssets17Streams.pdf, visualInfo);
             
@@ -1478,8 +1479,8 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
             visualInfo.background = pdfSignerAssets17Streams.signatureJpgImage;
 
             const signedPdf = await pdfSigner.signVisualAsync(pdfSignerAssets17Streams.pdf, visualInfo);
-            visualInfo.boundingBox.left += 250;
-            visualInfo.boundingBox.right += 250;
+            visualInfo.rectangle.left += 250;
+            visualInfo.rectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signVisualAsync(signedPdf, visualInfo);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.jpgImageTwiceSignedVisualPdf, twiceSignedPdf);
@@ -1490,8 +1491,8 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
             visualInfo.background = pdfSignerAssets17Streams.signaturePngImage;
 
             const signedPdf = await pdfSigner.signVisualAsync(pdfSignerAssets17Streams.pdf, visualInfo);
-            visualInfo.boundingBox.left += 250;
-            visualInfo.boundingBox.right += 250;
+            visualInfo.rectangle.left += 250;
+            visualInfo.rectangle.right += 250;
             const twiceSignedPdf = await pdfSigner.signVisualAsync(signedPdf, visualInfo);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.pngImageTwiceSignedVisualPdf, twiceSignedPdf);
@@ -1554,13 +1555,13 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
 
         it('returns one field', async function() {
             const res = await pdfSigner.getFieldsAsync(pdfSignerAssets17Streams.fieldPdf);
-            expect(res).to.be.deep.equal([ 'Signature1' ]);
+            expect(res).to.be.deep.equal([ { name: 'Signature1', pageNumber: 1 } ]);
         })
 
         it('returns two fields', async function() {
             const twoFieldsPdf = await pdfSigner.addFieldAsync(pdfSignerAssets17Streams.fieldPdf, addFieldInfo);
             const res = await pdfSigner.getFieldsAsync(twoFieldsPdf);
-            expect(res).to.be.deep.equal([ 'Signature1', 'Signature2' ]);
+            expect(res).to.be.deep.equal([ { name: 'Signature1', pageNumber: 1 }, { name: 'Signature2', pageNumber: 1 } ]);
         })
 
 
@@ -1568,5 +1569,90 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
             const res = await pdfSigner.getFieldsAsync(pdfSignerAssets17Streams.signedPdf);
             expect(res).to.be.deep.equal([]);
         })
+    })
+})
+
+
+describe('PdfSigner Regression', function () {
+
+    let pdfSigner: PdfSigner;
+    let info: SignDigitalParameters;
+    let fieldInfo: SignFieldParameters;
+    let addFieldInfo: AddFieldParameters;
+    let visualInfo: SignVisualParameters;
+    let settings: SignerSettings;
+
+    beforeEach(function () {
+        info = {
+            pageNumber: 1,
+
+            name: 'Test Signer',
+            location: 'Timisoara',
+            reason: 'Signing',
+            date: new Date(2023, 1, 20, 18, 47, 35), 
+            contactInfo: 'signer@semnezonline.ro'
+        };
+
+        fieldInfo = {
+            fieldName: 'Signature1',
+
+            name: 'Test Signer',
+            location: 'Timisoara',
+            reason: 'Signing',
+            date: new Date(2023, 1, 20, 18, 47, 35), 
+            contactInfo: 'signer@semnezonline.ro',
+
+            background: pdfSignerAssets13.signatureJpgImage,
+            texts: [
+                {
+                    lines: [ 
+                        'JOHN', 
+                        'DOE'
+                    ]
+                }, {
+                    lines: [ 
+                        'Digitally signed by', 
+                        'JOHN DOE', 
+                        'Date: 2023.11.03', 
+                        '20:28:46 +02\'00\''
+                    ]
+                }
+            ]
+        };
+
+        addFieldInfo = {
+            pageNumber: 1,
+            rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+        }
+
+        visualInfo = {
+            pageNumber: 1,
+
+            background: pdfSignerAssets13.signaturePngImage,
+            rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+        };
+
+        settings = {
+            signatureLength: 4000 - 6,
+            rangePlaceHolder: 9999999,
+            
+            p12Certificate: settingsAssets.p12Certificate,
+            pemCertificate: settingsAssets.pemCertificate,
+            pemKey: settingsAssets.pemKey,
+            certificatePassword: 'password'
+        }
+        pdfSigner = new PdfSigner(settings);
+    });
+
+    it('signs field', async function() {
+        fieldInfo.fieldName = 'Signature28';
+
+        const signed = await pdfSigner.signFieldAsync(pdfSignerAssetsRegression.fieldPdf, fieldInfo);
+            
+        await generateAsset.generateBinaryAsync(pdfSignerAssetsRegression.paths.fieldSignedPdf, signed);
+        expect(signed).to.be.deep.equal(pdfSignerAssetsRegression.fieldSignedPdf);
+
+        const fields = await pdfSigner.getFieldsAsync(pdfSignerAssetsRegression.fieldPdf);
+        expect(fields).to.be.deep.equal([ { name: 'Signature28', pageNumber: 9 } ])
     })
 })
