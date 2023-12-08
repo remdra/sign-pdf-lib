@@ -9,6 +9,6 @@ export interface SignFieldParameters {
     date?: Date; 
     contactInfo?: string;
 
-    background: Buffer;
-    texts: SignatureText[];
+    background?: Buffer;
+    texts?: SignatureText[];
 };

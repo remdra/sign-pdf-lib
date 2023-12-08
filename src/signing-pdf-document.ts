@@ -153,7 +153,7 @@ export class SigningPdfDocument {
         this.#nameProvider = new NameProvider(this.getSignatureCount() + 1);
     }
 
-    addSignatureField({ name, pageIndex, rectangle, visualRef, placeholderRef }: { name?: string, pageIndex: number, rectangle?: Rectangle, visualRef?: PDFRef, placeholderRef? : PDFRef }): void {
+    addSignatureField({ name, pageIndex, rectangle, visualRef, placeholderRef, embedFont }: { name?: string, pageIndex: number, rectangle?: Rectangle, visualRef?: PDFRef, placeholderRef? : PDFRef, embedFont: boolean }): void {
         this.ensurePageAnnots(pageIndex);
 
         name = name || this.#nameProvider.getSignatureName();
@@ -190,6 +190,10 @@ export class SigningPdfDocument {
         formFields.push(fieldRef);
 
         this.#docSnapshot.markObjForSave(formDict);
+
+        if(embedFont) {
+            this.embedSignatureFont(page.node);
+        }
     }
 
     async addVisualAsync({ background, texts }: { background?: Buffer; texts?: SignatureText[] }): Promise<PDFRef | undefined> {
@@ -245,13 +249,12 @@ export class SigningPdfDocument {
             'FT': 'XObject',
             'Subtype': 'Form',
             'BBox': [ 0.0, 0.0, 214, 70.0 ],
+            'Resources': {}
         }
     
         if(backgroundRef) { 
-            visualObj['Resources'] = {
-                'XObject': {
-                    [`${this.#nameProvider.getFrmName()}`]: backgroundRef
-                }
+            visualObj['Resources']['XObject'] = {
+                [`${this.#nameProvider.getFrmName()}`]: backgroundRef
             }
         }
     
@@ -291,7 +294,7 @@ export class SigningPdfDocument {
         return this.#pdfDoc.context.register(placeholder);
     }
 
-    updateSignature(name: string, { placeholderRef, visualRef }: { placeholderRef: PDFRef, visualRef?: PDFRef }): void {
+    updateSignature(name: string, { placeholderRef, visualRef, embedFont }: { placeholderRef: PDFRef, visualRef?: PDFRef, embedFont: boolean }): void {
         const signature = this.getSignature(name);
         signature.set(PDFName.of('V'), placeholderRef);
         if(visualRef) {
@@ -301,9 +304,8 @@ export class SigningPdfDocument {
         }
         this.#docSnapshot.markObjForSave(signature);
 
-        if(visualRef) {
-            const page = signature.lookup(PDFName.of('P'), PDFDict);
-            this.embedSignatureFont(page);
+        if(embedFont) {
+            this.embedSignatureFont(signature.lookup(PDFName.of('P'), PDFDict));
         }
     }
     

@@ -7,6 +7,7 @@ import { emptyRectangle } from './models/rectangle';
 import { SignatureField } from './models/signature-field';
 import { SigningPdfDocument } from './signing-pdf-document';
 import { SignatureEmbeder } from './signature-embeder';
+import { SignatureComputer } from './signature-computer';
 
 function takeSnapshot(pdfDoc: PDFDocument, pageNumber?: number): DocumentSnapshot {
     const docSnapshot = pdfDoc.takeSnapshot();
@@ -180,69 +181,6 @@ function getDateMaybe(dict: PDFDict, key: string): Date | undefined {
     return value?.decodeDate();
 }
 
-interface SigningSettings {
-    privateKey: any;
-    certificate: any;
-    certificates: any[];
-}
-
-function getSigningSettingsP12(p12Certificate: Buffer, certificatePassword: string): SigningSettings {
-    const forgeCert = forge.util.createBuffer(p12Certificate.toString('binary'));
-    const p12Asn1 = forge.asn1.fromDer(forgeCert);
-    const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, certificatePassword);
-
-    const certBags = p12.getBags({ bagType: forge.pki.oids.certBag })[forge.pki.oids.certBag];
-    if(!certBags) {
-        throw new Error('Invalid "certBags".');
-    }
-    const keyBags = p12.getBags({ bagType: forge.pki.oids.pkcs8ShroudedKeyBag })[forge.pki.oids.pkcs8ShroudedKeyBag];
-    if(!keyBags) {
-        throw new Error('Invalid "keyBags".');
-    }
-
-    const privateKey = keyBags[0].key as any;
-    if(!privateKey) {
-        throw new Error('Invalid "privateKey".');
-    }
-
-    const certificates: any[] = [];
-    let certificate;
-    Object.keys(certBags).forEach((i) => {
-        const cert = (certBags as any)[i].cert;
-        const { publicKey } = cert;
-
-        certificates.push(cert);
-
-        if (privateKey.n.compareTo(publicKey.n) === 0
-            && privateKey.e.compareTo(publicKey.e) === 0
-        ) {
-            certificate = cert;
-        }
-    });
-
-    if (typeof certificate === 'undefined') {
-        throw new Error('Failed to find a certificate that matches the private key.');
-    }
-
-    return {
-        privateKey,
-        certificate,
-        certificates
-    };
-}
-
-
-function getSigningSettingsPem(pemCertificate: string, pemKey: string, certificatePassword: string): SigningSettings {
-    const privateKey = forge.pki.decryptRsaPrivateKey(pemKey, certificatePassword);
-    var certificate = forge.pki.certificateFromPem(pemCertificate);
-
-    return {
-        privateKey,
-        certificate,
-        certificates: [ certificate ]
-    };
-}
-
 function getCoordinate(coordinate: number, limit: number): number {
     return coordinate >= 0
         ? coordinate
@@ -264,20 +202,25 @@ function getSignatureRectangle(visualRectangle: Rectangle | undefined, pageSize:
 
 export class PdfSigner {
 
-    constructor(
-        private settings: SignerSettings
-    ) {
+    #settings: SignerSettings;
+    #signatureComputer: SignatureComputer;
+
+    constructor(settings: SignerSettings) {
+        this.#settings = settings;
+        this.#signatureComputer = new SignatureComputer(settings);
     }
 
     public async addPlaceholderAsync(pdf: Buffer, info: SignDigitalParameters): Promise<Buffer> {
         const signingPdfDoc = await SigningPdfDocument.loadAsync(pdf);
         const pageIndex = info.pageNumber - 1;
-        const visualRef = await signingPdfDoc.addVisualAsync({ background: info.visual?.background });
+        const background = (info.visual && 'background' in info.visual) ? info.visual.background : undefined;
+        const texts = (info.visual && 'texts' in info.visual) ? info.visual.texts : undefined;
+        const visualRef = await signingPdfDoc.addVisualAsync({ background, texts });
         const placeholderInfo = this.getPlaceholderParameters();
         const placeholderRef = signingPdfDoc.addSignaturePlaceholder({ ...info, ...placeholderInfo });
         const rectangle = info.visual?.rectangle;
-        signingPdfDoc.addSignatureField({ pageIndex, rectangle, visualRef, placeholderRef });
-
+        const embedFont = !!(info.visual && 'texts' in info.visual);
+        signingPdfDoc.addSignatureField({ pageIndex, rectangle, visualRef, placeholderRef, embedFont });
         return signingPdfDoc.saveAsync(pdf);
     }
 
@@ -286,7 +229,8 @@ export class PdfSigner {
         const pageIndex = info.pageNumber - 1;
         const visualRef = signingPdfDoc.addEmptyVisual();
         const rectangle = info.rectangle;
-        signingPdfDoc.addSignatureField({ pageIndex, rectangle, visualRef });
+        const embedFont = false;
+        signingPdfDoc.addSignatureField({ pageIndex, rectangle, visualRef, embedFont });
 
         return signingPdfDoc.saveAsync(pdf);
     }
@@ -295,7 +239,7 @@ export class PdfSigner {
         const placeholderPdf = await this.addPlaceholderAsync(pdf, info);
         const signatureEmbeder = await SignatureEmbeder.loadAsync(placeholderPdf);
         const toBeSignedBuffer = signatureEmbeder.getSignBuffer();
-        const signature = this.computeSignature(toBeSignedBuffer, info.date || new Date());
+        const signature = this.#signatureComputer.computeSignature(toBeSignedBuffer, info.date || new Date());
         return signatureEmbeder.embedSignature(signature);
     }
 
@@ -304,11 +248,12 @@ export class PdfSigner {
         const placeholderInfo = this.getPlaceholderParameters();
         const placeholderRef = signingPdfDoc.addSignaturePlaceholder({ ...info, ...placeholderInfo });
         const visualRef = await signingPdfDoc.addVisualAsync({ background: info.background, texts: info.texts });
-        signingPdfDoc.updateSignature(info.fieldName, { placeholderRef, visualRef });
+        const embedFont = !!('texts' in info);
+        signingPdfDoc.updateSignature(info.fieldName, { placeholderRef, visualRef, embedFont });
         const placeholderPdf = await signingPdfDoc.saveAsync(pdf);
         const signatureEmbeder = await SignatureEmbeder.loadAsync(placeholderPdf);
         const toBeSignedBuffer = signatureEmbeder.getSignBuffer();
-        const signature = this.computeSignature(toBeSignedBuffer, info.date || new Date());
+        const signature = this.#signatureComputer.computeSignature(toBeSignedBuffer, info.date || new Date());
         return signatureEmbeder.embedSignature(signature);
     }
 
@@ -403,48 +348,10 @@ export class PdfSigner {
         };
     }
 
-    private computeSignature(signBuffer: Buffer, date: Date): Buffer {
-        const { privateKey, certificates, certificate } = this.getSigningSettings();
-
-        const p7 = forge.pkcs7.createSignedData();
-        p7.content = forge.util.createBuffer(signBuffer.toString('binary'));
-        certificates.forEach(cert => p7.addCertificate(cert));
-        p7.addSigner({
-            key: privateKey,
-            certificate,
-            digestAlgorithm: forge.pki.oids.sha256,
-            authenticatedAttributes: [
-                {
-                    type: forge.pki.oids.contentType,
-                    value: forge.pki.oids.data
-                }, {
-                    type: forge.pki.oids.messageDigest
-                }, {
-                    type: forge.pki.oids.signingTime,
-                    value: PDFString.fromDate(date).asString()
-                }
-            ],
-        });
-
-        p7.sign({ detached: true });
-
-        return Buffer.from(forge.asn1.toDer(p7.toAsn1()).getBytes(), 'binary');
-    }
-
-    private getSigningSettings() : SigningSettings {
-        if(this.settings.pemCertificate && this.settings.pemKey) {
-            return getSigningSettingsPem(this.settings.pemCertificate, this.settings.pemKey, this.settings.certificatePassword);
-        } else if(this.settings.p12Certificate) {
-            return getSigningSettingsP12(this.settings.p12Certificate, this.settings.certificatePassword);
-        } else {
-            throw new Error('No certificate specified.');
-        }
-    }
-
     private getPlaceholderParameters() {
         return {
-            signaturePlaceholder: 'A'.repeat(this.settings.signatureLength),
-            rangePlaceHolder: this.settings.rangePlaceHolder
+            signaturePlaceholder: 'A'.repeat(this.#settings.signatureLength),
+            rangePlaceHolder: this.#settings.rangePlaceHolder
         };
     }
 }

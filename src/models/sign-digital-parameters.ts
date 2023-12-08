@@ -1,4 +1,5 @@
 import { Rectangle } from "./rectangle";
+import { SignatureText } from "./signature-text";
 
 export interface SignDigitalParameters {
     pageNumber: number;
@@ -10,7 +11,14 @@ export interface SignDigitalParameters {
     contactInfo?: string;
 
     visual?: {
-        background: Buffer;
         rectangle: Rectangle;
+        background: Buffer;
+    } | {
+        rectangle: Rectangle;
+        texts: SignatureText[];
+    } | {
+        rectangle: Rectangle;
+        background: Buffer;
+        texts: SignatureText[];
     }
 };

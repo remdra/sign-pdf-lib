@@ -17,6 +17,8 @@ const _paths = {
   noInfoPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder-no-info.pdf'),
   jpgImagePlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder-jpg-image.pdf'),
   pngImagePlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder-png-image.pdf'),
+  textsPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder-texts.pdf'),
+  textsAndBackgroundPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'placeholder-texts-and-background.pdf'),
 
   signatureJpgImage: path.join('test', '_assets', 'pdf-signer', 'signature.jpg'),
   signaturePngImage: path.join('test', '_assets', 'pdf-signer', 'signature.png'),
@@ -47,6 +49,10 @@ const _paths = {
   pngImageTwiceSignedVisualPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'visual-signed-twice-png-image.pdf'),
 
   fieldSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'field-signed.pdf'),
+  noBackgroundFieldSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'field-signed-no-background.pdf'),
+  noTextsFieldSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'field-signed-no-texts.pdf'),
+  noVisualFieldSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'field-signed-no-visual.pdf'),
+
   specifiedFieldSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'field-signed-specified-field.pdf'),
   jpgImageFieldSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'field-signed-jpg-image.pdf'),
   pngImageFieldSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-17-streams', 'field-signed-png-image.pdf')
@@ -68,6 +74,8 @@ class PdfSignerAssets17Streams {
   private _noInfoPlaceholderPdf = new BinaryAssetFile(_paths.noInfoPlaceholderPdf);
   private _jpgImagePlaceholderPdf = new BinaryAssetFile(_paths.jpgImagePlaceholderPdf);
   private _pngImagePlaceholderPdf = new BinaryAssetFile(_paths.pngImagePlaceholderPdf);
+  private _textsPlaceholderPdf = new BinaryAssetFile(_paths.textsPlaceholderPdf);
+  private _textsAndBackgroundPlaceholderPdf = new BinaryAssetFile(_paths.textsAndBackgroundPlaceholderPdf);
 
   private _signatureJpgImage = new BinaryAssetFile(_paths.signatureJpgImage);
   private _signaturePngImage = new BinaryAssetFile(_paths.signaturePngImage);
@@ -98,6 +106,9 @@ class PdfSignerAssets17Streams {
   private _pngImageTwiceSignedVisualPdf = new BinaryAssetFile(_paths.pngImageTwiceSignedVisualPdf);
 
   private _fieldSignedPdf = new BinaryAssetFile(_paths.fieldSignedPdf);
+  private _noBackgroundFieldSignedPdf = new BinaryAssetFile(_paths.noBackgroundFieldSignedPdf);
+  private _noTextsFieldSignedPdf = new BinaryAssetFile(_paths.noTextsFieldSignedPdf);
+  private _noVisualFieldSignedPdf = new BinaryAssetFile(_paths.noVisualFieldSignedPdf);
   private _specifiedFieldSignedPdf = new BinaryAssetFile(_paths.specifiedFieldSignedPdf);
   private _jpgImageFieldSignedPdf = new BinaryAssetFile(_paths.jpgImageFieldSignedPdf);
   private _pngImageFieldSignedPdf = new BinaryAssetFile(_paths.pngImageFieldSignedPdf);
@@ -115,6 +126,8 @@ class PdfSignerAssets17Streams {
     noInfoPlaceholderPdf: _paths.noInfoPlaceholderPdf,
     jpgImagePlaceholderPdf: _paths.jpgImagePlaceholderPdf,
     pngImagePlaceholderPdf: _paths.pngImagePlaceholderPdf,
+    textsPlaceholderPdf: _paths.textsPlaceholderPdf,
+    textsAndBackgroundPlaceholderPdf: _paths.textsAndBackgroundPlaceholderPdf,
 
     signedPdf: _paths.signedPdf,
     positiveCoordinatesSignedPdf: _paths.positiveCoordinatesSignedPdf,
@@ -142,6 +155,9 @@ class PdfSignerAssets17Streams {
     pngImageTwiceSignedVisualPdf: _paths.pngImageTwiceSignedVisualPdf,
 
     fieldSignedPdf: _paths.fieldSignedPdf,
+    noBackgroundFieldSignedPdf: _paths.noBackgroundFieldSignedPdf,
+    noTextsFieldSignedPdf: _paths.noTextsFieldSignedPdf,
+    noVisualFieldSignedPdf: _paths.noVisualFieldSignedPdf,
     specifiedFieldSignedPdf: _paths.specifiedFieldSignedPdf,
     jpgImageFieldSignedPdf: _paths.jpgImageFieldSignedPdf,
     pngImageFieldSignedPdf: _paths.pngImageFieldSignedPdf
@@ -193,6 +209,14 @@ class PdfSignerAssets17Streams {
 
   get pngImagePlaceholderPdf() {
     return this._pngImagePlaceholderPdf.content;
+  }
+
+  get textsPlaceholderPdf() {
+    return this._textsPlaceholderPdf.content;
+  }
+
+  get textsAndBackgroundPlaceholderPdf() {
+    return this._textsAndBackgroundPlaceholderPdf.content;
   }
 
   get signatureJpgImage() {
@@ -281,6 +305,18 @@ class PdfSignerAssets17Streams {
 
   get fieldSignedPdf() {
     return this._fieldSignedPdf.content;
+  }
+  
+  get noBackgroundFieldSignedPdf() {
+    return this._noBackgroundFieldSignedPdf.content;
+  }
+  
+  get noTextsFieldSignedPdf() {
+    return this._noTextsFieldSignedPdf.content;
+  }
+  
+  get noVisualFieldSignedPdf() {
+    return this._noVisualFieldSignedPdf.content;
   }
   
   get specifiedFieldSignedPdf() {

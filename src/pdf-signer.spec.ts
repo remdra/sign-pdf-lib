@@ -241,6 +241,57 @@ describe('PdfSigner (pdf 1.3)', function () {
             await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.pngImagePlaceholderPdf, res);
             expect(res).to.be.deep.equal(pdfSignerAssets13.pngImagePlaceholderPdf);
         })
+
+        it('adds placeholder with texts', async function() {
+            info.visual = {
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 },
+                texts: [
+                    {
+                        lines: [ 
+                            'JOHN', 
+                            'DOE'
+                        ]
+                    }, {
+                        lines: [ 
+                            'Digitally signed by', 
+                            'JOHN DOE', 
+                            'Date: 2023.11.03', 
+                            '20:28:46 +02\'00\''
+                        ]
+                    }
+                ]
+                };
+            const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.textsPlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.textsPlaceholderPdf);
+        })
+
+        it('adds placeholder with texts and background', async function() {
+            info.visual = {
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 },
+                background: pdfSignerAssets13.signaturePngImage,
+                texts: [
+                    {
+                        lines: [ 
+                            'JOHN', 
+                            'DOE'
+                        ]
+                    }, {
+                        lines: [ 
+                            'Digitally signed by', 
+                            'JOHN DOE', 
+                            'Date: 2023.11.03', 
+                            '20:28:46 +02\'00\''
+                        ]
+                    }
+                ]
+                };
+            const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.textsAndBackgroundPlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.textsAndBackgroundPlaceholderPdf);
+        })
     })
 
     describe('addFieldAsync', function() {
@@ -380,6 +431,35 @@ describe('PdfSigner (pdf 1.3)', function () {
             
             await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.fieldSignedPdf, res);
             expect(res).to.be.deep.equal(pdfSignerAssets13.fieldSignedPdf);
+        })
+
+        it('signs document (no background)', async function() {
+            delete fieldInfo.background;
+
+            const res = await pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noBackgroundFieldSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.noBackgroundFieldSignedPdf);
+        })
+
+        it('signs document (no texts)', async function() {
+            delete fieldInfo.texts;
+
+            const res = await pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noTextsFieldSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.noTextsFieldSignedPdf);
+        })
+
+        it('signs document (no visual)', async function() {
+            delete fieldInfo.texts;
+            delete fieldInfo.background;
+
+
+            const res = await pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noVisualFieldSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets13.noVisualFieldSignedPdf);
         })
 
         it('signs specified field', async function() {
@@ -739,6 +819,57 @@ describe('PdfSigner (pdf 1.7)', function () {
             await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.pngImagePlaceholderPdf, res);
             expect(res).to.be.deep.equal(pdfSignerAssets17.pngImagePlaceholderPdf);
         })
+
+        it('adds placeholder with texts', async function() {
+            info.visual = {
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 },
+                texts: [
+                    {
+                        lines: [ 
+                            'JOHN', 
+                            'DOE'
+                        ]
+                    }, {
+                        lines: [ 
+                            'Digitally signed by', 
+                            'JOHN DOE', 
+                            'Date: 2023.11.03', 
+                            '20:28:46 +02\'00\''
+                        ]
+                    }
+                ]
+                };
+            const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.textsPlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.textsPlaceholderPdf);
+        })
+
+        it('adds placeholder with texts and background', async function() {
+            info.visual = {
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 },
+                background: pdfSignerAssets13.signaturePngImage,
+                texts: [
+                    {
+                        lines: [ 
+                            'JOHN', 
+                            'DOE'
+                        ]
+                    }, {
+                        lines: [ 
+                            'Digitally signed by', 
+                            'JOHN DOE', 
+                            'Date: 2023.11.03', 
+                            '20:28:46 +02\'00\''
+                        ]
+                    }
+                ]
+                };
+            const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.textsAndBackgroundPlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.textsAndBackgroundPlaceholderPdf);
+        })
     })
 
     describe('addFieldAsync', function() {
@@ -775,7 +906,6 @@ describe('PdfSigner (pdf 1.7)', function () {
             expect(res).to.be.deep.equal(pdfSignerAssets17.negativeCoordinatesFieldPdf);
         })
     })
-    
     
     describe('signAsync', function() {
         it('signs document', async function() {
@@ -879,6 +1009,35 @@ describe('PdfSigner (pdf 1.7)', function () {
             
             await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.fieldSignedPdf, res);
             expect(res).to.be.deep.equal(pdfSignerAssets17.fieldSignedPdf);
+        })
+
+        it('signs document (no background)', async function() {
+            delete fieldInfo.background;
+
+            const res = await pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.noBackgroundFieldSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.noBackgroundFieldSignedPdf);
+        })
+
+        it('signs document (no texts)', async function() {
+            delete fieldInfo.texts;
+
+            const res = await pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.noTextsFieldSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.noTextsFieldSignedPdf);
+        })
+
+        it('signs document (no visual)', async function() {
+            delete fieldInfo.texts;
+            delete fieldInfo.background;
+
+
+            const res = await pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.noVisualFieldSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17.noVisualFieldSignedPdf);
         })
 
         it('signs specified field', async function() {
@@ -1238,6 +1397,57 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
             await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.pngImagePlaceholderPdf, res);
             expect(res).to.be.deep.equal(pdfSignerAssets17Streams.pngImagePlaceholderPdf);
         })
+
+        it('adds placeholder with texts', async function() {
+            info.visual = {
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 },
+                texts: [
+                    {
+                        lines: [ 
+                            'JOHN', 
+                            'DOE'
+                        ]
+                    }, {
+                        lines: [ 
+                            'Digitally signed by', 
+                            'JOHN DOE', 
+                            'Date: 2023.11.03', 
+                            '20:28:46 +02\'00\''
+                        ]
+                    }
+                ]
+                };
+            const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.textsPlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.textsPlaceholderPdf);
+        })
+
+        it('adds placeholder with texts and background', async function() {
+            info.visual = {
+                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 },
+                background: pdfSignerAssets13.signaturePngImage,
+                texts: [
+                    {
+                        lines: [ 
+                            'JOHN', 
+                            'DOE'
+                        ]
+                    }, {
+                        lines: [ 
+                            'Digitally signed by', 
+                            'JOHN DOE', 
+                            'Date: 2023.11.03', 
+                            '20:28:46 +02\'00\''
+                        ]
+                    }
+                ]
+                };
+            const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.textsAndBackgroundPlaceholderPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.textsAndBackgroundPlaceholderPdf);
+        })
     })
 
     describe('addFieldAsync', function() {
@@ -1377,6 +1587,35 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
             
             await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.fieldSignedPdf, res);
             expect(res).to.be.deep.equal(pdfSignerAssets17Streams.fieldSignedPdf);
+        })
+
+        it('signs document (no background)', async function() {
+            delete fieldInfo.background;
+
+            const res = await pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.noBackgroundFieldSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.noBackgroundFieldSignedPdf);
+        })
+
+        it('signs document (no texts)', async function() {
+            delete fieldInfo.texts;
+
+            const res = await pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.noTextsFieldSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.noTextsFieldSignedPdf);
+        })
+
+        it('signs document (no visual)', async function() {
+            delete fieldInfo.texts;
+            delete fieldInfo.background;
+
+
+            const res = await pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo);
+            
+            await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.noVisualFieldSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets17Streams.noVisualFieldSignedPdf);
         })
 
         it('signs specified field', async function() {
