@@ -296,8 +296,14 @@ export class SigningPdfDocument {
 
     updateSignature(name: string, { placeholderRef, visualRef, embedFont }: { placeholderRef: PDFRef, visualRef?: PDFRef, embedFont: boolean }): void {
         const signature = this.getSignature(name);
+        if(signature.get(PDFName.of('V'))) {
+            throw new Error('Already signed.');
+        }
         signature.set(PDFName.of('V'), placeholderRef);
         if(visualRef) {
+            if(!signature.get(PDFName.of('AP'))) {
+                signature.set(PDFName.of('AP'), this.#pdfDoc.context.obj({}));
+            }
             signature.lookup(PDFName.of('AP'), PDFDict).set(PDFName.of('N'), visualRef);
         } else {
             signature.delete(PDFName.of('AP'));

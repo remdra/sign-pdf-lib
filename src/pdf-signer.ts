@@ -227,10 +227,9 @@ export class PdfSigner {
     public async addFieldAsync(pdf: Buffer, info: AddFieldParameters): Promise<Buffer> {
         const signingPdfDoc = await SigningPdfDocument.loadAsync(pdf);
         const pageIndex = info.pageNumber - 1;
-        const visualRef = signingPdfDoc.addEmptyVisual();
         const rectangle = info.rectangle;
         const embedFont = false;
-        signingPdfDoc.addSignatureField({ pageIndex, rectangle, visualRef, embedFont });
+        signingPdfDoc.addSignatureField({ pageIndex, rectangle, embedFont });
 
         return signingPdfDoc.saveAsync(pdf);
     }
