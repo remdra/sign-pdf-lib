@@ -22,7 +22,7 @@ export class SignatureEmbeder {
 
     getSignBuffer(): Buffer {
         return Buffer.concat([
-            this.#pdf.subarray(this.#signRanges.rangeBefore.start, this.#signRanges.rangeBefore.start + this.#signRanges.rangeBefore.length), 
+            this.#pdf.subarray(this.#signRanges.before.start, this.#signRanges.before.start + this.#signRanges.before.length), 
             this.#pdf.subarray(this.#signRanges.rangeAfter.start, this.#signRanges.rangeAfter.start + this.#signRanges.rangeAfter.length)
         ]);
     }
@@ -42,7 +42,7 @@ export class SignatureEmbeder {
         const fullSignature = Buffer.concat([Buffer.from(hexSignature), Buffer.from('0'.repeat(diff))]);
     
         return Buffer.concat([
-            this.#pdf.subarray(this.#signRanges.rangeBefore.start, this.#signRanges.rangeBefore.start + this.#signRanges.rangeBefore.length + 1), 
+            this.#pdf.subarray(this.#signRanges.before.start, this.#signRanges.before.start + this.#signRanges.before.length + 1), 
             fullSignature, 
             this.#pdf.subarray(this.#signRanges.rangeAfter.start - 1)
         ]);

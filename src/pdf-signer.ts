@@ -1,10 +1,11 @@
-import { DocumentSnapshot, PDFArray, PDFContext, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFPage, PDFRef, PDFStream, PDFString } from 'pdf-lib';
+import { DocumentSnapshot, PDFArray, PDFContext, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFRef, PDFString } from 'pdf-lib';
 import * as _ from 'lodash';
 import * as forge from 'node-forge';
 
-import { PdfVerifySignaturesResult, VerifySignatureResult, SignDigitalParameters, SignFieldParameters, AddFieldParameters, SignVisualParameters, SignatureParameters, SignerSettings, Rectangle, Size, PdfByteRanges, SignatureText } from './models/index';
+import { PdfVerifySignaturesResult, VerifySignatureResult, Rectangle, Size, PdfByteRanges, SignatureField } from './models';
+import { SignFieldParameters, AddFieldParameters, SignVisualParameters, SignatureParameters, SignDigitalParameters } from './models/parameters';
+import { SignerSettings } from './models/settings';
 import { emptyRectangle } from './models/rectangle';
-import { SignatureField } from './models/signature-field';
 import { SigningPdfDocument } from './signing-pdf-document';
 import { SignatureEmbeder } from './signature-embeder';
 import { SignatureComputer } from './signature-computer';
@@ -86,7 +87,7 @@ function getPdfRangesFromSignature(signature: PDFDict): PdfByteRanges {
 
 
     return {
-        rangeBefore: {
+        before: {
             start: start1,
             length: length1
         },
@@ -103,7 +104,7 @@ function getPdfRangesFromSignature(signature: PDFDict): PdfByteRanges {
 
 function getSignBuffer(pdf: Buffer, signRanges: PdfByteRanges): Buffer {
     return Buffer.concat([
-        pdf.subarray(signRanges.rangeBefore.start, signRanges.rangeBefore.start + signRanges.rangeBefore.length), 
+        pdf.subarray(signRanges.before.start, signRanges.before.start + signRanges.before.length), 
         pdf.subarray(signRanges.rangeAfter.start, signRanges.rangeAfter.start + signRanges.rangeAfter.length)
     ]);
 }
@@ -207,7 +208,7 @@ export class PdfSigner {
 
     constructor(settings: SignerSettings) {
         this.#settings = settings;
-        this.#signatureComputer = new SignatureComputer(settings);
+        this.#signatureComputer = new SignatureComputer(settings.signatureComputer);
     }
 
     public async addPlaceholderAsync(pdf: Buffer, info: SignDigitalParameters): Promise<Buffer> {
@@ -217,7 +218,7 @@ export class PdfSigner {
         const texts = (info.visual && 'texts' in info.visual) ? info.visual.texts : undefined;
         const visualRef = await signingPdfDoc.addVisualAsync({ background, texts });
         const placeholderInfo = this.getPlaceholderParameters();
-        const placeholderRef = signingPdfDoc.addSignaturePlaceholder({ ...info, ...placeholderInfo });
+        const placeholderRef = signingPdfDoc.addSignaturePlaceholder({ ...info.signature, ...placeholderInfo });
         const rectangle = info.visual?.rectangle;
         const embedFont = !!(info.visual && 'texts' in info.visual);
         signingPdfDoc.addSignatureField({ pageIndex, rectangle, visualRef, placeholderRef, embedFont });
@@ -238,21 +239,21 @@ export class PdfSigner {
         const placeholderPdf = await this.addPlaceholderAsync(pdf, info);
         const signatureEmbeder = await SignatureEmbeder.loadAsync(placeholderPdf);
         const toBeSignedBuffer = signatureEmbeder.getSignBuffer();
-        const signature = this.#signatureComputer.computeSignature(toBeSignedBuffer, info.date || new Date());
+        const signature = this.#signatureComputer.computeSignature(toBeSignedBuffer, info.signature?.date || new Date());
         return signatureEmbeder.embedSignature(signature);
     }
 
     public async signFieldAsync(pdf: Buffer, info: SignFieldParameters): Promise<Buffer> {
         const signingPdfDoc = await SigningPdfDocument.loadAsync(pdf);
         const placeholderInfo = this.getPlaceholderParameters();
-        const placeholderRef = signingPdfDoc.addSignaturePlaceholder({ ...info, ...placeholderInfo });
-        const visualRef = await signingPdfDoc.addVisualAsync({ background: info.background, texts: info.texts });
-        const embedFont = !!('texts' in info);
+        const placeholderRef = signingPdfDoc.addSignaturePlaceholder({ ...info.signature, ...placeholderInfo });
+        const visualRef = await signingPdfDoc.addVisualAsync({ ...info.visual });
+        const embedFont = !!(info.visual && 'texts' in info.visual);
         signingPdfDoc.updateSignature(info.fieldName, { placeholderRef, visualRef, embedFont });
         const placeholderPdf = await signingPdfDoc.saveAsync(pdf);
         const signatureEmbeder = await SignatureEmbeder.loadAsync(placeholderPdf);
         const toBeSignedBuffer = signatureEmbeder.getSignBuffer();
-        const signature = this.#signatureComputer.computeSignature(toBeSignedBuffer, info.date || new Date());
+        const signature = this.#signatureComputer.computeSignature(toBeSignedBuffer, info.signature?.date || new Date());
         return signatureEmbeder.embedSignature(signature);
     }
 

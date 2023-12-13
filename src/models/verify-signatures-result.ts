@@ -1,4 +1,4 @@
-import { SignatureParameters as SignatureParameters } from "./signature-parameters";
+import { SignatureParameters as SignatureParameters } from "./parameters/signature-parameters";
 
 export interface VerifySignatureResult {
     name: string;

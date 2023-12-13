@@ -1,6 +1,7 @@
 import { PDFDocument } from 'pdf-lib';
 import { PdfSigner } from './pdf-signer';
-import { SignDigitalParameters, SignFieldParameters, AddFieldParameters, SignVisualParameters, SignerSettings } from 'src/models/index';
+import { SignDigitalParameters, SignFieldParameters, AddFieldParameters, SignVisualParameters } from 'src/models/parameters';
+import { SignerSettings } from 'src/models/settings';
 
 import PdfPrinter = require('pdfmake');
 import streamBuffers = require('stream-buffers');
@@ -15,6 +16,7 @@ import { bufferReplace } from '../test/_helpers/buffer-helpers';
 
 import { use as chaiUse } from 'chai';
 import { expect } from 'chai';
+import { P12SignatureComputerSettings, PemSignatureComputerSettings } from './models/settings/signature-computer-settings';
 
 const chaiAsPromised = require('chai-as-promised');
 chaiUse(chaiAsPromised);
@@ -85,43 +87,50 @@ describe('PdfSigner (pdf 1.3)', function () {
     let addFieldInfo: AddFieldParameters;
     let visualInfo: SignVisualParameters;
     let settings: SignerSettings;
+    let pemSignatureComputerSettings: PemSignatureComputerSettings;
+    let p12SignatureComputerSettings: P12SignatureComputerSettings;
 
     beforeEach(function () {
         info = {
             pageNumber: 1,
 
-            name: 'Test Signer',
-            location: 'Timisoara',
-            reason: 'Signing',
-            date: new Date(2023, 1, 20, 18, 47, 35), 
-            contactInfo: 'signer@semnezonline.ro'
+            signature: {
+                name: 'Test Signer',
+                location: 'Timisoara',
+                reason: 'Signing',
+                date: new Date(2023, 1, 20, 18, 47, 35), 
+                contactInfo: 'signer@semnezonline.ro'
+            }
         };
 
         fieldInfo = {
             fieldName: 'Signature1',
 
-            name: 'Test Signer',
-            location: 'Timisoara',
-            reason: 'Signing',
-            date: new Date(2023, 1, 20, 18, 47, 35), 
-            contactInfo: 'signer@semnezonline.ro',
-
-            background: pdfSignerAssets13.signatureJpgImage,
-            texts: [
-                {
-                    lines: [ 
-                        'JOHN', 
-                        'DOE'
-                    ]
-                }, {
-                    lines: [ 
-                        'Digitally signed by', 
-                        'JOHN DOE', 
-                        'Date: 2023.11.03', 
-                        '20:28:46 +02\'00\''
-                    ]
-                }
-            ]
+            signature: {
+                name: 'Test Signer',
+                location: 'Timisoara',
+                reason: 'Signing',
+                date: new Date(2023, 1, 20, 18, 47, 35), 
+                contactInfo: 'signer@semnezonline.ro',
+            },
+            visual: {
+                background: pdfSignerAssets13.signatureJpgImage,
+                texts: [
+                    {
+                        lines: [ 
+                            'JOHN', 
+                            'DOE'
+                        ]
+                    }, {
+                        lines: [ 
+                            'Digitally signed by', 
+                            'JOHN DOE', 
+                            'Date: 2023.11.03', 
+                            '20:28:46 +02\'00\''
+                        ]
+                    }
+                ]
+            }
         };
 
         addFieldInfo = {
@@ -136,28 +145,37 @@ describe('PdfSigner (pdf 1.3)', function () {
             rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
         };
 
+        p12SignatureComputerSettings = {
+            certificate: settingsAssets.p12Certificate,
+            password: 'password'
+        };
+
+        pemSignatureComputerSettings = {
+            certificate: settingsAssets.pemCertificate,
+            key: settingsAssets.pemKey,
+            password: 'password'
+        };
+
         settings = {
             signatureLength: 4000 - 6,
             rangePlaceHolder: 9999999,
             
-            p12Certificate: settingsAssets.p12Certificate,
-            pemCertificate: settingsAssets.pemCertificate,
-            pemKey: settingsAssets.pemKey,
-            certificatePassword: 'password'
+            signatureComputer:p12SignatureComputerSettings
         }
         pdfSigner = new PdfSigner(settings);
     });
 
     it('_generate', async function () {
         const pdf = await generatePdfMakePdfAsync();
+        info.signature = info.signature || {};
         await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.pdf, pdf);
         
-        info.contactInfo = 'signer@semnezonline.ro';
+        info.signature.contactInfo = 'signer@semnezonline.ro';
         const signedPdf = await pdfSigner.signAsync(pdf, info);
         const tamperedSignedPdf = bufferReplace(signedPdf, 'signer@semnezonline.ro', 'xxxxxx@xxxxxxxxxxxx.xx');
         await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.tamperedSignedPdf, tamperedSignedPdf);
 
-        info.contactInfo = 'signer2@semnezonline.ro';
+        info.signature.contactInfo = 'signer2@semnezonline.ro';
         const tamperedOnlyFirstTwiceSignedPdf = await pdfSigner.signAsync(tamperedSignedPdf, info);
         await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.tamperedOnlyFirstTwiceSignedPdf, tamperedOnlyFirstTwiceSignedPdf);
 
@@ -400,28 +418,20 @@ describe('PdfSigner (pdf 1.3)', function () {
             expect(twiceSignedPdf).to.be.deep.equal(pdfSignerAssets13.pngImageTwiceSignedPdf);
         })
 
-        it('works for missing p12 certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined });
+        it('works for p12 certificate', async function() {
+            settings.signatureComputer = p12SignatureComputerSettings;
+
+            const pdfSigner = new PdfSigner(settings);
 
             await expect(pdfSigner.signAsync(pdfSignerAssets13.pdf, info)).to.be.fulfilled;
         })
 
-        it('works for missing pem certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, pemCertificate: undefined });
+        it('works for pem certificate', async function() {
+            settings.signatureComputer = pemSignatureComputerSettings;
+
+            const pdfSigner = new PdfSigner(settings);
 
             await expect(pdfSigner.signAsync(pdfSignerAssets13.pdf, info)).to.be.fulfilled;
-        })
-
-        it('works for missing pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, pemKey: undefined });
-
-            await expect(pdfSigner.signAsync(pdfSignerAssets13.pdf, info)).to.be.fulfilled;
-        })
-
-        it('throws for missing p12 certificate, pem certificate and pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined, pemCertificate: undefined, pemKey: undefined });
-
-            await expect(pdfSigner.signAsync(pdfSignerAssets13.pdf, info)).to.be.rejected;
         })
     })
 
@@ -434,7 +444,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
 
         it('signs document (no background)', async function() {
-            delete fieldInfo.background;
+            delete fieldInfo.visual?.background;
 
             const res = await pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo);
             
@@ -443,7 +453,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
 
         it('signs document (no texts)', async function() {
-            delete fieldInfo.texts;
+            delete fieldInfo.visual?.texts;
 
             const res = await pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo);
             
@@ -452,8 +462,8 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
 
         it('signs document (no visual)', async function() {
-            delete fieldInfo.texts;
-            delete fieldInfo.background;
+            delete fieldInfo.visual?.texts;
+            delete fieldInfo.visual?.background;
 
 
             const res = await pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo);
@@ -486,7 +496,8 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
 
         it('signs with jpg image', async function() {
-            fieldInfo.background = pdfSignerAssets13.signatureJpgImage;
+            fieldInfo.visual = fieldInfo.visual || {};
+            fieldInfo.visual.background = pdfSignerAssets13.signatureJpgImage;
 
             const signedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo);
 
@@ -495,36 +506,13 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
 
         it('signs with png image', async function() {
-            fieldInfo.background = pdfSignerAssets13.signaturePngImage;
+            fieldInfo.visual = fieldInfo.visual || {};
+            fieldInfo.visual.background = pdfSignerAssets13.signaturePngImage;
 
             const signedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.pngImageFieldSignedPdf, signedPdf);
             expect(signedPdf).to.be.deep.equal(pdfSignerAssets13.pngImageFieldSignedPdf);
-        })
-
-        it('works for missing p12 certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined });
-
-            await expect(pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo)).to.be.fulfilled;
-        })
-
-        it('works for missing pem certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, pemCertificate: undefined });
-
-            await expect(pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo)).to.be.fulfilled;
-        })
-
-        it('works for missing pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, pemKey: undefined });
-
-            await expect(pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo)).to.be.fulfilled;
-        })
-
-        it('throws for missing p12 certificate, pem certificate and pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined, pemCertificate: undefined, pemKey: undefined });
-
-            await expect(pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo)).to.be.rejected;
         })
     })
     
@@ -662,44 +650,51 @@ describe('PdfSigner (pdf 1.7)', function () {
     let addFieldInfo: AddFieldParameters;
     let visualInfo: SignVisualParameters;
     let settings: SignerSettings;
+    let pemSignatureComputerSettings: PemSignatureComputerSettings;
+    let p12SignatureComputerSettings: P12SignatureComputerSettings;
 
     beforeEach(function () {
         info = {
             pageNumber: 1,
 
-            name: 'Test Signer',
-            location: 'Timisoara',
-            reason: 'Signing',
-            date: new Date(2023, 1, 20, 18, 47, 35), 
-            contactInfo: 'signer@semnezonline.ro'
+            signature: {
+                name: 'Test Signer',
+                location: 'Timisoara',
+                reason: 'Signing',
+                date: new Date(2023, 1, 20, 18, 47, 35), 
+                contactInfo: 'signer@semnezonline.ro'
+            }
         };
 
         fieldInfo = {
             fieldName: 'Signature1',
 
-            name: 'Test Signer',
-            location: 'Timisoara',
-            reason: 'Signing',
-            date: new Date(2023, 1, 20, 18, 47, 35), 
-            contactInfo: 'signer@semnezonline.ro',
-
-            background: pdfSignerAssets13.signatureJpgImage,
-            texts: [
-                {
-                    lines: [ 
-                        'JOHN', 
-                        'DOE'
-                    ]
-                }, {
-                    lines: [ 
-                        'Digitally signed by', 
-                        'JOHN DOE', 
-                        'Date: 2023.11.03', 
-                        '20:28:46 +02\'00\''
-                    ]
-                }
-            ]
-         };
+            signature: {
+                name: 'Test Signer',
+                location: 'Timisoara',
+                reason: 'Signing',
+                date: new Date(2023, 1, 20, 18, 47, 35), 
+                contactInfo: 'signer@semnezonline.ro',
+            },
+            visual: {
+                background: pdfSignerAssets13.signatureJpgImage,
+                texts: [
+                    {
+                        lines: [ 
+                            'JOHN', 
+                            'DOE'
+                        ]
+                    }, {
+                        lines: [ 
+                            'Digitally signed by', 
+                            'JOHN DOE', 
+                            'Date: 2023.11.03', 
+                            '20:28:46 +02\'00\''
+                        ]
+                    }
+                ]
+            }
+        };
 
         addFieldInfo = {
             pageNumber: 1,
@@ -713,28 +708,37 @@ describe('PdfSigner (pdf 1.7)', function () {
             rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
         };
 
+        p12SignatureComputerSettings = {
+            certificate: settingsAssets.p12Certificate,
+            password: 'password'
+        };
+
+        pemSignatureComputerSettings = {
+            certificate: settingsAssets.pemCertificate,
+            key: settingsAssets.pemKey,
+            password: 'password'
+        };
+
         settings = {
             signatureLength: 4000 - 6,
             rangePlaceHolder: 9999999,
             
-            p12Certificate: settingsAssets.p12Certificate,
-            pemCertificate: settingsAssets.pemCertificate,
-            pemKey: settingsAssets.pemKey,
-            certificatePassword: 'password'
+            signatureComputer:p12SignatureComputerSettings
         }
         pdfSigner = new PdfSigner(settings);
     });
 
     it('_generate', async function () {
         const pdf = await generatePdfLibPdfAsync();
+        info.signature = info.signature || {};
         await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.pdf, pdf);
         
-        info.contactInfo = 'signer@semnezonline.ro';
+        info.signature.contactInfo = 'signer@semnezonline.ro';
         const signedPdf = await pdfSigner.signAsync(pdf, info);
         const tamperedSignedPdf = bufferReplace(signedPdf, 'signer@semnezonline.ro', 'xxxxxx@xxxxxxxxxxxx.xx');
         await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.tamperedSignedPdf, tamperedSignedPdf);
 
-        info.contactInfo = 'signer2@semnezonline.ro';
+        info.signature.contactInfo = 'signer2@semnezonline.ro';
         const tamperedOnlyFirstTwiceSignedPdf = await pdfSigner.signAsync(tamperedSignedPdf, info);
         await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.tamperedOnlyFirstTwiceSignedPdf, tamperedOnlyFirstTwiceSignedPdf);
 
@@ -977,30 +981,6 @@ describe('PdfSigner (pdf 1.7)', function () {
             await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.pngImageTwiceSignedPdf, twiceSignedPdf);
             expect(twiceSignedPdf).to.be.deep.equal(pdfSignerAssets17.pngImageTwiceSignedPdf);
         })
-
-        it('works for missing p12 certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined });
-
-            await expect(pdfSigner.signAsync(pdfSignerAssets17.pdf, info)).to.be.fulfilled;
-        })
-
-        it('works for missing pem certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, pemCertificate: undefined });
-
-            await expect(pdfSigner.signAsync(pdfSignerAssets17.pdf, info)).to.be.fulfilled;
-        })
-
-        it('works for missing pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, pemKey: undefined });
-
-            await expect(pdfSigner.signAsync(pdfSignerAssets17.pdf, info)).to.be.fulfilled;
-        })
-
-        it('throws for missing p12 certificate, pem certificate and pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined, pemCertificate: undefined, pemKey: undefined });
-
-            await expect(pdfSigner.signAsync(pdfSignerAssets17.pdf, info)).to.be.rejected;
-        })
     })
 
     describe('signFieldAsync', function() {
@@ -1012,7 +992,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
 
         it('signs document (no background)', async function() {
-            delete fieldInfo.background;
+            delete fieldInfo.visual?.background;
 
             const res = await pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo);
             
@@ -1021,7 +1001,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
 
         it('signs document (no texts)', async function() {
-            delete fieldInfo.texts;
+            delete fieldInfo.visual?.texts;
 
             const res = await pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo);
             
@@ -1030,9 +1010,8 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
 
         it('signs document (no visual)', async function() {
-            delete fieldInfo.texts;
-            delete fieldInfo.background;
-
+            delete fieldInfo.visual?.texts;
+            delete fieldInfo.visual?.background;
 
             const res = await pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo);
             
@@ -1064,7 +1043,8 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
 
         it('signs with jpg image', async function() {
-            fieldInfo.background = pdfSignerAssets17.signatureJpgImage;
+            fieldInfo.visual = fieldInfo.visual || {};
+            fieldInfo.visual.background = pdfSignerAssets17.signatureJpgImage;
 
             const signedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo);
 
@@ -1073,36 +1053,13 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
 
         it('signs with png image', async function() {
-            fieldInfo.background = pdfSignerAssets17.signaturePngImage;
+            fieldInfo.visual = fieldInfo.visual || {};
+            fieldInfo.visual.background = pdfSignerAssets17.signaturePngImage;
 
             const signedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets17.paths.pngImageFieldSignedPdf, signedPdf);
             expect(signedPdf).to.be.deep.equal(pdfSignerAssets17.pngImageFieldSignedPdf);
-        })
-
-        it('works for missing p12 certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined });
-
-            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo)).to.be.fulfilled;
-        })
-
-        it('works for missing pem certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, pemCertificate: undefined });
-
-            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo)).to.be.fulfilled;
-        })
-
-        it('works for missing pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, pemKey: undefined });
-
-            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo)).to.be.fulfilled;
-        })
-
-        it('throws for missing p12 certificate, pem certificate and pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined, pemCertificate: undefined, pemKey: undefined });
-
-            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17.fieldPdf, fieldInfo)).to.be.rejected;
         })
     })
     
@@ -1240,43 +1197,50 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
     let addFieldInfo: AddFieldParameters;
     let visualInfo: SignVisualParameters;
     let settings: SignerSettings;
+    let pemSignatureComputerSettings: PemSignatureComputerSettings;
+    let p12SignatureComputerSettings: P12SignatureComputerSettings;
 
     beforeEach(function () {
         info = {
             pageNumber: 1,
 
-            name: 'Test Signer',
-            location: 'Timisoara',
-            reason: 'Signing',
-            date: new Date(2023, 1, 20, 18, 47, 35), 
-            contactInfo: 'signer@semnezonline.ro'
+            signature: {
+                name: 'Test Signer',
+                location: 'Timisoara',
+                reason: 'Signing',
+                date: new Date(2023, 1, 20, 18, 47, 35), 
+                contactInfo: 'signer@semnezonline.ro'
+            }
         };
 
         fieldInfo = {
             fieldName: 'Signature1',
 
-            name: 'Test Signer',
-            location: 'Timisoara',
-            reason: 'Signing',
-            date: new Date(2023, 1, 20, 18, 47, 35), 
-            contactInfo: 'signer@semnezonline.ro',
-
-            background: pdfSignerAssets13.signatureJpgImage,
-            texts: [
-                {
-                    lines: [ 
-                        'JOHN', 
-                        'DOE'
-                    ]
-                }, {
-                    lines: [ 
-                        'Digitally signed by', 
-                        'JOHN DOE', 
-                        'Date: 2023.11.03', 
-                        '20:28:46 +02\'00\''
-                    ]
-                }
-            ]
+            signature: {
+                name: 'Test Signer',
+                location: 'Timisoara',
+                reason: 'Signing',
+                date: new Date(2023, 1, 20, 18, 47, 35), 
+                contactInfo: 'signer@semnezonline.ro',
+            },
+            visual: {
+                background: pdfSignerAssets13.signatureJpgImage,
+                texts: [
+                    {
+                        lines: [ 
+                            'JOHN', 
+                            'DOE'
+                        ]
+                    }, {
+                        lines: [ 
+                            'Digitally signed by', 
+                            'JOHN DOE', 
+                            'Date: 2023.11.03', 
+                            '20:28:46 +02\'00\''
+                        ]
+                    }
+                ]
+            }
          };
 
         addFieldInfo = {
@@ -1291,28 +1255,37 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
             rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
         };
 
+        p12SignatureComputerSettings = {
+            certificate: settingsAssets.p12Certificate,
+            password: 'password'
+        };
+
+        pemSignatureComputerSettings = {
+            certificate: settingsAssets.pemCertificate,
+            key: settingsAssets.pemKey,
+            password: 'password'
+        };
+
         settings = {
             signatureLength: 4000 - 6,
             rangePlaceHolder: 9999999,
             
-            p12Certificate: settingsAssets.p12Certificate,
-            pemCertificate: settingsAssets.pemCertificate,
-            pemKey: settingsAssets.pemKey,
-            certificatePassword: 'password'
+            signatureComputer:p12SignatureComputerSettings
         }
         pdfSigner = new PdfSigner(settings);
     });
 
     it('_generate', async function () {
         const pdf = await generatePdfLibPdfAsync(true);
+        info.signature = info.signature || {};
         await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.pdf, pdf);
         
-        info.contactInfo = 'signer@semnezonline.ro';
+        info.signature.contactInfo = 'signer@semnezonline.ro';
         const signedPdf = await pdfSigner.signAsync(pdf, info);
         const tamperedSignedPdf = bufferReplace(signedPdf, 'signer@semnezonline.ro', 'xxxxxx@xxxxxxxxxxxx.xx');
         await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.tamperedSignedPdf, tamperedSignedPdf);
 
-        info.contactInfo = 'signer2@semnezonline.ro';
+        info.signature.contactInfo = 'signer2@semnezonline.ro';
         const tamperedOnlyFirstTwiceSignedPdf = await pdfSigner.signAsync(tamperedSignedPdf, info);
         await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.tamperedOnlyFirstTwiceSignedPdf, tamperedOnlyFirstTwiceSignedPdf);
 
@@ -1555,30 +1528,6 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
             await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.pngImageTwiceSignedPdf, twiceSignedPdf);
             expect(twiceSignedPdf).to.be.deep.equal(pdfSignerAssets17Streams.pngImageTwiceSignedPdf);
         })
-
-        it('works for missing p12 certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined });
-
-            await expect(pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info)).to.be.fulfilled;
-        })
-
-        it('works for missing pem certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, pemCertificate: undefined });
-
-            await expect(pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info)).to.be.fulfilled;
-        })
-
-        it('works for missing pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, pemKey: undefined });
-
-            await expect(pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info)).to.be.fulfilled;
-        })
-
-        it('throws for missing p12 certificate, pem certificate and pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined, pemCertificate: undefined, pemKey: undefined });
-
-            await expect(pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info)).to.be.rejected;
-        })
     })
 
     describe('signFieldAsync', function() {
@@ -1590,7 +1539,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
 
         it('signs document (no background)', async function() {
-            delete fieldInfo.background;
+            delete fieldInfo.visual?.background;
 
             const res = await pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo);
             
@@ -1599,7 +1548,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
 
         it('signs document (no texts)', async function() {
-            delete fieldInfo.texts;
+            delete fieldInfo.visual?.texts;
 
             const res = await pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo);
             
@@ -1608,8 +1557,8 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
 
         it('signs document (no visual)', async function() {
-            delete fieldInfo.texts;
-            delete fieldInfo.background;
+            delete fieldInfo.visual?.texts;
+            delete fieldInfo.visual?.background;
 
 
             const res = await pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo);
@@ -1642,7 +1591,8 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
 
         it('signs with jpg image', async function() {
-            fieldInfo.background = pdfSignerAssets17Streams.signatureJpgImage;
+            fieldInfo.visual = fieldInfo.visual || {};
+            fieldInfo.visual.background = pdfSignerAssets17Streams.signatureJpgImage;
 
             const signedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo);
 
@@ -1651,36 +1601,13 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
 
         it('signs with png image', async function() {
-            fieldInfo.background = pdfSignerAssets17Streams.signaturePngImage;
+            fieldInfo.visual = fieldInfo.visual || {};
+            fieldInfo.visual.background = pdfSignerAssets17Streams.signaturePngImage;
 
             const signedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo);
 
             await generateAsset.generateBinaryAsync(pdfSignerAssets17Streams.paths.pngImageFieldSignedPdf, signedPdf);
             expect(signedPdf).to.be.deep.equal(pdfSignerAssets17Streams.pngImageFieldSignedPdf);
-        })
-
-        it('works for missing p12 certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined });
-
-            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo)).to.be.fulfilled;
-        })
-
-        it('works for missing pem certificate', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, pemCertificate: undefined });
-
-            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo)).to.be.fulfilled;
-        })
-
-        it('works for missing pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, pemKey: undefined });
-
-            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo)).to.be.fulfilled;
-        })
-
-        it('throws for missing p12 certificate, pem certificate and pem key', async function() {
-            const pdfSigner = new PdfSigner({ ...settings, p12Certificate: undefined, pemCertificate: undefined, pemKey: undefined });
-
-            await expect(pdfSigner.signFieldAsync(pdfSignerAssets17Streams.fieldPdf, fieldInfo)).to.be.rejected;
         })
     })
     
@@ -1820,43 +1747,50 @@ describe('PdfSigner Regression', function () {
     let addFieldInfo: AddFieldParameters;
     let visualInfo: SignVisualParameters;
     let settings: SignerSettings;
+    let pemSignatureComputerSettings: PemSignatureComputerSettings;
+    let p12SignatureComputerSettings: P12SignatureComputerSettings;
 
     beforeEach(function () {
         info = {
             pageNumber: 1,
 
-            name: 'Test Signer',
-            location: 'Timisoara',
-            reason: 'Signing',
-            date: new Date(2023, 1, 20, 18, 47, 35), 
-            contactInfo: 'signer@semnezonline.ro'
+            signature: {
+                name: 'Test Signer',
+                location: 'Timisoara',
+                reason: 'Signing',
+                date: new Date(2023, 1, 20, 18, 47, 35), 
+                contactInfo: 'signer@semnezonline.ro'
+            }
         };
 
         fieldInfo = {
             fieldName: 'Signature1',
 
-            name: 'Test Signer',
-            location: 'Timisoara',
-            reason: 'Signing',
-            date: new Date(2023, 1, 20, 18, 47, 35), 
-            contactInfo: 'signer@semnezonline.ro',
-
-            background: pdfSignerAssets13.signatureJpgImage,
-            texts: [
-                {
-                    lines: [ 
-                        'JOHN', 
-                        'DOE'
-                    ]
-                }, {
-                    lines: [ 
-                        'Digitally signed by', 
-                        'JOHN DOE', 
-                        'Date: 2023.11.03', 
-                        '20:28:46 +02\'00\''
-                    ]
-                }
-            ]
+            signature: {
+                name: 'Test Signer',
+                location: 'Timisoara',
+                reason: 'Signing',
+                date: new Date(2023, 1, 20, 18, 47, 35), 
+                contactInfo: 'signer@semnezonline.ro',
+            },
+            visual: {
+                background: pdfSignerAssets13.signatureJpgImage,
+                texts: [
+                    {
+                        lines: [ 
+                            'JOHN', 
+                            'DOE'
+                        ]
+                    }, {
+                        lines: [ 
+                            'Digitally signed by', 
+                            'JOHN DOE', 
+                            'Date: 2023.11.03', 
+                            '20:28:46 +02\'00\''
+                        ]
+                    }
+                ]
+            }
         };
 
         addFieldInfo = {
@@ -1871,14 +1805,22 @@ describe('PdfSigner Regression', function () {
             rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
         };
 
+        p12SignatureComputerSettings = {
+            certificate: settingsAssets.p12Certificate,
+            password: 'password'
+        };
+
+        pemSignatureComputerSettings = {
+            certificate: settingsAssets.pemCertificate,
+            key: settingsAssets.pemKey,
+            password: 'password'
+        };
+
         settings = {
             signatureLength: 4000 - 6,
             rangePlaceHolder: 9999999,
             
-            p12Certificate: settingsAssets.p12Certificate,
-            pemCertificate: settingsAssets.pemCertificate,
-            pemKey: settingsAssets.pemKey,
-            certificatePassword: 'password'
+            signatureComputer:p12SignatureComputerSettings
         }
         pdfSigner = new PdfSigner(settings);
     });

@@ -1,5 +1,6 @@
 import * as forge from 'node-forge';
 import { PDFString } from 'pdf-lib';
+import { P12SignatureComputerSettings, PemSignatureComputerSettings, SignatureComputerSettings } from './models/settings/signature-computer-settings';
 
 interface SigningSettings {
     privateKey: any;
@@ -7,17 +8,10 @@ interface SigningSettings {
     certificates: any[];
 }
 
-export interface SignatureComputerSettings {
-    p12Certificate?: Buffer;
-    pemCertificate?: string;
-    pemKey?: string;
-    certificatePassword: string;
-}
-
-function getSigningSettingsP12(p12Certificate: Buffer, certificatePassword: string): SigningSettings {
-    const forgeCert = forge.util.createBuffer(p12Certificate.toString('binary'));
+function getSigningSettingsP12(settings: P12SignatureComputerSettings): SigningSettings {
+    const forgeCert = forge.util.createBuffer(settings.certificate.toString('binary'));
     const p12Asn1 = forge.asn1.fromDer(forgeCert);
-    const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, certificatePassword);
+    const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, settings.password);
 
     const certBags = p12.getBags({ bagType: forge.pki.oids.certBag })[forge.pki.oids.certBag];
     if(!certBags) {
@@ -60,9 +54,9 @@ function getSigningSettingsP12(p12Certificate: Buffer, certificatePassword: stri
 }
 
 
-function getSigningSettingsPem(pemCertificate: string, pemKey: string, certificatePassword: string): SigningSettings {
-    const privateKey = forge.pki.decryptRsaPrivateKey(pemKey, certificatePassword);
-    var certificate = forge.pki.certificateFromPem(pemCertificate);
+function getSigningSettingsPem(settings: PemSignatureComputerSettings): SigningSettings {
+    const privateKey = forge.pki.decryptRsaPrivateKey(settings.key, settings.password);
+    var certificate = forge.pki.certificateFromPem(settings.certificate);
 
     return {
         privateKey,
@@ -71,23 +65,30 @@ function getSigningSettingsPem(pemCertificate: string, pemKey: string, certifica
     };
 }
 
+function getSigningSettings(settings: SignatureComputerSettings) : SigningSettings {
+    if('certificate' in settings && 'key' in settings) {
+        return getSigningSettingsPem(settings);
+    } else {
+        return getSigningSettingsP12(settings);
+    }
+}
+
+
 export class SignatureComputer {
 
-    #settings: SignatureComputerSettings;
+    #settings: SigningSettings;
 
     constructor(settings: SignatureComputerSettings) {
-        this.#settings = settings;
+        this.#settings = getSigningSettings(settings);
     }
 
     computeSignature(signBuffer: Buffer, date: Date): Buffer {
-        const { privateKey, certificates, certificate } = this.getSigningSettings();
-
         const p7 = forge.pkcs7.createSignedData();
         p7.content = forge.util.createBuffer(signBuffer.toString('binary'));
-        certificates.forEach(cert => p7.addCertificate(cert));
+        this.#settings.certificates.forEach(cert => p7.addCertificate(cert));
         p7.addSigner({
-            key: privateKey,
-            certificate,
+            key: this.#settings.privateKey,
+            certificate: this.#settings.certificate,
             digestAlgorithm: forge.pki.oids.sha256,
             authenticatedAttributes: [
                 {
@@ -105,15 +106,5 @@ export class SignatureComputer {
         p7.sign({ detached: true });
 
         return Buffer.from(forge.asn1.toDer(p7.toAsn1()).getBytes(), 'binary');
-    }
-
-    private getSigningSettings() : SigningSettings {
-        if(this.#settings.pemCertificate && this.#settings.pemKey) {
-            return getSigningSettingsPem(this.#settings.pemCertificate, this.#settings.pemKey, this.#settings.certificatePassword);
-        } else if(this.#settings.p12Certificate) {
-            return getSigningSettingsP12(this.#settings.p12Certificate, this.#settings.certificatePassword);
-        } else {
-            throw new Error('No certificate specified.');
-        }
     }
 }

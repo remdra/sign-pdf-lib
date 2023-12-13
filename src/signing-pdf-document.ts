@@ -1,7 +1,8 @@
 import { DocumentSnapshot, PDFArray, PDFContext, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFRef, PDFString } from "pdf-lib";
-import { PdfByteRanges, Rectangle, SignatureParameters, SignatureText, Size } from "./models";
+import { PdfByteRanges, Rectangle, SignatureText, Size } from "./models";
 import { emptyRectangle } from './models/rectangle';
 import * as _ from 'lodash';
+import { SignatureParameters } from "./models/parameters";
 
 function getSignatureRange(pdf: Buffer) {
     let contentsStartIndex = 0;
@@ -24,7 +25,7 @@ function getPdfSigningRanges(initialPdf: Buffer, incrementalPdf: Buffer): PdfByt
     const { start: startSignature, end: endSignature } = getSignatureRange(incrementalPdf);
 
     return {
-        rangeBefore: {
+        before: {
             start: 0,
             length: initialPdf.length + startSignature - 1
         },
@@ -45,7 +46,7 @@ function updateByteRange(incrementalPdf: Buffer, initialPdf: Buffer): Buffer | u
         return undefined;
     }
 
-    const { rangeBefore, rangeAfter } = getPdfSigningRanges(initialPdf, incrementalPdf);
+    const { before: rangeBefore, rangeAfter } = getPdfSigningRanges(initialPdf, incrementalPdf);
 
     const byteRangeArray = PDFContext.create().obj([ rangeBefore.start, rangeBefore.length, rangeAfter.start, rangeAfter.length ]);
     const startOfByteRange = incrementalPdf.indexOf('[', byteRangeStartIndex);
@@ -94,7 +95,7 @@ function getPdfRangesFromSignature(signature: PDFDict): PdfByteRanges {
 
 
     return {
-        rangeBefore: {
+        before: {
             start: start1,
             length: length1
         },
