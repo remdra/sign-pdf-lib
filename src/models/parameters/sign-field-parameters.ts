@@ -1,5 +1,5 @@
-import { SignatureText } from "../signature-text";
-import { SignatureParameters } from "./signature-parameters";
+import { SignatureText } from '../signature-text';
+import { SignatureParameters } from './signature-parameters';
 
 export interface SignFieldParameters {
     fieldName: string;

@@ -1,7 +1,7 @@
 import { PDFDocument } from 'pdf-lib';
 import { PdfSigner } from './pdf-signer';
-import { SignDigitalParameters, SignFieldParameters, AddFieldParameters, SignVisualParameters } from 'src/models/parameters';
-import { SignerSettings } from 'src/models/settings';
+import { SignDigitalParameters, SignFieldParameters, AddFieldParameters, SignVisualParameters } from './models/parameters';
+import { SignerSettings } from './models/settings';
 
 import PdfPrinter = require('pdfmake');
 import streamBuffers = require('stream-buffers');
@@ -135,14 +135,14 @@ describe('PdfSigner (pdf 1.3)', function () {
 
         addFieldInfo = {
             pageNumber: 1,
-            rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
         }
 
         visualInfo = {
             pageNumber: 1,
 
             background: pdfSignerAssets13.signaturePngImage,
-            rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
         };
 
         p12SignatureComputerSettings = {
@@ -219,7 +219,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         it('adds placeholder for positive coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets13.signaturePngImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
             
@@ -241,7 +241,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         it('adds placeholder with jpg image', async function() {
             info.visual = {
                 background: pdfSignerAssets13.signatureJpgImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
 
@@ -252,7 +252,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         it('adds placeholder with png image', async function() {
             info.visual = {
                 background: pdfSignerAssets13.signaturePngImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
 
@@ -262,7 +262,7 @@ describe('PdfSigner (pdf 1.3)', function () {
 
         it('adds placeholder with texts', async function() {
             info.visual = {
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 },
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 },
                 texts: [
                     {
                         lines: [ 
@@ -287,7 +287,7 @@ describe('PdfSigner (pdf 1.3)', function () {
 
         it('adds placeholder with texts and background', async function() {
             info.visual = {
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 },
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 },
                 background: pdfSignerAssets13.signaturePngImage,
                 texts: [
                     {
@@ -329,7 +329,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
 
         it('adds field for positive coordinates', async function() {
-            addFieldInfo.rectangle = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
+            addFieldInfo.rectangle = { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 };
             
             const res = await pdfSigner.addFieldAsync(pdfSignerAssets13.pdf, addFieldInfo);
             
@@ -371,7 +371,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         it('signs for positive coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets13.signaturePngImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             };
             const res = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
             
@@ -393,7 +393,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         it('signs with jpg image', async function() {
             info.visual = {
                 background: pdfSignerAssets13.signatureJpgImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
             info.visual.rectangle.left += 250;
@@ -407,7 +407,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         it('signs with png image', async function() {
             info.visual = {
                 background: pdfSignerAssets13.signaturePngImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
             info.visual.rectangle.left += 250;
@@ -529,7 +529,7 @@ describe('PdfSigner (pdf 1.3)', function () {
         })
 
         it('signs for positive coordinates', async function() {
-            visualInfo.rectangle = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
+            visualInfo.rectangle = { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 };
 
             const res = await pdfSigner.signVisualAsync(pdfSignerAssets13.pdf, visualInfo);
             
@@ -698,14 +698,14 @@ describe('PdfSigner (pdf 1.7)', function () {
 
         addFieldInfo = {
             pageNumber: 1,
-            rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
         }
 
         visualInfo = {
             pageNumber: 1,
 
             background: pdfSignerAssets17.signaturePngImage,
-            rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
         };
 
         p12SignatureComputerSettings = {
@@ -783,7 +783,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         it('adds placeholder for positive coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets17.signaturePngImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info);
             
@@ -805,7 +805,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         it('adds placeholder with jpg image', async function() {
             info.visual = {
                 background: pdfSignerAssets17.signatureJpgImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info);
 
@@ -816,7 +816,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         it('adds placeholder with png image', async function() {
             info.visual = {
                 background: pdfSignerAssets17.signaturePngImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17.pdf, info);
 
@@ -826,7 +826,7 @@ describe('PdfSigner (pdf 1.7)', function () {
 
         it('adds placeholder with texts', async function() {
             info.visual = {
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 },
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 },
                 texts: [
                     {
                         lines: [ 
@@ -851,7 +851,7 @@ describe('PdfSigner (pdf 1.7)', function () {
 
         it('adds placeholder with texts and background', async function() {
             info.visual = {
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 },
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 },
                 background: pdfSignerAssets13.signaturePngImage,
                 texts: [
                     {
@@ -893,7 +893,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
 
         it('adds field for positive coordinates', async function() {
-            addFieldInfo.rectangle = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
+            addFieldInfo.rectangle = { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 };
             
             const res = await pdfSigner.addFieldAsync(pdfSignerAssets17.pdf, addFieldInfo);
             
@@ -935,7 +935,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         it('signs for positive coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets17.signaturePngImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             };
             const res = await pdfSigner.signAsync(pdfSignerAssets17.pdf, info);
             
@@ -957,7 +957,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         it('signs with jpg image', async function() {
             info.visual = {
                 background: pdfSignerAssets17.signatureJpgImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets17.pdf, info);
             info.visual.rectangle.left += 250;
@@ -971,7 +971,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         it('signs with png image', async function() {
             info.visual = {
                 background: pdfSignerAssets17.signaturePngImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets17.pdf, info);
             info.visual.rectangle.left += 250;
@@ -1076,7 +1076,7 @@ describe('PdfSigner (pdf 1.7)', function () {
         })
 
         it('signs for positive coordinates', async function() {
-            visualInfo.rectangle = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
+            visualInfo.rectangle = { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 };
 
             const res = await pdfSigner.signVisualAsync(pdfSignerAssets17.pdf, visualInfo);
             
@@ -1245,14 +1245,14 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
 
         addFieldInfo = {
             pageNumber: 1,
-            rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
         }
 
         visualInfo = {
             pageNumber: 1,
 
             background: pdfSignerAssets17Streams.signaturePngImage,
-            rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
         };
 
         p12SignatureComputerSettings = {
@@ -1330,7 +1330,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         it('adds placeholder for positive coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets17Streams.signaturePngImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             };
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info);
             
@@ -1352,7 +1352,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         it('adds placeholder with jpg image', async function() {
             info.visual = {
                 background: pdfSignerAssets17Streams.signatureJpgImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             }
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info);
 
@@ -1363,7 +1363,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         it('adds placeholder with png image', async function() {
             info.visual = {
                 background: pdfSignerAssets17Streams.signaturePngImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             }
             const res = await pdfSigner.addPlaceholderAsync(pdfSignerAssets17Streams.pdf, info);
 
@@ -1373,7 +1373,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
 
         it('adds placeholder with texts', async function() {
             info.visual = {
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 },
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 },
                 texts: [
                     {
                         lines: [ 
@@ -1398,7 +1398,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
 
         it('adds placeholder with texts and background', async function() {
             info.visual = {
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 },
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 },
                 background: pdfSignerAssets13.signaturePngImage,
                 texts: [
                     {
@@ -1440,7 +1440,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
 
         it('adds field for positive coordinates', async function() {
-            addFieldInfo.rectangle = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
+            addFieldInfo.rectangle = { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 };
             
             const res = await pdfSigner.addFieldAsync(pdfSignerAssets17Streams.pdf, addFieldInfo);
             
@@ -1482,7 +1482,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         it('signs for positive coordinates', async function() {
             info.visual = {
                 background: pdfSignerAssets17Streams.signaturePngImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             };
             const res = await pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info);
             
@@ -1504,7 +1504,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         it('signs with jpg image', async function() {
             info.visual = {
                 background: pdfSignerAssets17Streams.signatureJpgImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info);
             info.visual.rectangle.left += 250;
@@ -1518,7 +1518,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         it('signs with png image', async function() {
             info.visual = {
                 background: pdfSignerAssets17Streams.signaturePngImage,
-                rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+                rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
             };
             const signedPdf = await pdfSigner.signAsync(pdfSignerAssets17Streams.pdf, info);
             info.visual.rectangle.left += 250;
@@ -1624,7 +1624,7 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
         })
 
         it('signs for positive coordinates', async function() {
-            visualInfo.rectangle = { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 };
+            visualInfo.rectangle = { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 };
 
             const res = await pdfSigner.signVisualAsync(pdfSignerAssets17Streams.pdf, visualInfo);
             
@@ -1795,14 +1795,14 @@ describe('PdfSigner Regression', function () {
 
         addFieldInfo = {
             pageNumber: 1,
-            rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
         }
 
         visualInfo = {
             pageNumber: 1,
 
             background: pdfSignerAssets13.signaturePngImage,
-            rectangle: { left: 50.0, top: 100, right: 50.0 + 214.0, bottom: 100 + 70 }
+            rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
         };
 
         p12SignatureComputerSettings = {

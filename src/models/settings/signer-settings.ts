@@ -1,4 +1,4 @@
-import { SignatureComputerSettings } from "./signature-computer-settings";
+import { SignatureComputerSettings } from './signature-computer-settings';
 
 export interface SignerSettings {
     signatureLength: number;

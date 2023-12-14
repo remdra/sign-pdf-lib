@@ -1,10 +1,9 @@
-import { PDFDocument } from "pdf-lib";
-import { SigningPdfDocument } from "./signing-pdf-document";
-import { PdfByteRanges } from "./models";
+import { SigningPdfDocument } from './signing-pdf-document';
+import { PdfByteRanges } from './models';
+import { TooSmallPlaceholderError } from './errors';
 
 export class SignatureEmbeder {
 
-    #pdfSigningDoc: SigningPdfDocument;
     #pdf: Buffer;
     #signRanges: PdfByteRanges;
 
@@ -15,9 +14,8 @@ export class SignatureEmbeder {
     }
 
     private constructor(pdfSigningDoc: SigningPdfDocument, pdf: Buffer) {
-        this.#pdfSigningDoc = pdfSigningDoc;
         this.#pdf = pdf;
-        this.#signRanges = this.#pdfSigningDoc.getPlaceholderRanges();
+        this.#signRanges = pdfSigningDoc.getPlaceholderRanges();
     }
 
     getSignBuffer(): Buffer {
@@ -33,12 +31,12 @@ export class SignatureEmbeder {
         return this.embedHexSignature(hexSignature);
     }
     
-    private embedHexSignature(hexSignature: string): Buffer {
-        const signatureLen = this.#signRanges.signature.length;
+    embedHexSignature(hexSignature: string): Buffer {
+        const signatureLen = this.#signRanges.signature.length - 2;
         if(signatureLen < hexSignature.length) {
-            throw new Error('Not enough space to store signature.');
+            throw new TooSmallPlaceholderError();
         }
-        const diff = signatureLen - hexSignature.length - 2;
+        const diff = signatureLen - hexSignature.length;
         const fullSignature = Buffer.concat([Buffer.from(hexSignature), Buffer.from('0'.repeat(diff))]);
     
         return Buffer.concat([

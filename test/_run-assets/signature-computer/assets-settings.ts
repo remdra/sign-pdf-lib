@@ -8,7 +8,6 @@ const _paths = {
     pemKey:         path.join('test', '_assets', 'signature-computer', 'settings', 'key.pem')
 };
 
-
 class SettingsAssets {
   
     private _p12Certificate = new BinaryAssetFile(_paths.p12Certificate);

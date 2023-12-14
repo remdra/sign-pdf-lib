@@ -1,6 +1,6 @@
-import { Rectangle } from "../rectangle";
-import { SignatureText } from "../signature-text";
-import { SignatureParameters } from "./signature-parameters";
+import { Rectangle } from '../rectangle';
+import { SignatureText } from '../signature-text';
+import { SignatureParameters } from './signature-parameters';
 
 export interface SignDigitalVisualCommonParameters {
     rectangle: Rectangle;

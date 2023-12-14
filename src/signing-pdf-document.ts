@@ -1,8 +1,10 @@
-import { DocumentSnapshot, PDFArray, PDFContext, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFRef, PDFString } from "pdf-lib";
-import { PdfByteRanges, Rectangle, SignatureText, Size } from "./models";
-import { emptyRectangle } from './models/rectangle';
+import { PdfByteRanges, Rectangle, SignatureText, Size } from './models';
+import { SignatureParameters } from './models/parameters';
+import { NoPlaceholderError } from './errors';
+import { computeAbsolutePageRectangle } from './helpers';
+
+import { DocumentSnapshot, PDFArray, PDFContext, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFRef, PDFString } from 'pdf-lib';
 import * as _ from 'lodash';
-import { SignatureParameters } from "./models/parameters";
 
 function getSignatureRange(pdf: Buffer) {
     let contentsStartIndex = 0;
@@ -65,25 +67,6 @@ function updateByteRange(incrementalPdf: Buffer, initialPdf: Buffer): Buffer | u
 }
 
 
-function getCoordinate(coordinate: number, limit: number): number {
-    return coordinate >= 0
-        ? coordinate
-        : (limit + coordinate);
-}
-
-function getPageRectangle(visualRectangle: Rectangle | undefined, pageSize: Size): Rectangle {
-    if(!visualRectangle) {
-        return emptyRectangle;
-    }
-
-    return {
-        left: getCoordinate(visualRectangle.left, pageSize.width),
-        top: pageSize.height - getCoordinate(visualRectangle.top, pageSize.height),
-        right: getCoordinate(visualRectangle.right, pageSize.width),
-        bottom: pageSize.height - getCoordinate(visualRectangle.bottom, pageSize.height)
-    };
-}
-
 function getPdfRangesFromSignature(signature: PDFDict): PdfByteRanges {
     const signatureV = signature.lookup(PDFName.of('V'), PDFDict);
     const byteRange = signatureV.lookup(PDFName.of('ByteRange'), PDFArray);
@@ -131,6 +114,15 @@ class NameProvider {
     }
 }
 
+export interface AddSignatureFieldParameters { 
+    name?: string;
+    pageIndex: number;
+    rectangle?: Rectangle;
+    visualRef?: PDFRef;
+    placeholderRef?: PDFRef;
+    embedFont: boolean
+};
+
 export class SigningPdfDocument {
 
     #pdfDoc: PDFDocument;
@@ -154,13 +146,13 @@ export class SigningPdfDocument {
         this.#nameProvider = new NameProvider(this.getSignatureCount() + 1);
     }
 
-    addSignatureField({ name, pageIndex, rectangle, visualRef, placeholderRef, embedFont }: { name?: string, pageIndex: number, rectangle?: Rectangle, visualRef?: PDFRef, placeholderRef? : PDFRef, embedFont: boolean }): void {
+    addSignatureField({ name, pageIndex, rectangle, visualRef, placeholderRef, embedFont }: AddSignatureFieldParameters): void {
         this.ensurePageAnnots(pageIndex);
 
         name = name || this.#nameProvider.getSignatureName();
 
         const page = this.#pdfDoc.getPage(pageIndex);
-        const pageRect = getPageRectangle(rectangle, page.getSize());
+        const pageRect = computeAbsolutePageRectangle(rectangle, page.getSize());
 
         const signature: any = {
             'FT': 'Sig',
@@ -328,7 +320,11 @@ export class SigningPdfDocument {
 
     getPlaceholderRanges(): PdfByteRanges {
         const signatureRefs = this.getSignatures();
-        const lastSignatureRef = _.last(signatureRefs)!;
+        const lastSignatureRef = _.last(signatureRefs);
+
+        if(!lastSignatureRef) {
+            throw new NoPlaceholderError();
+        }
     
         const lastSignature = this.#pdfDoc.context.lookup(lastSignatureRef, PDFDict);
         return getPdfRangesFromSignature(lastSignature);

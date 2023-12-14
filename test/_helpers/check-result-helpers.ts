@@ -1,5 +1,5 @@
-import { PdfVerifySignaturesResult, VerifySignatureResult } from "src/models"
-import { SignatureParameters } from "src/models/parameters";
+import { PdfVerifySignaturesResult, VerifySignatureResult } from '../../src/models';
+import { SignatureParameters } from '../../src/models/parameters';
 
 export function transformPdfCheckResult(check: any): PdfVerifySignaturesResult {
     return {

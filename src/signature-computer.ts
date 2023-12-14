@@ -1,6 +1,7 @@
+import { P12SignatureComputerSettings, PemSignatureComputerSettings, SignatureComputerSettings } from './models/settings/signature-computer-settings';
+
 import * as forge from 'node-forge';
 import { PDFString } from 'pdf-lib';
-import { P12SignatureComputerSettings, PemSignatureComputerSettings, SignatureComputerSettings } from './models/settings/signature-computer-settings';
 
 interface SigningSettings {
     privateKey: any;

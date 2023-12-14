@@ -9,7 +9,7 @@ const _paths = {
 };
 
 
-class SignatureAssets {
+class ComputerAssets {
   
   private _pdf = new BinaryAssetFile(_paths.pdf);
   private _signature = new BinaryAssetFile(_paths.signature);
@@ -28,4 +28,4 @@ class SignatureAssets {
   }
 };
 
-export const signatureAssets = new SignatureAssets();
+export const computerAssets = new ComputerAssets();

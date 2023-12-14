@@ -1,4 +1,4 @@
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument } from 'pdf-lib';
 
 export async function generatePdfLibPdfAsync(useObjectStreams: boolean = false): Promise<Buffer> {
     const pdfDoc = await PDFDocument.create();
