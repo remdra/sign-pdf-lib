@@ -1,11 +1,15 @@
 import { BinaryAssetFile } from '../../_helpers/assets/binary-asset-file';
 import * as path from 'path';
 
-const baseFolder = path.join('test', '_assets', 'signature-computer', 'pdf'); 
+const baseFolder = path.join('test', '_assets', 'signature-computer', 'pdf');
+
+function getPath(file: string) {
+  return path.join(baseFolder, file);
+}
 
 const _paths = {
-  pdf:       path.join(baseFolder, 'pdf.pdf'),
-  signature: path.join(baseFolder, 'signature.bin')
+  pdf:       getPath('pdf.pdf'),
+  signature: getPath('signature.bin')
 };
 
 

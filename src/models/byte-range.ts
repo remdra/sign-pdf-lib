@@ -6,5 +6,5 @@ export interface ByteRange {
 export interface PdfByteRanges { 
     before: ByteRange;
     signature: ByteRange;
-    rangeAfter: ByteRange;
+    after: ByteRange;
 };

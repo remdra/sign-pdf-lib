@@ -16,7 +16,7 @@ describe('SignatureEmbeder', function () {
     let signatureEmbeder: SignatureEmbeder;
     
     beforeEach(async function() {
-        signatureEmbeder = await SignatureEmbeder.loadAsync(embederAssets.placeholder);
+        signatureEmbeder = await SignatureEmbeder.fromPdfAsync(embederAssets.placeholder);
     })
 
     it('_generate', async function () {
@@ -37,10 +37,10 @@ describe('SignatureEmbeder', function () {
         const pdf = await generatePdfLibPdfAsync();
         await generateAsset.generateBinaryAsync(embederAssets.paths.pdf, pdf);
 
-        const placeholder = await pdfSigner.addPlaceholderAsync(pdf, { pageNumber: 1, signature: { date: signDate } });
-        await generateAsset.generateBinaryAsync(embederAssets.paths.placeholder, placeholder);
+        const placeholderPdf = await pdfSigner.addPlaceholderAsync(pdf, { pageNumber: 1, signature: { date: signDate } });
+        await generateAsset.generateBinaryAsync(embederAssets.paths.placeholder, placeholderPdf);
         
-        const signBuffer = Buffer.concat([ placeholder.subarray(0, placeholder.indexOf('<AA')), placeholder.subarray(placeholder.indexOf('AA>') + 3) ]);
+        const signBuffer = Buffer.concat([ placeholderPdf.subarray(0, placeholderPdf.indexOf('<AA')), placeholderPdf.subarray(placeholderPdf.indexOf('AA>') + 3) ]);
         const signature = signatureComputer.computeSignature(signBuffer, signDate);
         await generateAsset.generateBinaryAsync(embederAssets.paths.signature, signature);
     })
@@ -54,7 +54,7 @@ describe('SignatureEmbeder', function () {
         })
 
         it('throws for pdf without placeholder', async function() {
-            await expect(SignatureEmbeder.loadAsync(embederAssets.pdf)).to.be.rejectedWith(NoPlaceholderError);
+            await expect(SignatureEmbeder.fromPdfAsync(embederAssets.pdf)).to.be.rejectedWith(NoPlaceholderError);
         })
     })
 

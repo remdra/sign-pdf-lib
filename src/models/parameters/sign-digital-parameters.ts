@@ -18,6 +18,7 @@ export type SignDigitalVisualParameters = SignDigitalVisualBackgroundParameters 
 
 export interface SignDigitalParameters {
     pageNumber: number;
+    name?: string;
     signature?: SignatureParameters;
     visual?: SignDigitalVisualParameters;
 };

@@ -136,42 +136,23 @@ startxref
 >>
 endobj
 
-4 0 obj
-<<
-/Type /Page
-/Parent 1 0 R
-/Resources <<
-/Font <<
-/Helvetica-7098480789 5 0 R
->>
-/XObject <<
->>
-/ExtGState <<
->>
->>
-/MediaBox [ 0 0 595.28 841.89 ]
-/Annots [ 11 0 R ]
-/Contents [ 6 0 R ]
->>
-endobj
-
 10 0 obj
 <<
-/Fields [ 11 0 R ]
+/Fields [ ]
 /SigFlags 3
 >>
 endobj
 
 11 0 obj
 <<
-/FT /Sig
-/Type /Annot
-/Subtype /Widget
-/T (Signature)
-/F 132
-/P 4 0 R
-/Rect [ 50 741.89 264 671.89 ]
+/FT /XObject
+/Subtype /Form
+/BBox [ 0 0 214 70 ]
+/Length 9
 >>
+stream
+% DSBlank
+endstream
 endobj
 
 xref
@@ -179,11 +160,9 @@ xref
 0000000000 65535 f 
 2 1
 0000001656 00000 n 
-4 1
-0000001723 00000 n 
 10 2
-0000001931 00000 n 
-0000001985 00000 n 
+0000001723 00000 n 
+0000001770 00000 n 
 
 trailer
 <<
@@ -194,5 +173,5 @@ trailer
 >>
 
 startxref
-2109
+1879
 %%EOF

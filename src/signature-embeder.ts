@@ -7,8 +7,8 @@ export class SignatureEmbeder {
     #pdf: Buffer;
     #signRanges: PdfByteRanges;
 
-    static async loadAsync(pdf: Buffer): Promise<SignatureEmbeder> {
-        const pdfSigningDoc = await SigningPdfDocument.loadAsync(pdf);
+    static async fromPdfAsync(pdf: Buffer): Promise<SignatureEmbeder> {
+        const pdfSigningDoc = await SigningPdfDocument.fromPdfAsync(pdf);
 
         return new SignatureEmbeder(pdfSigningDoc, pdf);
     }
@@ -21,7 +21,7 @@ export class SignatureEmbeder {
     getSignBuffer(): Buffer {
         return Buffer.concat([
             this.#pdf.subarray(this.#signRanges.before.start, this.#signRanges.before.start + this.#signRanges.before.length), 
-            this.#pdf.subarray(this.#signRanges.rangeAfter.start, this.#signRanges.rangeAfter.start + this.#signRanges.rangeAfter.length)
+            this.#pdf.subarray(this.#signRanges.after.start, this.#signRanges.after.start + this.#signRanges.after.length)
         ]);
     }
     
@@ -42,7 +42,7 @@ export class SignatureEmbeder {
         return Buffer.concat([
             this.#pdf.subarray(this.#signRanges.before.start, this.#signRanges.before.start + this.#signRanges.before.length + 1), 
             fullSignature, 
-            this.#pdf.subarray(this.#signRanges.rangeAfter.start - 1)
+            this.#pdf.subarray(this.#signRanges.after.start - 1)
         ]);
     }
 }

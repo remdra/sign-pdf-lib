@@ -3,12 +3,16 @@ import * as path from 'path';
 
 const baseFolder = path.join('test', '_assets', 'signature-embeder'); 
 
+function getPath(file: string) {
+  return path.join(baseFolder, file);
+}
+
 const _paths = {
-  pdf:         path.join(baseFolder, 'pdf.pdf'),
-  signedPdf:   path.join(baseFolder, 'pdf-signed.pdf'),
-  placeholder: path.join(baseFolder, 'placeholder.pdf'),
-  signBuffer:  path.join(baseFolder, 'sign-buffer.bin'),
-  signature:   path.join(baseFolder, 'signature.bin')
+  pdf:         getPath('pdf.pdf'),
+  signedPdf:   getPath('pdf-signed.pdf'),
+  placeholder: getPath('placeholder.pdf'),
+  signBuffer:  getPath('sign-buffer.bin'),
+  signature:   getPath('signature.bin')
 };
 
 

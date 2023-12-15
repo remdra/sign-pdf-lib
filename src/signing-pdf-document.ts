@@ -1,6 +1,6 @@
 import { PdfByteRanges, Rectangle, SignatureText, Size } from './models';
 import { SignatureParameters } from './models/parameters';
-import { NoPlaceholderError } from './errors';
+import { NoPlaceholderError, SignatureNotFoundError } from './errors';
 import { computeAbsolutePageRectangle } from './helpers';
 
 import { DocumentSnapshot, PDFArray, PDFContext, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFRef, PDFString } from 'pdf-lib';
@@ -35,7 +35,7 @@ function getPdfSigningRanges(initialPdf: Buffer, incrementalPdf: Buffer): PdfByt
             start: initialPdf.length + startSignature - 1,
             length: endSignature - startSignature + 2
         },
-        rangeAfter: {
+        after: {
             start: initialPdf.length + endSignature + 1,
             length: incrementalPdf.length - endSignature - 1
         }
@@ -48,9 +48,9 @@ function updateByteRange(incrementalPdf: Buffer, initialPdf: Buffer): Buffer | u
         return undefined;
     }
 
-    const { before: rangeBefore, rangeAfter } = getPdfSigningRanges(initialPdf, incrementalPdf);
+    const { before, after } = getPdfSigningRanges(initialPdf, incrementalPdf);
 
-    const byteRangeArray = PDFContext.create().obj([ rangeBefore.start, rangeBefore.length, rangeAfter.start, rangeAfter.length ]);
+    const byteRangeArray = PDFContext.create().obj([ before.start, before.length, after.start, after.length ]);
     const startOfByteRange = incrementalPdf.indexOf('[', byteRangeStartIndex);
     const endOfByteRange = incrementalPdf.indexOf(']', startOfByteRange) + 1;
     if(endOfByteRange - startOfByteRange < byteRangeArray.sizeInBytes()) {
@@ -68,6 +68,10 @@ function updateByteRange(incrementalPdf: Buffer, initialPdf: Buffer): Buffer | u
 
 
 function getPdfRangesFromSignature(signature: PDFDict): PdfByteRanges {
+    if(!signature.get(PDFName.of('V'))) {
+        throw new NoPlaceholderError();
+    }
+
     const signatureV = signature.lookup(PDFName.of('V'), PDFDict);
     const byteRange = signatureV.lookup(PDFName.of('ByteRange'), PDFArray);
 
@@ -86,7 +90,7 @@ function getPdfRangesFromSignature(signature: PDFDict): PdfByteRanges {
             start: start1 + length1,
             length: start2 - (start1 + length1)
         },
-        rangeAfter: {
+        after: {
             start: start2,
             length: length2
         }
@@ -123,20 +127,38 @@ export interface AddSignatureFieldParameters {
     embedFont: boolean
 };
 
+export interface AddVisualParameters { 
+    background?: Buffer; 
+    texts?: SignatureText[] 
+};
+
+export interface AddSignaturePlaceholderParameters extends SignatureParameters { 
+    signaturePlaceholder: string; 
+    rangePlaceHolder: number;
+};
+
+export interface UpdateSignatureParameters { 
+    placeholderRef: PDFRef;
+    visualRef?: PDFRef;
+    embedFont: boolean;
+};
+
 export class SigningPdfDocument {
 
     #pdfDoc: PDFDocument;
+    #pdf: Buffer;
     #docSnapshot: DocumentSnapshot;
     #nameProvider: NameProvider;
 
-    static async loadAsync(pdf: Buffer): Promise<SigningPdfDocument> {
+    static async fromPdfAsync(pdf: Buffer): Promise<SigningPdfDocument> {
         const pdfDoc = await PDFDocument.load(pdf);
 
-        return new SigningPdfDocument(pdfDoc);
+        return new SigningPdfDocument(pdfDoc, pdf);
     }
 
-    private constructor(pdfDoc: PDFDocument) {
+    private constructor(pdfDoc: PDFDocument, pdf: Buffer) {
         this.#pdfDoc = pdfDoc;
+        this.#pdf = pdf;
 
         if(pdfDoc.context.pdfFileDetails.useObjectStreams) { pdfDoc.context.largestObjectNumber += 1; };
         this.#docSnapshot = pdfDoc.takeSnapshot();
@@ -189,7 +211,7 @@ export class SigningPdfDocument {
         }
     }
 
-    async addVisualAsync({ background, texts }: { background?: Buffer; texts?: SignatureText[] }): Promise<PDFRef | undefined> {
+    async addVisualAsync({ background, texts }: AddVisualParameters): Promise<PDFRef | undefined> {
         if(!background && !texts) {
             return undefined;
         }
@@ -268,26 +290,26 @@ export class SigningPdfDocument {
         return this.#pdfDoc.context.register(visual);
     }
 
-    addSignaturePlaceholder(info: SignatureParameters & { signaturePlaceholder: string; rangePlaceHolder: number }): PDFRef {
+    addSignaturePlaceholder({ name, reason, location, contactInfo, date, signaturePlaceholder, rangePlaceHolder }: AddSignaturePlaceholderParameters): PDFRef {
 
         const signature: any = {
             'Type': 'Sig',
             'Filter': 'Adobe.PPKLite',
             'SubFilter': 'adbe.pkcs7.detached',
-            'Contents': PDFHexString.of(info.signaturePlaceholder),
-            'ByteRange': [ 0, info.rangePlaceHolder, info.rangePlaceHolder, info.rangePlaceHolder ]
+            'Contents': PDFHexString.of(signaturePlaceholder),
+            'ByteRange': [ 0, rangePlaceHolder, rangePlaceHolder, rangePlaceHolder ]
         };
-        if(info.name) { signature['Name'] = PDFString.of(info.name); };
-        if(info.location) { signature['Location'] = PDFString.of(info.location); };
-        if(info.reason) { signature['Reason'] = PDFString.of(info.reason); };
-        if(info.date) { signature['M'] = PDFString.fromDate(info.date); };
-        if(info.contactInfo) { signature['ContactInfo'] = PDFString.of(info.contactInfo); };
+        if(name) { signature['Name'] = PDFString.of(name); };
+        if(location) { signature['Location'] = PDFString.of(location); };
+        if(reason) { signature['Reason'] = PDFString.of(reason); };
+        if(date) { signature['M'] = PDFString.fromDate(date); };
+        if(contactInfo) { signature['ContactInfo'] = PDFString.of(contactInfo); };
         
         const placeholder = this.#pdfDoc.context.obj(signature) as any as PDFDict; 
         return this.#pdfDoc.context.register(placeholder);
     }
 
-    updateSignature(name: string, { placeholderRef, visualRef, embedFont }: { placeholderRef: PDFRef, visualRef?: PDFRef, embedFont: boolean }): void {
+    updateSignature(name: string, { placeholderRef, visualRef, embedFont }: UpdateSignatureParameters): void {
         const signature = this.getSignature(name);
         if(signature.get(PDFName.of('V'))) {
             throw new Error('Already signed.');
@@ -308,12 +330,12 @@ export class SigningPdfDocument {
         }
     }
     
-    async saveAsync(initialPdf: Buffer): Promise<Buffer> {
+    async saveAsync(): Promise<Buffer> {
         let incrementalPdf = Buffer.from(await this.#pdfDoc.saveIncremental(this.#docSnapshot));
-        incrementalPdf = updateByteRange(incrementalPdf, initialPdf) || incrementalPdf;
+        incrementalPdf = updateByteRange(incrementalPdf, this.#pdf) || incrementalPdf;
 
         return Buffer.concat([
-            initialPdf,
+            this.#pdf,
             incrementalPdf
         ]);
     }
@@ -394,7 +416,7 @@ export class SigningPdfDocument {
                 return signature;
             };
         };
-        throw new Error(`Signature '${name} not found.`);
+        throw new SignatureNotFoundError(name);
     }
 
     private getSignatureCount(): number {
@@ -420,13 +442,5 @@ export class SigningPdfDocument {
         } else {
             this.#docSnapshot.markObjForSave(page);
         }    
-    }
-    
-    get doc() {
-        return this.#pdfDoc;
-    }
-
-    get docSnapshot() {
-        return this.#docSnapshot;
     }
 }
