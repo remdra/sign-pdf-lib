@@ -1,9 +1,7 @@
+import { PdfSigningDocument } from './pdf-signing-document';
 import { Rectangle, SignatureText } from './models';
 import { DigitallySignedError } from './errors';
 import { computeAbsolutePageRectangle } from './helpers';
-
-import { DocumentSnapshot, PDFArray, PDFDict, PDFDocument, PDFImage, PDFName, PDFPage, PDFRef } from 'pdf-lib';
-import _ from 'lodash';
 
 class NameProvider {
 
@@ -27,42 +25,36 @@ export interface AddVisualSignatureParameters {
 
 export class PdfDocumentVisualSigner {
 
-    #pdfDoc: PDFDocument;
-    #pdf: Buffer;
-    #docSnapshot: DocumentSnapshot;
+    #signingDoc: PdfSigningDocument;
     #nameProvider: NameProvider;
 
     static async fromPdfAsync(pdf: Buffer): Promise<PdfDocumentVisualSigner> {
-        const pdfDoc = await PDFDocument.load(pdf);
+        const signingDoc = await PdfSigningDocument.fromPdfAsync(pdf);
 
-        return new PdfDocumentVisualSigner(pdfDoc, pdf);
+        return new PdfDocumentVisualSigner(signingDoc);
     }
 
-    private constructor(pdfDoc: PDFDocument, pdf: Buffer) {
-        this.#pdfDoc = pdfDoc;
-        this.#pdf = pdf;
+    private constructor(signingDoc: PdfSigningDocument) {
+        this.#signingDoc = signingDoc;
 
-        if(pdfDoc.context.pdfFileDetails.useObjectStreams) { pdfDoc.context.largestObjectNumber += 1; };
-        this.#docSnapshot = pdfDoc.takeSnapshot();
-
-        this.#nameProvider = new NameProvider(this.getSignatureCount() + 1);
+        this.#nameProvider = new NameProvider(this.#signingDoc.getSignatureCount() + 1);
     }
     
     async addVisualSignatureAsync({ pageIndex, rectangle, background, texts }: AddVisualSignatureParameters): Promise<void> {
-        const signatureCount = this.getSignatureCount();
+        const signatureCount = this.#signingDoc.getSignatureCount();
         if(signatureCount) {
             throw new DigitallySignedError();
         }
 
-        const page = this.#pdfDoc.getPage(pageIndex);
-        const pageRect = computeAbsolutePageRectangle(rectangle, page.getSize());
+        const pageSize = this.#signingDoc.getPageSize(pageIndex);
+        const pageRect = computeAbsolutePageRectangle(rectangle, pageSize);
 
         const left = pageRect.left;
         const bottom = pageRect.bottom;
         const width = pageRect.right - pageRect.left;
         const height = pageRect.bottom - pageRect.top;
 
-        const backgroundRef = background ? await this.embedImageAsync(background) : undefined;
+        const backgroundRef = background ? await this.#signingDoc.embedImageAsync(background) : undefined;
 
         let drawBuffer = backgroundRef 
             ? `q 1 0 0 1 ${left} ${bottom} cm 1 0 0 1 0 0 cm ${width} 0 0 -${height} 0 0 cm 1 0 0 1 0 0 cm /${this.#nameProvider.getBackgroundName()} Do Q`
@@ -90,101 +82,18 @@ export class PdfDocumentVisualSigner {
                 + ' Q';
         }
     
-        const visual = this.#pdfDoc.context.stream(drawBuffer, {});
-        const visualRef = this.#pdfDoc.context.register(visual);
-
-        this.ensurePageContentsArray(page);
-        this.#docSnapshot.markRefForSave(page.ref);
-        const pageContents = page.node.lookup(PDFName.of('Contents'), PDFArray);
-        pageContents.push(visualRef);
+        const visualRef = this.#signingDoc.registerStream(drawBuffer, {});
+        this.#signingDoc.addPageContent(visualRef, pageIndex);
         if(backgroundRef) {
-            page.node.lookup(PDFName.of('Resources'), PDFDict).set(PDFName.of('XObject'), this.#pdfDoc.context.obj({ ['background1']: backgroundRef }));
+            this.#signingDoc.addPageResource(backgroundRef, pageIndex);
         }
 
         if(texts) {
-            this.embedSignatureFont(page.node);
-        }
-        if(page.node.get(PDFName.of('Resources')) instanceof PDFRef) {
-            this.#docSnapshot.markRefForSave(page.node.get(PDFName.of('Resources')) as PDFRef);
-        } else {
-            this.#docSnapshot.markRefForSave(page.ref);
+            this.#signingDoc.embedSignatureFont({ pageIndex });
         }
     }
 
     async saveAsync(): Promise<Buffer> {
-        const incrementalPdf = Buffer.from(await this.#pdfDoc.saveIncremental(this.#docSnapshot));
-
-        return Buffer.concat([
-            this.#pdf,
-            incrementalPdf
-        ]);
-    }
-
-    private ensurePageContentsArray(page: PDFPage): void {
-        const pageContents = page.node.get(PDFName.of('Contents'));
-        if(pageContents instanceof PDFArray) {
-            return;
-        }
-        const newPageContents = this.#pdfDoc.context.obj([ pageContents ]);
-        page.node.set(PDFName.of('Contents'), newPageContents);
-        this.#docSnapshot.markRefForSave(page.ref);
-    }
-
-    private async embedImageAsync(image: Buffer): Promise<PDFRef> {
-        let img: PDFImage;
-        try { 
-            img = await this.#pdfDoc.embedJpg(image);
-        } catch {
-            img = await this.#pdfDoc.embedPng(image);
-        }
-        await img.embed();
-    
-        return img.ref;
-    }   
-
-    private getSignatures(): PDFRef[] {
-        if(!this.#pdfDoc.catalog.AcroForm()) {
-            return [];
-        }
-
-        const formDict = this.#pdfDoc.getForm().acroForm.dict;
-        const formFields = formDict.lookup(PDFName.of('Fields'), PDFArray);
-
-        return formFields.asArray()
-            .filter(ref => {
-                const dict = this.#pdfDoc.context.lookupMaybe(ref, PDFDict);
-                if(!dict) {
-                    return false;
-                }
-                return dict.lookupMaybe(PDFName.of('FT'), PDFName) == PDFName.of('Sig')
-                        && dict.lookupMaybe(PDFName.of('Type'), PDFName) == PDFName.of('Annot')
-                        && dict.lookupMaybe(PDFName.of('Subtype'), PDFName) == PDFName.of('Widget');
-            })
-            .map(obj => obj as PDFRef);
-    }
-
-    private getSignatureCount(): number {
-        return this.getSignatures().length;
-    }
-
-    private embedSignatureFont(page: PDFDict): void {
-        const fontDict = page.lookup(PDFName.of('Resources'), PDFDict).lookup(PDFName.of('Font'), PDFDict);
-        if(fontDict.has(PDFName.of('Helvetica'))) {
-            return;
-        }
-        const font = this.#pdfDoc.context.obj({
-            'Type': 'Font',
-            'Subtype': 'Type1',
-            'BaseFont': 'Helvetica',
-            'Encoding': 'WinAnsiEncoding'
-        });
-        const fontRef = this.#pdfDoc.context.register(font);
-        fontDict.set(PDFName.of('Helvetica'), fontRef);
-
-        if(page.get(PDFName.of('Resources')) instanceof PDFRef) {
-            this.#docSnapshot.markRefForSave(page.get(PDFName.of('Resources')) as PDFRef);
-        } else {
-            this.#docSnapshot.markObjForSave(page);
-        }    
+        return await this.#signingDoc.saveAsync();
     }
 }
