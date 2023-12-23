@@ -1,52 +1,14 @@
-import { DocumentSnapshot, PDFArray, PDFContext, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFRef, PDFString } from 'pdf-lib';
+import { PDFArray, PDFDict, PDFDocument, PDFHexString, PDFName, PDFNumber, PDFString } from 'pdf-lib';
 import * as _ from 'lodash';
 import * as forge from 'node-forge';
 
-import { PdfVerifySignaturesResult, VerifySignatureResult, Rectangle, Size, PdfByteRanges, SignatureField } from './models';
+import { PdfVerifySignaturesResult, VerifySignatureResult, PdfByteRanges, SignatureField } from './models';
 import { SignFieldParameters, AddFieldParameters, SignVisualParameters, SignatureParameters, SignDigitalParameters } from './models/parameters';
 import { SignerSettings } from './models/settings';
-import { emptyRectangle } from './models/rectangle';
-import { SigningPdfDocument } from './signing-pdf-document';
+import { PdfDocumentDigitalSigner } from './pdf-document-digital-signer';
+import { PdfDocumentVisualSigner } from './pdf-document-visual-signer';
 import { SignatureEmbeder } from './signature-embeder';
 import { SignatureComputer } from './signature-computer';
-
-function takeSnapshot(pdfDoc: PDFDocument, pageNumber?: number): DocumentSnapshot {
-    const docSnapshot = pdfDoc.takeSnapshot();
-
-    if(!pageNumber) {
-        return docSnapshot;
-    }
-
-    const page = pdfDoc.getPage(pageNumber - 1);
-    if(!pdfDoc.catalog.AcroForm()) {
-        pdfDoc.catalog.getOrCreateAcroForm();
-        docSnapshot.markObjForSave(pdfDoc.catalog);
-    }
-    const form = pdfDoc.getForm();
-    docSnapshot.markObjForSave(form.acroForm.dict);
-    docSnapshot.markRefForSave(page.ref);
-
-    if (pdfDoc.context.pdfFileDetails.useObjectStreams) {
-      const annotsRef = form.acroForm.dict.get(PDFName.of('Fields'));
-      if (annotsRef instanceof PDFRef) {
-        docSnapshot.markRefForSave(annotsRef);
-      }
-    }
-
-    return docSnapshot;
-}
-
-async function embedSignatureAsync(signature: Buffer, pdfDoc: PDFDocument): Promise<PDFImage> {
-    let img: PDFImage;
-    try { 
-        img = await pdfDoc.embedJpg(signature);
-    } catch {
-        img = await pdfDoc.embedPng(signature)
-    }
-    await img.embed();
-
-    return img;
-}
 
 function getSignatureEntries(pdfDoc: PDFDocument) {
     return pdfDoc.context.enumerateIndirectObjects()
@@ -65,9 +27,6 @@ function getSignatureFields(pdfDoc: PDFDocument) {
         .map(field => field as PDFDict);
 }
 
-function getSignatureCount(pdfDoc: PDFDocument) {
-    return getSignatureEntries(pdfDoc).length;
-}
 
 function getSignatures(pdfDoc: PDFDocument): PDFDict[] {
     return pdfDoc.context.enumerateIndirectObjects()
@@ -182,25 +141,6 @@ function getDateMaybe(dict: PDFDict, key: string): Date | undefined {
     return value?.decodeDate();
 }
 
-function getCoordinate(coordinate: number, limit: number): number {
-    return coordinate >= 0
-        ? coordinate
-        : (limit + coordinate);
-}
-
-function getSignatureRectangle(visualRectangle: Rectangle | undefined, pageSize: Size): Rectangle {
-    if(!visualRectangle){
-        return emptyRectangle;
-    }
-
-    return {
-        left: getCoordinate(visualRectangle.left, pageSize.width),
-        top: pageSize.height - getCoordinate(visualRectangle.top, pageSize.height),
-        right: getCoordinate(visualRectangle.right, pageSize.width),
-        bottom: pageSize.height - getCoordinate(visualRectangle.bottom, pageSize.height)
-    };
-}
-
 export class PdfSigner {
 
     #settings: SignerSettings;
@@ -212,29 +152,29 @@ export class PdfSigner {
     }
 
     public async addPlaceholderAsync(pdf: Buffer, info: SignDigitalParameters): Promise<Buffer> {
-        const signingPdfDoc = await SigningPdfDocument.fromPdfAsync(pdf);
+        const pdfDocSigner = await PdfDocumentDigitalSigner.fromPdfAsync(pdf);
         const pageIndex = info.pageNumber - 1;
         const background = (info.visual && 'background' in info.visual) ? info.visual.background : undefined;
         const texts = (info.visual && 'texts' in info.visual) ? info.visual.texts : undefined;
-        const visualRef = await signingPdfDoc.addVisualAsync({ background, texts });
+        const visualRef = await pdfDocSigner.addVisualAsync({ background, texts });
         const placeholderInfo = this.getPlaceholderParameters();
-        const placeholderRef = signingPdfDoc.addSignaturePlaceholder({ ...info.signature, ...placeholderInfo });
+        const placeholderRef = pdfDocSigner.addSignaturePlaceholder({ ...info.signature, ...placeholderInfo });
         const rectangle = info.visual?.rectangle;
         const embedFont = !!(info.visual && 'texts' in info.visual);
         const name = info.name;
-        signingPdfDoc.addSignatureField({ name, pageIndex, rectangle, visualRef, placeholderRef, embedFont });
-        return signingPdfDoc.saveAsync();
+        pdfDocSigner.addSignatureField({ name, pageIndex, rectangle, visualRef, placeholderRef, embedFont });
+        return pdfDocSigner.saveAsync();
     }
 
     public async addFieldAsync(pdf: Buffer, info: AddFieldParameters): Promise<Buffer> {
-        const signingPdfDoc = await SigningPdfDocument.fromPdfAsync(pdf);
+        const pdfDocSigner = await PdfDocumentDigitalSigner.fromPdfAsync(pdf);
         const pageIndex = info.pageNumber - 1;
         const rectangle = info.rectangle;
         const embedFont = false;
         const name = info.name;
-        signingPdfDoc.addSignatureField({ name, pageIndex, rectangle, embedFont });
+        pdfDocSigner.addSignatureField({ name, pageIndex, rectangle, embedFont });
 
-        return signingPdfDoc.saveAsync();
+        return pdfDocSigner.saveAsync();
     }
 
     public async signAsync(pdf: Buffer, info: SignDigitalParameters): Promise<Buffer> {
@@ -246,13 +186,13 @@ export class PdfSigner {
     }
 
     public async signFieldAsync(pdf: Buffer, info: SignFieldParameters): Promise<Buffer> {
-        const signingPdfDoc = await SigningPdfDocument.fromPdfAsync(pdf);
+        const pdfDocSigner = await PdfDocumentDigitalSigner.fromPdfAsync(pdf);
         const placeholderInfo = this.getPlaceholderParameters();
-        const placeholderRef = signingPdfDoc.addSignaturePlaceholder({ ...info.signature, ...placeholderInfo });
-        const visualRef = await signingPdfDoc.addVisualAsync({ ...info.visual });
+        const placeholderRef = pdfDocSigner.addSignaturePlaceholder({ ...info.signature, ...placeholderInfo });
+        const visualRef = await pdfDocSigner.addVisualAsync({ ...info.visual });
         const embedFont = !!(info.visual && 'texts' in info.visual);
-        signingPdfDoc.updateSignature(info.fieldName, { placeholderRef, visualRef, embedFont });
-        const placeholderPdf = await signingPdfDoc.saveAsync();
+        pdfDocSigner.updateSignature(info.fieldName, { placeholderRef, visualRef, embedFont });
+        const placeholderPdf = await pdfDocSigner.saveAsync();
         const signatureEmbeder = await SignatureEmbeder.fromPdfAsync(placeholderPdf);
         const toBeSignedBuffer = signatureEmbeder.getSignBuffer();
         const signature = this.#signatureComputer.computeSignature(toBeSignedBuffer, info.signature?.date || new Date());
@@ -260,26 +200,13 @@ export class PdfSigner {
     }
 
     public async signVisualAsync(pdf: Buffer, info: SignVisualParameters): Promise<Buffer> {
-        const pdfDoc = await PDFDocument.load(pdf);
-        const signatureCount = getSignatureCount(pdfDoc);
-        if(signatureCount) {
-            throw new Error('Digital signature found.');
-        }
-
-        if(pdfDoc.context.pdfFileDetails.useObjectStreams) { pdfDoc.context.largestObjectNumber += 1; };
-        const docSnapshot = takeSnapshot(pdfDoc, info.pageNumber);
-        const page = pdfDoc.getPage(info.pageNumber - 1);
-        const signatureRect = getSignatureRectangle(info.rectangle, page.getSize());
-
-        const image = await embedSignatureAsync(info.background, pdfDoc);
-        page.drawImage(image, { x: signatureRect.left, y: signatureRect.bottom, width: signatureRect.right - signatureRect.left, height: -signatureRect.bottom + signatureRect.top });
-        
-        const incrementalPdf = Buffer.from(await pdfDoc.saveIncremental(docSnapshot));
-
-        return Buffer.concat([
-            pdf,
-            incrementalPdf
-        ]);    
+        const pdfDocSigner = await PdfDocumentVisualSigner.fromPdfAsync(pdf);
+        const pageIndex = info.pageNumber - 1;
+        const background = ('background' in info) ? info.background : undefined;
+        const texts = ('texts' in info) ? info.texts : undefined;
+        const rectangle = info.rectangle;
+        await pdfDocSigner.addVisualSignatureAsync({ pageIndex, rectangle, background, texts });
+        return pdfDocSigner.saveAsync();
     }
 
     public async verifySignaturesAsync(pdf: Buffer): Promise<PdfVerifySignaturesResult | undefined> {

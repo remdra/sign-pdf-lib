@@ -1,7 +1,7 @@
 import { PdfByteRanges, Rectangle, SignatureText, Size } from './models';
 import { SignatureParameters } from './models/parameters';
 import { NoPlaceholderError, SignatureNotFoundError } from './errors';
-import { computeAbsolutePageRectangle } from './helpers';
+import { computeAbsolutePageReverseRectangle } from './helpers';
 
 import { DocumentSnapshot, PDFArray, PDFContext, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFRef, PDFString } from 'pdf-lib';
 import * as _ from 'lodash';
@@ -23,32 +23,32 @@ function getSignatureRange(pdf: Buffer) {
     };
 }
 
-function getPdfSigningRanges(initialPdf: Buffer, incrementalPdf: Buffer): PdfByteRanges {
+function getPdfSigningRanges(initialPdfLength: number, incrementalPdf: Buffer): PdfByteRanges {
     const { start: startSignature, end: endSignature } = getSignatureRange(incrementalPdf);
 
     return {
         before: {
             start: 0,
-            length: initialPdf.length + startSignature - 1
+            length: initialPdfLength + startSignature - 1
         },
         signature: {
-            start: initialPdf.length + startSignature - 1,
+            start: initialPdfLength + startSignature - 1,
             length: endSignature - startSignature + 2
         },
         after: {
-            start: initialPdf.length + endSignature + 1,
+            start: initialPdfLength + endSignature + 1,
             length: incrementalPdf.length - endSignature - 1
         }
     };
 }
 
-function updateByteRange(incrementalPdf: Buffer, initialPdf: Buffer): Buffer | undefined {
+function updateByteRange(incrementalPdf: Buffer, initialPdfLength: number): Buffer | undefined {
     const byteRangeStartIndex = incrementalPdf.indexOf('/ByteRange');
     if(byteRangeStartIndex < 0) {
         return undefined;
     }
 
-    const { before, after } = getPdfSigningRanges(initialPdf, incrementalPdf);
+    const { before, after } = getPdfSigningRanges(initialPdfLength, incrementalPdf);
 
     const byteRangeArray = PDFContext.create().obj([ before.start, before.length, after.start, after.length ]);
     const startOfByteRange = incrementalPdf.indexOf('[', byteRangeStartIndex);
@@ -143,17 +143,17 @@ export interface UpdateSignatureParameters {
     embedFont: boolean;
 };
 
-export class SigningPdfDocument {
+export class PdfDocumentDigitalSigner {
 
     #pdfDoc: PDFDocument;
     #pdf: Buffer;
     #docSnapshot: DocumentSnapshot;
     #nameProvider: NameProvider;
 
-    static async fromPdfAsync(pdf: Buffer): Promise<SigningPdfDocument> {
+    static async fromPdfAsync(pdf: Buffer): Promise<PdfDocumentDigitalSigner> {
         const pdfDoc = await PDFDocument.load(pdf);
 
-        return new SigningPdfDocument(pdfDoc, pdf);
+        return new PdfDocumentDigitalSigner(pdfDoc, pdf);
     }
 
     private constructor(pdfDoc: PDFDocument, pdf: Buffer) {
@@ -163,18 +163,17 @@ export class SigningPdfDocument {
         if(pdfDoc.context.pdfFileDetails.useObjectStreams) { pdfDoc.context.largestObjectNumber += 1; };
         this.#docSnapshot = pdfDoc.takeSnapshot();
 
-        this.ensureAcroForm();
-
         this.#nameProvider = new NameProvider(this.getSignatureCount() + 1);
     }
 
     addSignatureField({ name, pageIndex, rectangle, visualRef, placeholderRef, embedFont }: AddSignatureFieldParameters): void {
+        this.ensureAcroForm();
         this.ensurePageAnnots(pageIndex);
 
         name = name || this.#nameProvider.getSignatureName();
 
         const page = this.#pdfDoc.getPage(pageIndex);
-        const pageRect = computeAbsolutePageRectangle(rectangle, page.getSize());
+        const pageRect = computeAbsolutePageReverseRectangle(rectangle, page.getSize());
 
         const signature: any = {
             'FT': 'Sig',
@@ -329,10 +328,10 @@ export class SigningPdfDocument {
             this.embedSignatureFont(signature.lookup(PDFName.of('P'), PDFDict));
         }
     }
-    
+
     async saveAsync(): Promise<Buffer> {
         let incrementalPdf = Buffer.from(await this.#pdfDoc.saveIncremental(this.#docSnapshot));
-        incrementalPdf = updateByteRange(incrementalPdf, this.#pdf) || incrementalPdf;
+        incrementalPdf = updateByteRange(incrementalPdf, this.#pdf.length) || incrementalPdf;
 
         return Buffer.concat([
             this.#pdf,
@@ -392,6 +391,10 @@ export class SigningPdfDocument {
     }   
 
     private getSignatures(): PDFRef[] {
+        if(!this.#pdfDoc.catalog.AcroForm()) {
+            return [];
+        }
+
         const formDict = this.#pdfDoc.getForm().acroForm.dict;
         const formFields = formDict.lookup(PDFName.of('Fields'), PDFArray);
 

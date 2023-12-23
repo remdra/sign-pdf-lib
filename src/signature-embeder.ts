@@ -1,4 +1,4 @@
-import { SigningPdfDocument } from './signing-pdf-document';
+import { PdfDocumentDigitalSigner } from './pdf-document-digital-signer';
 import { PdfByteRanges } from './models';
 import { TooSmallPlaceholderError } from './errors';
 
@@ -8,14 +8,15 @@ export class SignatureEmbeder {
     #signRanges: PdfByteRanges;
 
     static async fromPdfAsync(pdf: Buffer): Promise<SignatureEmbeder> {
-        const pdfSigningDoc = await SigningPdfDocument.fromPdfAsync(pdf);
+        const pdfDocSigner = await PdfDocumentDigitalSigner.fromPdfAsync(pdf);
+        const signRanges = pdfDocSigner.getPlaceholderRanges();
 
-        return new SignatureEmbeder(pdfSigningDoc, pdf);
+        return new SignatureEmbeder(signRanges, pdf);
     }
 
-    private constructor(pdfSigningDoc: SigningPdfDocument, pdf: Buffer) {
+    private constructor(signRanges: PdfByteRanges, pdf: Buffer) {
         this.#pdf = pdf;
-        this.#signRanges = pdfSigningDoc.getPlaceholderRanges();
+        this.#signRanges = signRanges;
     }
 
     getSignBuffer(): Buffer {

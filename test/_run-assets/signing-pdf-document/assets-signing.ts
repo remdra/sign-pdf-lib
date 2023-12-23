@@ -1,4 +1,5 @@
 import { BinaryAssetFile } from '../../_helpers/assets/binary-asset-file';
+import { JsonAssetFile } from '../../_helpers/assets/json-asset-file';
 import * as path from 'path';
 
 const baseFolder = path.join('test', '_assets', 'signing-pdf-document'); 
@@ -62,6 +63,8 @@ const _paths = {
   noOptionalsUpdatedPdf: getUpdatePath('update-no-optionals.pdf'),
 
   savePdf: getSavePath('save.pdf'),
+
+  ranges: getPath('ranges.json')
 };
 
 class SigningAssets {
@@ -101,6 +104,8 @@ class SigningAssets {
 
   private _savePdf = new BinaryAssetFile(_paths.savePdf);
 
+  private _ranges = new JsonAssetFile(_paths.ranges);
+
   public paths = {
     pdf:                _paths.pdf,
     realFieldPdf:       _paths.realFieldPdf,
@@ -136,6 +141,8 @@ class SigningAssets {
     noOptionalsUpdatedPdf: _paths.noOptionalsUpdatedPdf,
 
     savePdf: _paths.savePdf,
+
+    ranges: _paths.ranges
   }
 
   get pdf() {
@@ -252,6 +259,10 @@ class SigningAssets {
 
   get savePdf() {
     return this._savePdf.content;
+  }
+
+  get ranges() {
+    return this._ranges.content;
   }
 };
 
