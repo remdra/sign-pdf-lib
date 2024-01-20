@@ -1,4 +1,4 @@
-import { AddSignatureFieldParameters, AddSignaturePlaceholderParameters, AddVisualParameters, AddVisualSignatureParameters, PdfDocumentDigitalSigner, UpdateSignatureParameters } from './pdf-document-digital-signer';
+import { AddSignatureFieldParameters, AddSignaturePlaceholderParameters, AddVisualParameters, PdfDocumentDigitalSigner, UpdateSignatureParameters } from './pdf-document-digital-signer';
 import { NoPlaceholderError, SignatureNotFoundError } from './errors';
 import { SignerSettings } from './models/settings';
 import { PdfSigner } from './pdf-signer';
@@ -18,7 +18,7 @@ describe('SigningPdfDocument', function () {
     let addVisualParameters: AddVisualParameters;
     let addPlaceholderParameters: AddSignaturePlaceholderParameters;
     let updateParameters: UpdateSignatureParameters;
-    let addVisualSignatureParameters: AddVisualSignatureParameters;
+    //let addVisualSignatureParameters: AddVisualSignatureParameters;
     
     beforeEach(async function () {
         addFieldParameters = {

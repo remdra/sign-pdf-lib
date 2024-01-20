@@ -1,4 +1,4 @@
-import { PdfSigningDocument } from './pdf-signing-document';
+import { PdfSigningDocument } from './signer/pdf-signing-document';
 import { Rectangle, SignatureText } from './models';
 import { DigitallySignedError } from './errors';
 import { computeAbsolutePageRectangle } from './helpers';
@@ -85,11 +85,11 @@ export class PdfDocumentVisualSigner {
         const visualRef = this.#signingDoc.registerStream(drawBuffer, {});
         this.#signingDoc.addPageContent(visualRef, pageIndex);
         if(backgroundRef) {
-            this.#signingDoc.addPageResource(backgroundRef, pageIndex);
+            this.#signingDoc.addPageResource(backgroundRef, pageIndex, this.#nameProvider.getBackgroundName());
         }
 
         if(texts) {
-            this.#signingDoc.embedSignatureFont({ pageIndex });
+            this.#signingDoc.embedSignatureFont(pageIndex);
         }
     }
 

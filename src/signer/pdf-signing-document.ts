@@ -1,5 +1,5 @@
-import { PdfByteRanges, Size } from './models';
-import { NoPlaceholderError, SignatureNotFoundError } from './errors';
+import { PdfByteRanges, Size } from '../models';
+import { InvalidImageError, NoPlaceholderError, SignatureNotFoundError } from '../errors';
 
 import { DocumentSnapshot, PDFArray, PDFContext, PDFDict, PDFDocument, PDFImage, PDFName, PDFNumber, PDFObject, PDFRef, PDFString } from 'pdf-lib';
 import * as _ from 'lodash';
@@ -159,13 +159,13 @@ export class PdfSigningDocument {
 
     }
 
-    addPageResource(resourceRef: PDFRef, pageIndex: number): void {
+    addPageResource(resourceRef: PDFRef, pageIndex: number, name: string): void {
         this.ensurePageResourcesXObject(pageIndex);
 
         const page = this.#pdfDoc.getPage(pageIndex);
         const resources = page.node.lookup(PDFName.of('Resources'), PDFDict);
         const xObject = resources.lookup(PDFName.of('XObject'), PDFDict);
-        xObject.set(PDFName.of('background1'), resourceRef);
+        xObject.set(PDFName.of(name), resourceRef);
         if(page.node.get(PDFName.of('Resources')) instanceof PDFRef) {
             this.#docSnapshot.markRefForSave(page.node.get(PDFName.of('Resources')) as PDFRef);
         } else {
@@ -261,7 +261,11 @@ export class PdfSigningDocument {
         try { 
             img = await this.#pdfDoc.embedJpg(image);
         } catch {
-            img = await this.#pdfDoc.embedPng(image);
+            try {
+                img = await this.#pdfDoc.embedPng(image);
+            } catch {
+                throw new InvalidImageError();
+            }
         }
         await img.embed();
     
@@ -304,12 +308,12 @@ export class PdfSigningDocument {
         return this.getSignatures().length;
     }
 
-    embedSignatureFont({ pageIndex, pageRef }: { pageIndex?: number; pageRef?: PDFRef }): void {
-        let page!: PDFDict;
-        if(pageRef) {
-            page = this.#pdfDoc.context.lookup(pageRef, PDFDict);
-        } else if(pageIndex != undefined) {
-            page = this.#pdfDoc.getPage(pageIndex).node;
+    embedSignatureFont(pageHint: number | PDFRef): void {
+        let page: PDFDict;
+        if(pageHint instanceof PDFRef) {
+            page = this.#pdfDoc.context.lookup(pageHint, PDFDict);
+        } else {
+            page = this.#pdfDoc.getPage(pageHint).node;
         }
         const fontDict = page.lookup(PDFName.of('Resources'), PDFDict).lookup(PDFName.of('Font'), PDFDict);
         if(fontDict.has(PDFName.of('Helvetica'))) {
@@ -330,5 +334,4 @@ export class PdfSigningDocument {
             this.#docSnapshot.markObjForSave(page);
         }    
     }
-
 }

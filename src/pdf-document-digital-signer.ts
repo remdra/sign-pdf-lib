@@ -1,4 +1,4 @@
-import { PdfSigningDocument } from './pdf-signing-document';
+import { PdfSigningDocument } from './signer/pdf-signing-document';
 import { PdfByteRanges, Rectangle, SignatureText } from './models';
 import { SignatureParameters } from './models/parameters';
 import { computeAbsolutePageReverseRectangle } from './helpers';
@@ -100,7 +100,7 @@ export class PdfDocumentDigitalSigner {
         this.#signingDoc.addFormField(fieldRef);
 
         if(embedFont) {
-            this.#signingDoc.embedSignatureFont({ pageIndex });
+            this.#signingDoc.embedSignatureFont(pageIndex);
         }
     }
 
@@ -216,7 +216,7 @@ export class PdfDocumentDigitalSigner {
         this.#signingDoc.markObjAsChanged(signature);
 
         if(embedFont) {
-            this.#signingDoc.embedSignatureFont({ pageRef: signature.get(PDFName.of('P')) as PDFRef });
+            this.#signingDoc.embedSignatureFont(signature.get(PDFName.of('P')) as PDFRef);
         }
     }
 
