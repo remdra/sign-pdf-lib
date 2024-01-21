@@ -5,10 +5,10 @@ import * as forge from 'node-forge';
 import { PdfVerifySignaturesResult, VerifySignatureResult, PdfByteRanges, SignatureField } from './models';
 import { SignFieldParameters, AddFieldParameters, SignVisualParameters, SignatureParameters, SignDigitalParameters } from './models/parameters';
 import { SignerSettings } from './models/settings';
-import { PdfDocumentDigitalSigner } from './pdf-document-digital-signer';
-import { PdfDocumentVisualSigner } from './pdf-document-visual-signer';
-import { SignatureEmbeder } from './signature-embeder';
-import { SignatureComputer } from './signature-computer';
+import { PdfDocumentDigitalSigner } from './signer/pdf-document-digital-signer';
+import { PdfDocumentVisualSigner } from './signer/pdf-document-visual-signer';
+import { SignatureEmbeder } from './signer/signature-embeder';
+import { SignatureComputer } from './signer/signature-computer';
 
 function getSignatureEntries(pdfDoc: PDFDocument) {
     return pdfDoc.context.enumerateIndirectObjects()

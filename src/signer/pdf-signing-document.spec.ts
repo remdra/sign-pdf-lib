@@ -1,44 +1,27 @@
 import { PdfSigningDocument } from './pdf-signing-document';
 import { InvalidImageError, NoPlaceholderError, SignatureNotFoundError } from '../errors';
-import { SignerSettings } from '../models/settings';
-import { PdfSigner } from '..//pdf-signer';
 
-import { generatePdfAsync } from '../../test/_helpers/pdf-helpers';
-import { generateAsset } from '../../test/_helpers/generate-asset';
+import { generatePdfAsync, generateAsset, generatePlaceholderPdfAsync, generateFieldPdfAsync, generateSignedTwicePdfAsync } from '../../test/_helpers';
 import { signingDocumentAssets } from '../../test/_run-assets/signer/assets-pdf-signing-document';
-import { settingsAssets } from '../../test/_run-assets/signature-computer/assets-settings';
 
 import { expect } from 'chai';
 import { PDFRef } from 'pdf-lib';
 
 it('_generate', async function () {
-    const signerSettings: SignerSettings = {
-        signatureLength: 4096,
-        rangePlaceHolder: 99999,
-        signatureComputer: {
-            certificate: settingsAssets.p12Certificate,
-            password: 'password'        
-        }
-    }
-    const pdfSigner = new PdfSigner(signerSettings);
-    const signDate: Date = new Date(2023, 1, 20, 18, 47, 35);
-
-
     const pdf = await generatePdfAsync({ pageCount: 2 });
     await generateAsset.generateBinaryAsync(signingDocumentAssets.paths.pdf, pdf);
 
-    const placeholderPdf = await pdfSigner.addPlaceholderAsync(pdf, { pageNumber: 1, name: 'Signature', signature: { date: signDate } });
+    const placeholderPdf = await generatePlaceholderPdfAsync(pdf);
     await generateAsset.generateBinaryAsync(signingDocumentAssets.paths.placeholderPdf, placeholderPdf);
 
-    const fieldPdf = await pdfSigner.addFieldAsync(pdf, { pageNumber: 1, name: 'Signature', rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 } });
+    const fieldPdf = await generateFieldPdfAsync(pdf);
     await generateAsset.generateBinaryAsync(signingDocumentAssets.paths.fieldPdf, fieldPdf);
 
-    const signedPdf = await pdfSigner.signAsync(pdf, { pageNumber: 1, name: 'Signature1', signature: { date: signDate } });
-    const signedTwicePdf = await pdfSigner.signAsync(signedPdf, { pageNumber: 1, name: 'Signature2', signature: { date: signDate } });
+    const signedTwicePdf = await generateSignedTwicePdfAsync(pdf);
     await generateAsset.generateBinaryAsync(signingDocumentAssets.paths.signedTwicePdf, signedTwicePdf);
 })
 
-describe.only('PdfSigningDocument', function () {
+describe('PdfSigningDocument', function () {
 
     let signingDoc: PdfSigningDocument;
     

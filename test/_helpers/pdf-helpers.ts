@@ -1,3 +1,9 @@
+import { PdfSigner } from '../../src/pdf-signer';
+import { SignatureComputerSettings, SignerSettings } from '../../src/models/settings';
+import { SignatureComputer } from '../../src/signer/signature-computer';
+
+import { commonAssets } from '../_run-assets/_assets-common';
+
 import { PDFDocument } from 'pdf-lib';
 
 export async function generatePdfLibPdfAsync(useObjectStreams: boolean = false): Promise<Buffer> {
@@ -45,4 +51,61 @@ export async function generatePdfAsync({ pageCount, useObjectStreams }: { pageCo
 
     useObjectStreams = useObjectStreams == undefined ? false : useObjectStreams;
     return Buffer.from(await pdfDoc.save({ useObjectStreams }));
+}
+
+
+export async function generatePlaceholderPdfAsync(pdf: Buffer): Promise<Buffer> {
+    const pdfSigner = createPdfSigner()
+    const signDate: Date = new Date(2023, 1, 20, 18, 47, 35);
+
+    return await pdfSigner.addPlaceholderAsync(pdf, { pageNumber: 1, name: 'Signature', signature: { date: signDate } });
+}
+
+export async function generateFieldPdfAsync(pdf: Buffer): Promise<Buffer> {
+    const pdfSigner = createPdfSigner();
+
+    return await pdfSigner.addFieldAsync(pdf, { pageNumber: 1, name: 'Signature', rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 } });
+}
+
+export async function generateSignedPdfAsync(pdf: Buffer, { name }: { name?: string } = {}): Promise<Buffer> {
+    const pdfSigner = createPdfSigner();
+    const signDate: Date = new Date(2023, 1, 20, 18, 47, 35);
+
+    name = name || 'Signature';
+
+    return await pdfSigner.signAsync(pdf, { pageNumber: 1, name, signature: { date: signDate } });
+}
+
+export async function generateSignedTwicePdfAsync(pdf: Buffer): Promise<Buffer> {
+    const signedPdf = await generateSignedPdfAsync(pdf, { name: 'Signature1' });
+    return await generateSignedPdfAsync(signedPdf, { name: 'Signature2' });
+}
+
+export function generateSignature(placeholderPdf: Buffer): Buffer {
+    const signatureComputer = createSignatureComputer();
+    const signDate: Date = new Date(2023, 1, 20, 18, 47, 35);
+
+    const signBuffer = Buffer.concat([ placeholderPdf.subarray(0, placeholderPdf.indexOf('<AA')), placeholderPdf.subarray(placeholderPdf.indexOf('AA>') + 3) ]);
+    return signatureComputer.computeSignature(signBuffer, signDate);
+}
+
+function createPdfSigner() {
+    const signerSettings: SignerSettings = {
+        signatureLength: 4096,
+        rangePlaceHolder: 99999,
+        signatureComputer: {
+            certificate: commonAssets.p12Certificate,
+            password: 'password'        
+        }
+    }
+    return new PdfSigner(signerSettings);
+}
+
+function createSignatureComputer() {
+    const signatureComputerSettings: SignatureComputerSettings = {
+        certificate: commonAssets.p12Certificate,
+        password: 'password'
+    }
+    
+    return new SignatureComputer(signatureComputerSettings);
 }

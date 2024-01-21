@@ -1,5 +1,6 @@
-import { BinaryAssetFile } from '../../_helpers/assets/binary-asset-file';
-import { JsonAssetFile } from '../../_helpers/assets/json-asset-file';
+import { BinaryAssetFile, JsonAssetFile } from '../../_helpers/assets';
+import { commonAssets } from '../_assets-common';
+
 import * as path from 'path';
 
 const baseFolder = path.join('test', '_assets', 'signer', 'pdf-signing-document'); 
@@ -34,11 +35,7 @@ const _paths = {
   pngImagePdf:                   getPath('pdf-png-signature.pdf'),
   signedTwicePdf:                getPath('pdf-signed-twice.pdf'),
   pageEmbededFontPdf:            getPath('pdf-page-font.pdf'),
-  secondPageEmbededFontPdf:      getPath('pdf-second-page-font.pdf'),
-
-  jpgImage: getPath('signature.jpg'),
-  pngImage: getPath('signature.png'),
-  badImage: getPath('signature-bad.png')
+  secondPageEmbededFontPdf:      getPath('pdf-second-page-font.pdf')
 };
 
 
@@ -70,10 +67,6 @@ class PdfSigningDocumentAssets {
   private _signedTwicePdf                = new BinaryAssetFile(_paths.signedTwicePdf);
   private _pageEmbededFontPdf            = new BinaryAssetFile(_paths.pageEmbededFontPdf);
   private _secondPageEmbededFontPdf      = new BinaryAssetFile(_paths.secondPageEmbededFontPdf);
-
-  private _jpgImage = new BinaryAssetFile(_paths.jpgImage);
-  private _pngImage = new BinaryAssetFile(_paths.pngImage);
-  private _badImage = new BinaryAssetFile(_paths.badImage);
 
   public paths = {
     pdf:                           _paths.pdf,
@@ -209,15 +202,15 @@ class PdfSigningDocumentAssets {
   }
 
   get jpgImage() {
-    return this._jpgImage.content;
+    return commonAssets.jpgImage;
   }
 
   get pngImage() {
-    return this._pngImage.content;
+    return commonAssets.pngImage;
   }
 
   get badImage() {
-    return this._badImage.content;
+    return commonAssets.badImage;
   }
 };
 
