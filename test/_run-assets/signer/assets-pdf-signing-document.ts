@@ -1,4 +1,4 @@
-import { BinaryAssetFile, JsonAssetFile } from '../../_helpers/assets';
+import { BinaryAssetFile, JsonAssetFile, TextAssetFile } from '../../_helpers/assets';
 import { commonAssets } from '../_assets-common';
 
 import * as path from 'path';
@@ -23,7 +23,7 @@ const _paths = {
   markObjAsChangedPdf:           getPath('pdf-mark-obj-as-changed.pdf'),
   savePdf:                       getPath('pdf-save.pdf'),
   placeholderRanges:             getPath('ranges-placeholder.json'),
-  signatureRanges:               getPath('ranges-signature.pdf'),
+  signatureRanges:               getPath('ranges-signature.json'),
   acroFormPdf:                   getPath('pdf-acro-form.pdf'),
   pageAnnotsPdf:                 getPath('pdf-page-annots.pdf'),
   secondPageAnnotsPdf:           getPath('pdf-second-page-annots.pdf'),
@@ -35,7 +35,10 @@ const _paths = {
   pngImagePdf:                   getPath('pdf-png-signature.pdf'),
   signedTwicePdf:                getPath('pdf-signed-twice.pdf'),
   pageEmbededFontPdf:            getPath('pdf-page-font.pdf'),
-  secondPageEmbededFontPdf:      getPath('pdf-second-page-font.pdf')
+  secondPageEmbededFontPdf:      getPath('pdf-second-page-font.pdf'),
+
+  signatureBuffer:               getPath('signature-buffer.bin'),
+  signatureHexString:            getPath('signature-hex-string.hex')
 };
 
 
@@ -68,6 +71,9 @@ class PdfSigningDocumentAssets {
   private _pageEmbededFontPdf            = new BinaryAssetFile(_paths.pageEmbededFontPdf);
   private _secondPageEmbededFontPdf      = new BinaryAssetFile(_paths.secondPageEmbededFontPdf);
 
+  private _signatureBuffer               = new BinaryAssetFile(_paths.signatureBuffer);
+  private _signatureHexString            = new TextAssetFile(_paths.signatureHexString);
+
   public paths = {
     pdf:                           _paths.pdf,
     placeholderPdf:                _paths.placeholderPdf,
@@ -94,7 +100,10 @@ class PdfSigningDocumentAssets {
     pngImagePdf:                   _paths.pngImagePdf,
     signedTwicePdf:                _paths.signedTwicePdf,
     pageEmbededFontPdf:            _paths.pageEmbededFontPdf,
-    secondPageEmbededFontPdf:      _paths.secondPageEmbededFontPdf
+    secondPageEmbededFontPdf:      _paths.secondPageEmbededFontPdf,
+
+    signatureBuffer:    _paths.signatureBuffer,
+    signatureHexString: _paths.signatureHexString
   }
 
   get pdf() {
@@ -211,6 +220,14 @@ class PdfSigningDocumentAssets {
 
   get badImage() {
     return commonAssets.badImage;
+  }
+
+  get signatureBuffer() {
+    return this._signatureBuffer.content;
+  }
+
+  get signatureHexString() {
+    return this._signatureHexString.content;
   }
 };
 

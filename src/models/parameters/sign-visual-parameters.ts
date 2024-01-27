@@ -1,10 +1,20 @@
 import { Rectangle } from '../rectangle';
 import { SignatureText } from '../signature-text';
 
-export interface SignVisualParameters {
+interface SignVisualBackgroundParameters {
     pageNumber: number;
+    rectangle: Rectangle;
     
     background: Buffer;
     texts?: SignatureText[];
-    rectangle: Rectangle;
 };
+
+interface SignVisualTextsParameters {
+    pageNumber: number;
+    rectangle: Rectangle;
+    
+    background?: Buffer;
+    texts: SignatureText[];
+};
+
+export type SignVisualParameters = SignVisualBackgroundParameters | SignVisualTextsParameters;

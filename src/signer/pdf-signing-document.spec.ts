@@ -309,6 +309,74 @@ describe('PdfSigningDocument', function () {
         })
     })
 
+    describe('getSignaturePageNumber', function() {
+        it('returns signature page', async function() {
+            signingDoc = await PdfSigningDocument.fromPdfAsync(signingDocumentAssets.signedTwicePdf);
+
+            const signaturePage = await signingDoc.getSignaturePageNumber('Signature2');
+
+            expect(signaturePage).to.be.equal(1);
+        })
+
+        it('throws for another signature', async function() {
+            signingDoc = await PdfSigningDocument.fromPdfAsync(signingDocumentAssets.signedTwicePdf);
+
+            expect(() => signingDoc.getSignaturePageNumber('AnotherName')).to.throw(SignatureNotFoundError);
+        })
+    })
+
+    describe('getSignatureBuffer', function() {
+        it('returns signature buffer', async function() {
+            signingDoc = await PdfSigningDocument.fromPdfAsync(signingDocumentAssets.signedTwicePdf);
+
+            const signatures = signingDoc.getSignatures();
+
+            expect(signatures).to.have.length(2);
+
+            const signatureBuffer = await signingDoc.getSignatureBuffer(signatures[0]);
+            await generateAsset.generateBinaryAsync(signingDocumentAssets.paths.signatureBuffer, signatureBuffer);
+            expect(signatureBuffer).to.be.deep.equal(signingDocumentAssets.signatureBuffer);
+        })
+    })
+
+    describe('getSignatureHexString', function() {
+        it('returns signature hex string', async function() {
+            signingDoc = await PdfSigningDocument.fromPdfAsync(signingDocumentAssets.signedTwicePdf);
+
+            const signatures = signingDoc.getSignatures();
+
+            expect(signatures).to.have.length(2);
+
+            const signatureHexString = await signingDoc.getSignatureHexString(signatures[0]);
+            await generateAsset.generateTextAsync(signingDocumentAssets.paths.signatureHexString, signatureHexString);
+            expect(signatureHexString).to.be.deep.equal(signingDocumentAssets.signatureHexString);
+        })
+    })
+
+    describe('isSignatureForEntireDocument', function() {
+        it('returns true for last signature', async function() {
+            signingDoc = await PdfSigningDocument.fromPdfAsync(signingDocumentAssets.signedTwicePdf);
+
+            const signatures = signingDoc.getSignatures();
+
+            expect(signatures).to.have.length(2);
+
+            const isForEntireDocument = await signingDoc.isSignatureForEntireDocument(signatures[1]);
+            expect(isForEntireDocument).to.be.true;
+        })
+
+        it('returns false for first signature', async function() {
+            signingDoc = await PdfSigningDocument.fromPdfAsync(signingDocumentAssets.signedTwicePdf);
+
+            const signatures = signingDoc.getSignatures();
+
+            expect(signatures).to.have.length(2);
+
+            const isForEntireDocument = await signingDoc.isSignatureForEntireDocument(signatures[0]);
+            expect(isForEntireDocument).to.be.false;
+        })
+    })
+
     describe('getSignatureCount', function() {
         it('returns signature count', async function() {
             signingDoc = await PdfSigningDocument.fromPdfAsync(signingDocumentAssets.signedTwicePdf);
@@ -338,6 +406,38 @@ describe('PdfSigningDocument', function () {
             const signatureCount = await signingDoc.getSignatureCount();
 
             expect(signatureCount).to.be.equal(1);
+        })
+    })
+
+    describe('getFields', function() {
+        it('returns no fileds (no fields)', async function() {
+            const signatures = await signingDoc.getFields();
+
+            expect(signatures).to.have.length(0);
+        })
+
+        it('returns no fields (signed)', async function() {
+            signingDoc = await PdfSigningDocument.fromPdfAsync(signingDocumentAssets.signedTwicePdf);
+
+            const signatures = await signingDoc.getFields();
+
+            expect(signatures).to.have.length(0);
+        })
+
+        it('returns no fields (for placeholder)', async function() {
+            signingDoc = await PdfSigningDocument.fromPdfAsync(signingDocumentAssets.placeholderPdf);
+
+            const signatures = await signingDoc.getFields();
+
+            expect(signatures).to.have.length(0);
+        })
+
+        it('returns fields (for field)', async function() {
+            signingDoc = await PdfSigningDocument.fromPdfAsync(signingDocumentAssets.fieldPdf);
+
+            const signatures = await signingDoc.getFields();
+
+            expect(signatures).to.have.length(1);
         })
     })
 

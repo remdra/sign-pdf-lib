@@ -142,7 +142,10 @@ describe('PdfSigner (pdf 1.3)', function () {
             pageNumber: 1,
 
             background: pdfSignerAssets13.signaturePngImage,
-            rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
+            rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 },
+
+            // @ts-ignore
+            backgroundName: 'background1'
         };
 
         p12SignatureComputerSettings = {
@@ -577,9 +580,9 @@ describe('PdfSigner (pdf 1.3)', function () {
             expect(res).to.be.undefined;
         })
 
-        it('returns undefined for signature field', async function() {
+        it('returns for signature field', async function() {
             const res = await pdfSigner.verifySignaturesAsync(pdfSignerAssets13.fieldPdf);
-            expect(res).to.be.undefined;
+            expect(res).to.be.deep.equal({ integrity: false, signatures: [ { integrity: false, name: 'Signature1' , details: {} } ] });
         })
 
         it('validates one signature', async function() {
@@ -705,7 +708,10 @@ describe('PdfSigner (pdf 1.7)', function () {
             pageNumber: 1,
 
             background: pdfSignerAssets17.signaturePngImage,
-            rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
+            rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 },
+
+            // @ts-ignore
+            backgroundName: 'background1'
         };
 
         p12SignatureComputerSettings = {
@@ -1124,9 +1130,9 @@ describe('PdfSigner (pdf 1.7)', function () {
             expect(res).to.be.undefined;
         })
 
-        it('returns undefined for signature field', async function() {
+        it('returns for signature field', async function() {
             const res = await pdfSigner.verifySignaturesAsync(pdfSignerAssets17.fieldPdf);
-            expect(res).to.be.undefined;
+            expect(res).to.be.deep.equal({ integrity: false, signatures: [ { integrity: false, name: 'Signature1' , details: {} } ] });
         })
 
         it('validates one signature', async function() {
@@ -1252,7 +1258,10 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
             pageNumber: 1,
 
             background: pdfSignerAssets17Streams.signaturePngImage,
-            rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
+            rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 },
+
+            // @ts-ignore
+            backgroundName: 'background1'
         };
 
         p12SignatureComputerSettings = {
@@ -1672,9 +1681,9 @@ describe('PdfSigner (pdf 1.7 streams)', function () {
             expect(res).to.be.undefined;
         })
 
-        it('returns undefined for signature field', async function() {
+        it('returns for signature field', async function() {
             const res = await pdfSigner.verifySignaturesAsync(pdfSignerAssets17Streams.fieldPdf);
-            expect(res).to.be.undefined;
+            expect(res).to.be.deep.equal({ integrity: false, signatures: [ { integrity: false, name: 'Signature1' , details: {} } ] });
         })
 
         it('validates one signature', async function() {
@@ -1802,7 +1811,10 @@ describe('PdfSigner Regression', function () {
             pageNumber: 1,
 
             background: pdfSignerAssets13.signaturePngImage,
-            rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 }
+            rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 },
+
+            // @ts-ignore
+            backgroundName: 'background1'
         };
 
         p12SignatureComputerSettings = {

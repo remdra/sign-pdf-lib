@@ -47,7 +47,9 @@ describe('PdfDocumentVisualSigner', function () {
                         '20:28:46 +02\'00\''
                     ]
                 }
-            ]
+            ],
+
+            backgroundName: 'background1'
         };
         pdfDocSigner = await PdfDocumentVisualSigner.fromPdfAsync(pdfDocumentVisualSignerAssets.pdf);
     })

@@ -1,7 +1,8 @@
 import { PdfByteRanges, Size } from '../models';
 import { InvalidImageError, NoPlaceholderError, SignatureNotFoundError } from '../errors';
+import { getPdfRangesFromSignature } from '../helpers';
 
-import { DocumentSnapshot, PDFArray, PDFContext, PDFDict, PDFDocument, PDFImage, PDFName, PDFNumber, PDFObject, PDFRef, PDFString } from 'pdf-lib';
+import { DocumentSnapshot, PDFArray, PDFContext, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFObject, PDFRef, PDFString } from 'pdf-lib';
 import * as _ from 'lodash';
 
 function getSignatureRange(pdf: Buffer) {
@@ -64,36 +65,13 @@ function updateByteRange(incrementalPdf: Buffer, initialPdfLength: number): Buff
     ]);
 }
 
-
-function getPdfRangesFromSignature(signature: PDFDict): PdfByteRanges {
-    if(!signature.get(PDFName.of('V'))) {
-        throw new NoPlaceholderError();
-    }
-
-    const signatureV = signature.lookup(PDFName.of('V'), PDFDict);
-    const byteRange = signatureV.lookup(PDFName.of('ByteRange'), PDFArray);
-
-    const start1 = (byteRange.get(0) as PDFNumber).asNumber();
-    const length1 = (byteRange.get(1) as PDFNumber).asNumber();
-    const start2 = (byteRange.get(2) as PDFNumber).asNumber();
-    const length2 = (byteRange.get(3) as PDFNumber).asNumber();
-
-
-    return {
-        before: {
-            start: start1,
-            length: length1
-        },
-        signature: {
-            start: start1 + length1,
-            length: start2 - (start1 + length1)
-        },
-        after: {
-            start: start2,
-            length: length2
-        }
-    };
+function getSignBuffer(pdf: Buffer, signRanges: PdfByteRanges): Buffer {
+    return Buffer.concat([
+        pdf.subarray(signRanges.before.start, signRanges.before.start + signRanges.before.length), 
+        pdf.subarray(signRanges.after.start, signRanges.after.start + signRanges.after.length)
+    ]);
 }
+
 
 export class PdfSigningDocument {
 
@@ -272,7 +250,7 @@ export class PdfSigningDocument {
         return img.ref;
     }   
 
-    getSignatures(): PDFRef[] {
+    getSignatures(): PDFDict[] {
         if(!this.#pdfDoc.catalog.AcroForm()) {
             return [];
         }
@@ -290,7 +268,8 @@ export class PdfSigningDocument {
                         && dict.lookupMaybe(PDFName.of('Type'), PDFName) == PDFName.of('Annot')
                         && dict.lookupMaybe(PDFName.of('Subtype'), PDFName) == PDFName.of('Widget');
             })
-            .map(obj => obj as PDFRef);
+            .map(obj => obj as PDFRef)
+            .map(ref => this.#pdfDoc.context.lookup(ref, PDFDict));
     }
 
     getSignature(name: string): PDFDict {
@@ -304,8 +283,51 @@ export class PdfSigningDocument {
         throw new SignatureNotFoundError(name);
     }
 
+    getSignaturePageNumber(name: string): number {
+        for(let i = 0; i < this.#pdfDoc.getPageCount(); i++) {
+            const page = this.#pdfDoc.getPage(i);
+            const annotRefs = page.node.Annots();
+            if(!annotRefs) {
+                continue;
+            }
+            for(let j = 0; j < annotRefs.size(); j++) {
+                const annot = this.#pdfDoc.context.lookup(annotRefs.get(j), PDFDict);
+                if(annot.has(PDFName.of('T')) && annot.lookup(PDFName.of('T'), PDFString).asString() == name) {
+                    return i + 1;
+                }
+            } 
+        }
+        throw new SignatureNotFoundError(name);
+    }
+
+    getSignatureBuffer(signature: PDFDict): Buffer {
+        const signRanges = getPdfRangesFromSignature(signature); 
+        return getSignBuffer(this.#pdf, signRanges);
+    }
+
+    getSignatureHexString(signature: PDFDict): string {
+        const v = signature.lookup(PDFName.of('V'), PDFDict);
+        let signatureHex = v.lookup(PDFName.of('Contents'), PDFHexString).asString();
+        while(signatureHex[signatureHex.length - 1] == '0' && signatureHex[signatureHex.length - 2] == '0') {
+            signatureHex = signatureHex.substring(0, signatureHex.length - 2);
+        }
+    
+        return signatureHex;
+    }
+
+    isSignatureForEntireDocument(signature: PDFDict): boolean {
+        const signRanges = getPdfRangesFromSignature(signature); 
+        return signRanges.after.start + signRanges.after.length === this.#pdf.length;
+    }
+    
     getSignatureCount(): number {
         return this.getSignatures().length;
+    }
+
+    getFields(): PDFDict[] {
+        return this.getSignatures()
+            .map(ref => this.#pdfDoc.context.lookup(ref, PDFDict))
+            .filter(dict => !dict.has(PDFName.of('V')));
     }
 
     embedSignatureFont(pageHint: number | PDFRef): void {

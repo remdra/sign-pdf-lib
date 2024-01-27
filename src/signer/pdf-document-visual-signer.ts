@@ -2,31 +2,31 @@ import { PdfSigningDocument } from './pdf-signing-document';
 import { Rectangle, SignatureText } from '../models';
 import { DigitallySignedError } from '../errors';
 import { computeAbsolutePageRectangle } from '../helpers';
+import { addRandomSuffix } from 'pdf-lib';
 
-class NameProvider {
+export interface AddVisualSignatureBackgroundParameters { 
+    pageIndex: number;
+    rectangle: Rectangle;
+    background: Buffer; 
+    texts?: SignatureText[];
 
-    #signatureNumber: number;
+    backgroundName?: string;
+};
 
-    constructor(signatureNumber: number) {
-        this.#signatureNumber = signatureNumber;
-    }
-
-    getBackgroundName(): string {
-        return `background${this.#signatureNumber}`;
-    }
-}
-
-export interface AddVisualSignatureParameters { 
+export interface AddVisualSignatureTextsParameters { 
     pageIndex: number;
     rectangle: Rectangle;
     background?: Buffer; 
-    texts?: SignatureText[] 
+    texts: SignatureText[];
+
+    backgroundName?: string;
 };
+
+export type AddVisualSignatureParameters = AddVisualSignatureBackgroundParameters | AddVisualSignatureTextsParameters;
 
 export class PdfDocumentVisualSigner {
 
     #signingDoc: PdfSigningDocument;
-    #nameProvider: NameProvider;
 
     static async fromPdfAsync(pdf: Buffer): Promise<PdfDocumentVisualSigner> {
         const signingDoc = await PdfSigningDocument.fromPdfAsync(pdf);
@@ -36,15 +36,19 @@ export class PdfDocumentVisualSigner {
 
     private constructor(signingDoc: PdfSigningDocument) {
         this.#signingDoc = signingDoc;
-
-        this.#nameProvider = new NameProvider(this.#signingDoc.getSignatureCount() + 1);
     }
     
-    async addVisualSignatureAsync({ pageIndex, rectangle, background, texts }: AddVisualSignatureParameters): Promise<void> {
+    async addVisualSignatureAsync({ pageIndex, rectangle, texts, background, backgroundName }: AddVisualSignatureParameters): Promise<void> {
+        if(!texts && !background) {
+            return;
+        }
+        
         const signatureCount = this.#signingDoc.getSignatureCount();
         if(signatureCount) {
             throw new DigitallySignedError();
         }
+
+        backgroundName = backgroundName || addRandomSuffix('SignatureBackground')
 
         const pageSize = this.#signingDoc.getPageSize(pageIndex);
         const pageRect = computeAbsolutePageRectangle(rectangle, pageSize);
@@ -57,7 +61,7 @@ export class PdfDocumentVisualSigner {
         const backgroundRef = background ? await this.#signingDoc.embedImageAsync(background) : undefined;
 
         let drawBuffer = backgroundRef 
-            ? `q 1 0 0 1 ${left} ${bottom} cm 1 0 0 1 0 0 cm ${width} 0 0 -${height} 0 0 cm 1 0 0 1 0 0 cm /${this.#nameProvider.getBackgroundName()} Do Q`
+            ? `q 1 0 0 1 ${left} ${bottom} cm 1 0 0 1 0 0 cm ${width} 0 0 -${height} 0 0 cm 1 0 0 1 0 0 cm /${backgroundName} Do Q`
             : '';
         if(texts) {
             drawBuffer = drawBuffer
@@ -85,7 +89,7 @@ export class PdfDocumentVisualSigner {
         const visualRef = this.#signingDoc.registerStream(drawBuffer, {});
         this.#signingDoc.addPageContent(visualRef, pageIndex);
         if(backgroundRef) {
-            this.#signingDoc.addPageResource(backgroundRef, pageIndex, this.#nameProvider.getBackgroundName());
+            this.#signingDoc.addPageResource(backgroundRef, pageIndex, backgroundName);
         }
 
         if(texts) {
