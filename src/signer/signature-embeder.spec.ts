@@ -1,10 +1,7 @@
 import { SignatureEmbeder } from './signature-embeder';
-import { PdfSigner } from '../pdf-signer';
-import { SignatureComputer } from './signature-computer';
-import { SignerSettings } from '../models/settings';
 import { NoPlaceholderError, TooSmallPlaceholderError } from '../errors';
 
-import { generatePdfAsync, generatePdfLibPdfAsync, generatePlaceholderPdfAsync, generateSignature } from '../../test/_helpers';
+import { generatePdfAsync, generatePlaceholderPdfAsync, generateSignature } from '../../test/_helpers';
 import { generateAsset } from '../../test/_helpers/generate-asset';
 import { signatureEmbederAssets } from '../../test/_run-assets/signer/assets-signature-embeder';
 

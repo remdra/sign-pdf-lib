@@ -1,7 +1,7 @@
 import { PdfSigningDocument } from './pdf-signing-document';
 import { Rectangle, SignatureText } from '../models';
 import { DigitallySignedError } from '../errors';
-import { computeAbsolutePageRectangle } from '../helpers';
+import { computeAbsolutePageReverseRectangle } from '../helpers';
 import { addRandomSuffix } from 'pdf-lib';
 
 export interface AddVisualSignatureBackgroundParameters { 
@@ -51,22 +51,22 @@ export class PdfDocumentVisualSigner {
         backgroundName = backgroundName || addRandomSuffix('SignatureBackground')
 
         const pageSize = this.#signingDoc.getPageSize(pageIndex);
-        const pageRect = computeAbsolutePageRectangle(rectangle, pageSize);
+        const pageRect = computeAbsolutePageReverseRectangle(rectangle, pageSize);
 
         const left = pageRect.left;
         const bottom = pageRect.bottom;
         const width = pageRect.right - pageRect.left;
         const height = pageRect.bottom - pageRect.top;
-
         const backgroundRef = background ? await this.#signingDoc.embedImageAsync(background) : undefined;
 
         let drawBuffer = backgroundRef 
-            ? `q 1 0 0 1 ${left} ${bottom} cm 1 0 0 1 0 0 cm ${width} 0 0 -${height} 0 0 cm 1 0 0 1 0 0 cm /${backgroundName} Do Q`
+            ? `q 1 0 0 -1 ${left} ${bottom} cm 1 0 0 1 0 0 cm ${width} 0 0 ${height} 0 0 cm 1 0 0 1 0 0 cm /${backgroundName} Do Q`
             : '';
         if(texts) {
             drawBuffer = drawBuffer
                 + ' q'
                 + ' 0 0 106 68 re'
+                + ` 1 0 0 1 ${left} ${bottom} cm`
                 + ' BT'
                 + ' /Helvetica 1 Tf'
                 + ' 0 Tc 0 Tw 0 Ts 100 Tz 0 Tr'

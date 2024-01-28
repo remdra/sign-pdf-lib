@@ -116,6 +116,9 @@ export class PdfSigningDocument {
 
     addPageAnnot(pageIndex: number, annotRef: PDFRef): void {
         const page = this.#pdfDoc.getPage(pageIndex);
+        if(!page.node.get(PDFName.of('Annots'))) {
+            page.node.set(PDFName.of('Annots'), this.#pdfDoc.context.obj([]));
+        }
         const pageAnnots = page.node.lookup(PDFName.of('Annots'), PDFArray);
         pageAnnots.push(annotRef);
     }

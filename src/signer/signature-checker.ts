@@ -8,7 +8,7 @@ import * as _ from 'lodash';
 
 
 function getMessageFromSignature(signature: string) {
-    const p7Asn1 = forge.asn1.fromDer(signature);
+    const p7Asn1 = forge.asn1.fromDer(signature, false);
     return forge.pkcs7.messageFromAsn1(p7Asn1);
 } 
 
@@ -34,14 +34,20 @@ export class SignatureChecker {
         }
 
         const checks: VerifySignatureResult[] = [];
+        let integrity = true;
         for(let i = 0; i < signatures.length; i++) {
             const signature = signatures[i];
             const check = await this.verifySignatureAsync(signature, i == signatures.length - 1);
             checks.push(check);
+            if('integrity' in check ) {
+                integrity = integrity && check.integrity;
+            } else if( i !== signatures.length - 1) {
+                integrity = false;
+            }
         }
 
         return {
-            integrity: checks.every(check => check.integrity),
+            integrity,
             signatures: checks
         };
     } 
@@ -50,15 +56,14 @@ export class SignatureChecker {
         if(!signature.get(PDFName.of('V'))) {
             return {
                 name: getSignatureName(signature),
-                integrity: false,
-                details: {}
+                isField: true
             };
         }
     
         const signBuffer = this.#signingDoc.getSignatureBuffer(signature); 
         const signatureHexStr = this.#signingDoc.getSignatureHexString(signature);
         const signatureStr = Buffer.from(signatureHexStr, 'hex').toString('latin1');
-
+        
         const message = getMessageFromSignature(signatureStr);
 
         const appended = isLast && !this.#signingDoc.isSignatureForEntireDocument(signature);

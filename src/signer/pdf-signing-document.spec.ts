@@ -218,7 +218,7 @@ describe('PdfSigningDocument', function () {
             const pageResourcesXobjectPdf = await signingDoc.saveAsync();
 
             await generateAsset.generateBinaryAsync(signingDocumentAssets.paths.pageResourcesXobjectPdf, pageResourcesXobjectPdf);
-            expect(pageResourcesXobjectPdf).to.be.deep.equal(signingDocumentAssets.pageContentsArrayPdf);
+            expect(pageResourcesXobjectPdf).to.be.deep.equal(signingDocumentAssets.pageResourcesXobjectPdf);
 
             signingDoc.ensurePageResourcesXObject(0);
             
@@ -450,7 +450,7 @@ describe('PdfSigningDocument', function () {
             await generateAsset.generateBinaryAsync(signingDocumentAssets.paths.pageEmbededFontPdf, pageEmbededFontPdf);
             expect(pageEmbededFontPdf).to.be.deep.equal(signingDocumentAssets.pageEmbededFontPdf);
 
-            signingDoc.ensurePageResourcesXObject(0);
+            signingDoc.embedSignatureFont(0);
             
             const pageEmbededFontPdf2 = await signingDoc.saveAsync();
 

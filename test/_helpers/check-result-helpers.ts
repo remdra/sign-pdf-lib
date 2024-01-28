@@ -9,6 +9,10 @@ export function transformPdfCheckResult(check: any): PdfVerifySignaturesResult {
 }
 
 function transformSignatureCheckResult(check: any): VerifySignatureResult {
+    if(!check.details) {
+        return check;
+    }
+    
     return {
         ...check,
         details: transformSignatureDetails(check.details)
