@@ -37,7 +37,8 @@ function getCheckPath(file: string) {
 
 
 const _paths = {
-  pdf: getPath('document.pdf'),
+  pdf:        getPath('document.pdf'),
+  reverseYPdf: getPath('document-reverse-y.pdf'),
 
   placeholderPdf:            getPlaceholderPath('placeholder.pdf'),
   noNamePlaceholderPdf:      getPlaceholderPath('placeholder-no-name.pdf'),
@@ -64,6 +65,7 @@ const _paths = {
   specifiedFieldSignedPdf:   getFieldSignedPath('signed-specific-field.pdf'),
 
   visualSignedPdf:             getVisualSignedPath('signed.pdf'),
+  visualSignedReverseYPdf:     getVisualSignedPath('signed-reverse-y.pdf'),
   noBackgroundVisualSignedPdf: getVisualSignedPath('signed-no-background.pdf'),
   noTextsVisualSignedPdf:      getVisualSignedPath('signed-no-texts.pdf'),
   noOptionalsVisualSignedPdf:  getVisualSignedPath('signed-no-optionals.pdf'),
@@ -72,9 +74,10 @@ const _paths = {
 };
 
 
-class PdfSignerAssets13 {
+class PdfSignerAssets {
   
-  private _pdf = new BinaryAssetFile(_paths.pdf);
+  private _pdf         = new BinaryAssetFile(_paths.pdf);
+  private _reverseYPdf = new BinaryAssetFile(_paths.reverseYPdf);
 
   private _placeholderPdf = new BinaryAssetFile(_paths.placeholderPdf);
   private _noNamePlaceholderPdf = new BinaryAssetFile(_paths.noNamePlaceholderPdf);
@@ -101,6 +104,7 @@ class PdfSignerAssets13 {
   private _specifiedFieldSignedPdf = new BinaryAssetFile(_paths.specifiedFieldSignedPdf);
 
   private _visualSignedPdf             = new BinaryAssetFile(_paths.visualSignedPdf);
+  private _visualSignedReverseYPdf     = new BinaryAssetFile(_paths.visualSignedReverseYPdf);
   private _noBackgroundVisualSignedPdf = new BinaryAssetFile(_paths.noBackgroundVisualSignedPdf);
   private _noTextsVisualSignedPdf      = new BinaryAssetFile(_paths.noTextsVisualSignedPdf);
   private _noOptionalsVisualSignedPdf  = new BinaryAssetFile(_paths.noOptionalsVisualSignedPdf);
@@ -108,7 +112,8 @@ class PdfSignerAssets13 {
   private _checkSignedPdf = new JsonAssetFile(_paths.checkSignedPdf);
 
   public paths = {
-    pdf: _paths.pdf,
+    pdf:         _paths.pdf,
+    reverseYPdf: _paths.reverseYPdf,
   
     placeholderPdf: _paths.placeholderPdf,
   
@@ -136,6 +141,7 @@ class PdfSignerAssets13 {
     noOptionalsFieldSignedPdf: _paths.noOptionalsFieldSignedPdf,
 
     visualSignedPdf:             _paths.visualSignedPdf,
+    visualSignedReverseYPdf:     _paths.visualSignedReverseYPdf,
     noBackgroundVisualSignedPdf: _paths.noBackgroundVisualSignedPdf,
     noTextsVisualSignedPdf:      _paths.noTextsVisualSignedPdf,
     noOptionalsVisualSignedPdf:  _paths.noOptionalsVisualSignedPdf,
@@ -145,6 +151,10 @@ class PdfSignerAssets13 {
 
   get pdf() {
     return this._pdf.content;
+  }
+
+  get reverseYPdf() {
+    return this._reverseYPdf.content;
   }
 
   get placeholderPdf() {
@@ -223,6 +233,10 @@ class PdfSignerAssets13 {
     return this._visualSignedPdf.content;
   }
 
+  get visualSignedReverseYPdf() {
+    return this._visualSignedReverseYPdf.content;
+  }
+
   get noSignatureFieldSignedPdf() {
     return this._noSignatureFieldSignedPdf.content;
   }
@@ -252,4 +266,4 @@ class PdfSignerAssets13 {
   }
 };
 
-export const pdfSignerAssets13 = new PdfSignerAssets13();
+export const pdfSignerAssets = new PdfSignerAssets();

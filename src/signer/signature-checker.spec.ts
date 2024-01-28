@@ -18,7 +18,7 @@ it('_generate', async function () {
     const signedPdf = await generateSignedPdfAsync(pdf);
     await generateAsset.generateBinaryAsync(signatureCheckerAssets.paths.signedPdf, signedPdf);
 
-    const twiceSignedPdf = await generateSignedPdfAsync(signedPdf);
+    const twiceSignedPdf = await generateSignedPdfAsync(signedPdf, { name: 'Signature2' });
     await generateAsset.generateBinaryAsync(signatureCheckerAssets.paths.twiceSignedPdf, twiceSignedPdf);
 
     const tamperedSignedPdf = await generateTamperedPdfAsync(signedPdf);

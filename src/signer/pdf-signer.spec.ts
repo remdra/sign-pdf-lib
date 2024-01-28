@@ -3,10 +3,10 @@ import { SignDigitalParameters, SignFieldParameters, AddFieldParameters, SignVis
 import { SignerSettings } from '../models/settings';
 
 
-import { pdfSignerAssets13 } from '../../test/_run-assets/signer/assets-pdf-signer-pdf';
+import { pdfSignerAssets } from '../../test/_run-assets/signer/assets-pdf-signer-pdf';
 import { pdfSignerAssetsRegression } from '../../test/_run-assets/signer/assets-pdf-signer-regression';
 import { commonAssets } from '../../test/_run-assets/_assets-common';
-import { generateAsset, generatePdfAsync } from '../../test/_helpers';
+import { generateAsset, generatePdf13Async, generatePdf17Async } from '../../test/_helpers';
 
 import { use as chaiUse } from 'chai';
 import { expect } from 'chai';
@@ -16,8 +16,11 @@ chaiUse(chaiAsPromised);
 
 
 it('_generate', async function () {
-    const pdf = await generatePdfAsync({ pageCount: 2 });
-    await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.pdf, pdf);
+    const pdf = await generatePdf17Async({ pageCount: 2 });
+    await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.pdf, pdf);
+
+    const reverseYPdf = await generatePdf13Async({ pageCount: 2 });
+    await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.reverseYPdf, reverseYPdf);
 })
 
 describe('PdfSigner (pdf 1.3)', function () {
@@ -43,7 +46,7 @@ describe('PdfSigner (pdf 1.3)', function () {
             },
             visual: {
                 rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 },
-                background: pdfSignerAssets13.signatureImage,
+                background: pdfSignerAssets.signatureImage,
                 texts: [
                     {
                         lines: [ 
@@ -73,7 +76,7 @@ describe('PdfSigner (pdf 1.3)', function () {
                 contactInfo: 'signer@semnezonline.ro',
             },
             visual: {
-                background: pdfSignerAssets13.signatureImage,
+                background: pdfSignerAssets.signatureImage,
                 texts: [
                     {
                         lines: [ 
@@ -102,7 +105,7 @@ describe('PdfSigner (pdf 1.3)', function () {
             pageNumber: 1,
 
             rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 },
-            background: pdfSignerAssets13.signatureImage,
+            background: pdfSignerAssets.signatureImage,
             texts: [
                 {
                     lines: [ 
@@ -137,37 +140,37 @@ describe('PdfSigner (pdf 1.3)', function () {
 
     describe('addPlaceholderAsync', function() {
         it('adds placeholder', async function() {
-            const placeholderPdf = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
+            const placeholderPdf = await pdfSigner.addPlaceholderAsync(pdfSignerAssets.pdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.placeholderPdf, placeholderPdf);
-            expect(placeholderPdf).to.be.deep.equal(pdfSignerAssets13.placeholderPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.placeholderPdf, placeholderPdf);
+            expect(placeholderPdf).to.be.deep.equal(pdfSignerAssets.placeholderPdf);
         })
 
         it('adds placeholder (no name)', async function() {
             delete info.name;
 
-            const noNamePlaceholderPdf = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
+            const noNamePlaceholderPdf = await pdfSigner.addPlaceholderAsync(pdfSignerAssets.pdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noNamePlaceholderPdf, noNamePlaceholderPdf);
-            expect(noNamePlaceholderPdf).to.be.deep.equal(pdfSignerAssets13.noNamePlaceholderPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.noNamePlaceholderPdf, noNamePlaceholderPdf);
+            expect(noNamePlaceholderPdf).to.be.deep.equal(pdfSignerAssets.noNamePlaceholderPdf);
         })
 
         it('adds placeholder (no signature)', async function() {
             delete info.signature;
 
-            const noSignaturePlaceholderPdf = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
+            const noSignaturePlaceholderPdf = await pdfSigner.addPlaceholderAsync(pdfSignerAssets.pdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noSignaturePlaceholderPdf, noSignaturePlaceholderPdf);
-            expect(noSignaturePlaceholderPdf).to.be.deep.equal(pdfSignerAssets13.noSignaturePlaceholderPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.noSignaturePlaceholderPdf, noSignaturePlaceholderPdf);
+            expect(noSignaturePlaceholderPdf).to.be.deep.equal(pdfSignerAssets.noSignaturePlaceholderPdf);
         })
 
         it('adds placeholder (no visual)', async function() {
             delete info.visual;
 
-            const noVisualPlaceholderPdf = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
+            const noVisualPlaceholderPdf = await pdfSigner.addPlaceholderAsync(pdfSignerAssets.pdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noVisualPlaceholderPdf, noVisualPlaceholderPdf);
-            expect(noVisualPlaceholderPdf).to.be.deep.equal(pdfSignerAssets13.noVisualPlaceholderPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.noVisualPlaceholderPdf, noVisualPlaceholderPdf);
+            expect(noVisualPlaceholderPdf).to.be.deep.equal(pdfSignerAssets.noVisualPlaceholderPdf);
         })
 
         it('adds placeholder (no optionals)', async function() {
@@ -175,73 +178,73 @@ describe('PdfSigner (pdf 1.3)', function () {
             delete info.signature;
             delete info.visual;
 
-            const noOptionalsPlaceholderPdf = await pdfSigner.addPlaceholderAsync(pdfSignerAssets13.pdf, info);
+            const noOptionalsPlaceholderPdf = await pdfSigner.addPlaceholderAsync(pdfSignerAssets.pdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noOptionalsPlaceholderPdf, noOptionalsPlaceholderPdf);
-            expect(noOptionalsPlaceholderPdf).to.be.deep.equal(pdfSignerAssets13.noOptionalsPlaceholderPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.noOptionalsPlaceholderPdf, noOptionalsPlaceholderPdf);
+            expect(noOptionalsPlaceholderPdf).to.be.deep.equal(pdfSignerAssets.noOptionalsPlaceholderPdf);
         })
     })
 
     describe('addFieldAsync', function() {
         it('adds field', async function() {
-            const fieldPdf = await pdfSigner.addFieldAsync(pdfSignerAssets13.pdf, addFieldInfo);
+            const fieldPdf = await pdfSigner.addFieldAsync(pdfSignerAssets.pdf, addFieldInfo);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.fieldPdf, fieldPdf);
-            expect(fieldPdf).to.be.deep.equal(pdfSignerAssets13.fieldPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.fieldPdf, fieldPdf);
+            expect(fieldPdf).to.be.deep.equal(pdfSignerAssets.fieldPdf);
         })
 
         it('adds field (no name)', async function() {
             delete addFieldInfo.name;
 
-            const noNameFieldPdf = await pdfSigner.addFieldAsync(pdfSignerAssets13.pdf, addFieldInfo);
+            const noNameFieldPdf = await pdfSigner.addFieldAsync(pdfSignerAssets.pdf, addFieldInfo);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noNameFieldPdf, noNameFieldPdf);
-            expect(noNameFieldPdf).to.be.deep.equal(pdfSignerAssets13.noNameFieldPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.noNameFieldPdf, noNameFieldPdf);
+            expect(noNameFieldPdf).to.be.deep.equal(pdfSignerAssets.noNameFieldPdf);
         })
 
         it('adds field (no optionals)', async function() {
             delete addFieldInfo.name;
 
-            const noOptionalsFieldPdf = await pdfSigner.addFieldAsync(pdfSignerAssets13.pdf, addFieldInfo);
+            const noOptionalsFieldPdf = await pdfSigner.addFieldAsync(pdfSignerAssets.pdf, addFieldInfo);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noOptionalsFieldPdf, noOptionalsFieldPdf);
-            expect(noOptionalsFieldPdf).to.be.deep.equal(pdfSignerAssets13.noOptionalsFieldPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.noOptionalsFieldPdf, noOptionalsFieldPdf);
+            expect(noOptionalsFieldPdf).to.be.deep.equal(pdfSignerAssets.noOptionalsFieldPdf);
         })
     })
     
     describe('signAsync', function() {
         it('signs document', async function() {
-            const signedPdf = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
+            const signedPdf = await pdfSigner.signAsync(pdfSignerAssets.pdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.signedPdf, signedPdf);
-            expect(signedPdf).to.be.deep.equal(pdfSignerAssets13.signedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.signedPdf, signedPdf);
+            expect(signedPdf).to.be.deep.equal(pdfSignerAssets.signedPdf);
         })
 
         it('signs document (no name)', async function() {
             delete info.name;
 
-            const noNameSignedPdf = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
+            const noNameSignedPdf = await pdfSigner.signAsync(pdfSignerAssets.pdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noNameSignedPdf, noNameSignedPdf);
-            expect(noNameSignedPdf).to.be.deep.equal(pdfSignerAssets13.noNameSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.noNameSignedPdf, noNameSignedPdf);
+            expect(noNameSignedPdf).to.be.deep.equal(pdfSignerAssets.noNameSignedPdf);
         })
 
         it('signs document (no signature)', async function() {
             delete info.signature;
 
-            const noSignatureSignedPdf = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
+            const noSignatureSignedPdf = await pdfSigner.signAsync(pdfSignerAssets.pdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noSignatureSignedPdf, noSignatureSignedPdf);
-            expect(noSignatureSignedPdf).to.be.deep.equal(pdfSignerAssets13.noSignatureSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.noSignatureSignedPdf, noSignatureSignedPdf);
+            expect(noSignatureSignedPdf).to.be.deep.equal(pdfSignerAssets.noSignatureSignedPdf);
         })
 
         it('signs document (no visual)', async function() {
             delete info.visual;
 
-            const noVisualSignedPdf = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
+            const noVisualSignedPdf = await pdfSigner.signAsync(pdfSignerAssets.pdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noVisualSignedPdf, noVisualSignedPdf);
-            expect(noVisualSignedPdf).to.be.deep.equal(pdfSignerAssets13.noVisualSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.noVisualSignedPdf, noVisualSignedPdf);
+            expect(noVisualSignedPdf).to.be.deep.equal(pdfSignerAssets.noVisualSignedPdf);
         })
 
         it('signs document (no optionals)', async function() {
@@ -249,126 +252,136 @@ describe('PdfSigner (pdf 1.3)', function () {
             delete info.signature;
             delete info.visual;
 
-            const noOptionalsSignedPdf = await pdfSigner.signAsync(pdfSignerAssets13.pdf, info);
+            const noOptionalsSignedPdf = await pdfSigner.signAsync(pdfSignerAssets.pdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noOptionalsSignedPdf, noOptionalsSignedPdf);
-            expect(noOptionalsSignedPdf).to.be.deep.equal(pdfSignerAssets13.noOptionalsSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.noOptionalsSignedPdf, noOptionalsSignedPdf);
+            expect(noOptionalsSignedPdf).to.be.deep.equal(pdfSignerAssets.noOptionalsSignedPdf);
         })
 
         it('signs already signed document', async function() {
-            const res = await pdfSigner.signAsync(pdfSignerAssets13.signedPdf, info);
+            info.name = 'Signature2';
+            const res = await pdfSigner.signAsync(pdfSignerAssets.signedPdf, info);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.twiceSignedPdf, res);
-            expect(res).to.be.deep.equal(pdfSignerAssets13.twiceSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.twiceSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets.twiceSignedPdf);
         })
     })
 
     describe('signFieldAsync', function() {
         it('signs document', async function() {
-            const fieldSignedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo);
+            const fieldSignedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets.fieldPdf, fieldInfo);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.fieldSignedPdf, fieldSignedPdf);
-            expect(fieldSignedPdf).to.be.deep.equal(pdfSignerAssets13.fieldSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.fieldSignedPdf, fieldSignedPdf);
+            expect(fieldSignedPdf).to.be.deep.equal(pdfSignerAssets.fieldSignedPdf);
         })
 
         it('signs document (no signature)', async function() {
             delete fieldInfo.signature;
 
-            const noSignatureFieldSignedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo);
+            const noSignatureFieldSignedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets.fieldPdf, fieldInfo);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noSignatureFieldSignedPdf, noSignatureFieldSignedPdf);
-            expect(noSignatureFieldSignedPdf).to.be.deep.equal(pdfSignerAssets13.noSignatureFieldSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.noSignatureFieldSignedPdf, noSignatureFieldSignedPdf);
+            expect(noSignatureFieldSignedPdf).to.be.deep.equal(pdfSignerAssets.noSignatureFieldSignedPdf);
         })
 
         it('signs document (no visual)', async function() {
             delete fieldInfo.visual;
 
-            const noVisualFieldSignedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo);
+            const noVisualFieldSignedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets.fieldPdf, fieldInfo);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noVisualFieldSignedPdf, noVisualFieldSignedPdf);
-            expect(noVisualFieldSignedPdf).to.be.deep.equal(pdfSignerAssets13.noVisualFieldSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.noVisualFieldSignedPdf, noVisualFieldSignedPdf);
+            expect(noVisualFieldSignedPdf).to.be.deep.equal(pdfSignerAssets.noVisualFieldSignedPdf);
         })
 
         it('signs document (no optionals)', async function() {
             delete fieldInfo.signature;
             delete fieldInfo.visual;
 
-            const noOptionalsFieldSignedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo);
+            const noOptionalsFieldSignedPdf = await pdfSigner.signFieldAsync(pdfSignerAssets.fieldPdf, fieldInfo);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noOptionalsFieldSignedPdf, noOptionalsFieldSignedPdf);
-            expect(noOptionalsFieldSignedPdf).to.be.deep.equal(pdfSignerAssets13.noOptionalsFieldSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.noOptionalsFieldSignedPdf, noOptionalsFieldSignedPdf);
+            expect(noOptionalsFieldSignedPdf).to.be.deep.equal(pdfSignerAssets.noOptionalsFieldSignedPdf);
         })
 
         it('signs specified field', async function() {
             addFieldInfo.rectangle.left += 250;
             addFieldInfo.rectangle.right += 250;
             addFieldInfo.name = 'Signature2';
-            const twoFieldsPdf = await pdfSigner.addFieldAsync(pdfSignerAssets13.fieldPdf, addFieldInfo);
+            const twoFieldsPdf = await pdfSigner.addFieldAsync(pdfSignerAssets.fieldPdf, addFieldInfo);
 
             fieldInfo.fieldName = 'Signature2';
 
             const specifiedFieldSignedPdf = await pdfSigner.signFieldAsync(twoFieldsPdf, fieldInfo);
             
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.specifiedFieldSignedPdf, specifiedFieldSignedPdf);
-            expect(specifiedFieldSignedPdf).to.be.deep.equal(pdfSignerAssets13.specifiedFieldSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.specifiedFieldSignedPdf, specifiedFieldSignedPdf);
+            expect(specifiedFieldSignedPdf).to.be.deep.equal(pdfSignerAssets.specifiedFieldSignedPdf);
         })
 
         it('throws when field not found', async function() {
             fieldInfo.fieldName = 'Another name';
 
-            await expect(pdfSigner.signFieldAsync(pdfSignerAssets13.fieldPdf, fieldInfo)).to.be.rejected;
+            await expect(pdfSigner.signFieldAsync(pdfSignerAssets.fieldPdf, fieldInfo)).to.be.rejected;
         })
     })
     
     describe('signVisualAsync', function() {
         it('signs document', async function() {
-            const visualSignedPdf = await pdfSigner.signVisualAsync(pdfSignerAssets13.pdf, visualInfo);
+            const visualSignedPdf = await pdfSigner.signVisualAsync(pdfSignerAssets.pdf, visualInfo);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.visualSignedPdf, visualSignedPdf);
-            expect(visualSignedPdf).to.be.deep.equal(pdfSignerAssets13.visualSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.visualSignedPdf, visualSignedPdf);
+            expect(visualSignedPdf).to.be.deep.equal(pdfSignerAssets.visualSignedPdf);
+        })
+
+        it('signs document (reverseY)', async function() {
+            visualInfo.reverseY = true;
+
+            const visualSignedReverseYPdf = await pdfSigner.signVisualAsync(pdfSignerAssets.reverseYPdf, visualInfo);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.visualSignedReverseYPdf, visualSignedReverseYPdf);
+            expect(visualSignedReverseYPdf).to.be.deep.equal(pdfSignerAssets.visualSignedReverseYPdf);
         })
 
         it('signs document (no background)', async function() {
             delete visualInfo.background;
 
-            const noBackgroundVisualSignedPdf = await pdfSigner.signVisualAsync(pdfSignerAssets13.pdf, visualInfo);
+            const noBackgroundVisualSignedPdf = await pdfSigner.signVisualAsync(pdfSignerAssets.pdf, visualInfo);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noBackgroundVisualSignedPdf, noBackgroundVisualSignedPdf);
-            expect(noBackgroundVisualSignedPdf).to.be.deep.equal(pdfSignerAssets13.noBackgroundVisualSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.noBackgroundVisualSignedPdf, noBackgroundVisualSignedPdf);
+            expect(noBackgroundVisualSignedPdf).to.be.deep.equal(pdfSignerAssets.noBackgroundVisualSignedPdf);
         })
 
         it('signs document (no texts)', async function() {
             delete visualInfo.texts;
 
-            const noTextsVisualSignedPdf = await pdfSigner.signVisualAsync(pdfSignerAssets13.pdf, visualInfo);
+            const noTextsVisualSignedPdf = await pdfSigner.signVisualAsync(pdfSignerAssets.pdf, visualInfo);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noTextsVisualSignedPdf, noTextsVisualSignedPdf);
-            expect(noTextsVisualSignedPdf).to.be.deep.equal(pdfSignerAssets13.noTextsVisualSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.noTextsVisualSignedPdf, noTextsVisualSignedPdf);
+            expect(noTextsVisualSignedPdf).to.be.deep.equal(pdfSignerAssets.noTextsVisualSignedPdf);
         })
 
         it('signs document (no optionals)', async function() {
             delete visualInfo.background;
             delete visualInfo.texts;
 
-            const noOptionalsVisualSignedPdf = await pdfSigner.signVisualAsync(pdfSignerAssets13.pdf, visualInfo);
+            const noOptionalsVisualSignedPdf = await pdfSigner.signVisualAsync(pdfSignerAssets.pdf, visualInfo);
 
-            await generateAsset.generateBinaryAsync(pdfSignerAssets13.paths.noOptionalsVisualSignedPdf, noOptionalsVisualSignedPdf);
-            expect(noOptionalsVisualSignedPdf).to.be.deep.equal(pdfSignerAssets13.noOptionalsVisualSignedPdf);
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.noOptionalsVisualSignedPdf, noOptionalsVisualSignedPdf);
+            expect(noOptionalsVisualSignedPdf).to.be.deep.equal(pdfSignerAssets.noOptionalsVisualSignedPdf);
         })
     })
     
     describe('verifySignaturesAsync', function() {
         it('validates signatures', async function() {
-            const res = await pdfSigner.verifySignaturesAsync(pdfSignerAssets13.signedPdf);
+            const res = await pdfSigner.verifySignaturesAsync(pdfSignerAssets.signedPdf);
 
-            await generateAsset.generateJsonAsync(pdfSignerAssets13.paths.checkSignedPdf, res);
-            expect(res).to.be.deep.equal(pdfSignerAssets13.checkSignedPdf);
+            await generateAsset.generateJsonAsync(pdfSignerAssets.paths.checkSignedPdf, res);
+            expect(res).to.be.deep.equal(pdfSignerAssets.checkSignedPdf);
         })
     })
 
     describe('getFieldsAsync', function() {
         it('returns fields', async function() {
-            const res = await pdfSigner.getFieldsAsync(pdfSignerAssets13.fieldPdf);
+            const res = await pdfSigner.getFieldsAsync(pdfSignerAssets.fieldPdf);
             expect(res).to.be.deep.equal([ { name: 'Signature', pageNumber: 1 } ]);
         })
     })
@@ -392,7 +405,7 @@ describe('PdfSigner Regression', function () {
                 contactInfo: 'signer@semnezonline.ro',
             },
             visual: {
-                background: pdfSignerAssets13.signatureImage,
+                background: pdfSignerAssets.signatureImage,
                 texts: [
                     {
                         lines: [ 

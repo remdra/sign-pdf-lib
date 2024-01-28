@@ -10,6 +10,8 @@ export interface AddVisualSignatureBackgroundParameters {
     background: Buffer; 
     texts?: SignatureText[];
 
+    reverseY?: boolean;
+
     backgroundName?: string;
 };
 
@@ -19,6 +21,8 @@ export interface AddVisualSignatureTextsParameters {
     background?: Buffer; 
     texts: SignatureText[];
 
+    reverseY?: boolean;
+    
     backgroundName?: string;
 };
 
@@ -38,7 +42,7 @@ export class PdfDocumentVisualSigner {
         this.#signingDoc = signingDoc;
     }
     
-    async addVisualSignatureAsync({ pageIndex, rectangle, texts, background, backgroundName }: AddVisualSignatureParameters): Promise<void> {
+    async addVisualSignatureAsync({ pageIndex, rectangle, texts, background, backgroundName, reverseY }: AddVisualSignatureParameters): Promise<void> {
         if(!texts && !background) {
             return;
         }
@@ -59,13 +63,21 @@ export class PdfDocumentVisualSigner {
         const height = pageRect.bottom - pageRect.top;
         const backgroundRef = background ? await this.#signingDoc.embedImageAsync(background) : undefined;
 
-        let drawBuffer = backgroundRef 
-            ? `q 1 0 0 -1 0 ${pageSize.height} cm 1 0 0 -1 ${left} ${bottom} cm 1 0 0 1 0 0 cm ${width} 0 0 ${height} 0 0 cm 1 0 0 1 0 0 cm /${backgroundName} Do Q`
-            : '';
+        let drawBuffer = '';
+        if(backgroundRef) {
+            drawBuffer = 
+                'q'
+                + (reverseY ? ` 1 0 0 -1 0 ${pageSize.height} cm` : '')
+                + ` 1 0 0 -1 ${left} ${bottom} cm` 
+                + ' 1 0 0 1 0 0 cm' 
+                + ` ${width} 0 0 ${height} 0 0 cm` 
+                + ' 1 0 0 1 0 0 cm' 
+                + ` /${backgroundName} Do` + ' Q'
+        }
         if(texts) {
             drawBuffer = drawBuffer
                 + ' q'
-                + ` 1 0 0 -1 0 ${pageSize.height} cm `
+                + (reverseY ? ` 1 0 0 -1 0 ${pageSize.height} cm` : '')
                 + ' 0 0 106 68 re'
                 + ` 1 0 0 1 ${left} ${bottom} cm`
                 + ' BT'
