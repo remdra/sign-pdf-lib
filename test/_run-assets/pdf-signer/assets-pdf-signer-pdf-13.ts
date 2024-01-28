@@ -3,11 +3,44 @@ import { BinaryAssetFile } from '../../_helpers/assets/binary-asset-file';
 import { JsonAssetFile } from '../../_helpers/assets/json-asset-file';
 import * as path from 'path';
 
-const _paths = {
-  pdf:            path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'document.pdf'),
+const baseFolder = path.join('test', '_assets', 'signer', 'pdf-signer'); 
 
-  placeholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'placeholder.pdf'),
-  fieldPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'field.pdf'),
+function getPath(file: string) {
+  return path.join(baseFolder, file);
+}
+
+function getFieldPath(file: string) {
+  return path.join(baseFolder, 'field', file);
+}
+
+function getPlaceholderPath(file: string) {
+  return path.join(baseFolder, 'placeholder', file);
+}
+
+function getSignedPath(file: string) {
+  return path.join(baseFolder, 'sign', file);
+}
+
+
+const _paths = {
+  pdf: getPath('document.pdf'),
+
+  placeholderPdf:            getPlaceholderPath('placeholder.pdf'),
+  noNamePlaceholderPdf:      getPlaceholderPath('placeholder-no-name.pdf'),
+  noSignaturePlaceholderPdf: getPlaceholderPath('placeholder-no-signature.pdf'),
+  noVisualPlaceholderPdf:    getPlaceholderPath('placeholder-no-visual.pdf'),
+  noOptionalsPlaceholderPdf: getPlaceholderPath('placeholder-no-optionals.pdf'),
+
+  fieldPdf: getFieldPath('field.pdf'),
+  noNameFieldPdf: getFieldPath('field-no-name.pdf'),
+  noOptionalsFieldPdf: getFieldPath('field-no-optionals.pdf'),
+
+  signedPdf:            getSignedPath('signed.pdf'),
+  noNameSignedPdf:      getSignedPath('signed-no-name.pdf'),
+  noSignatureSignedPdf: getSignedPath('signed-no-signature.pdf'),
+  noVisualSignedPdf:    getSignedPath('signed-no-visual.pdf'),
+  noOptionalsSignedPdf: getSignedPath('signed-no-optionals.pdf'),
+
   positiveCoordinatesPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'placeholder-positive-coordinates.pdf'),
   positiveCoordinatesFieldPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'field-positive-coordinates.pdf'),
   negativeCoordinatesPlaceholderPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'placeholder-negative-coordinates.pdf'),
@@ -23,7 +56,6 @@ const _paths = {
   signatureJpgImage: path.join('test', '_assets', 'pdf-signer', 'signature.jpg'),
   signaturePngImage: path.join('test', '_assets', 'pdf-signer', 'signature.png'),
 
-  signedPdf:      path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'signed.pdf'),
   positiveCoordinatesSignedPdf:      path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'signed-positive-coordinates.pdf'),
   negativeCoordinatesSignedPdf:      path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'signed-negative-coordinates.pdf'),
   twiceSignedPdf: path.join('test', '_assets', 'pdf-signer', 'pdf-13', 'signed-twice.pdf'),
@@ -64,7 +96,21 @@ class PdfSignerAssets13 {
   private _pdf = new BinaryAssetFile(_paths.pdf);
 
   private _placeholderPdf = new BinaryAssetFile(_paths.placeholderPdf);
-  private _fieldPdf = new BinaryAssetFile(_paths.fieldPdf);
+  private _noNamePlaceholderPdf = new BinaryAssetFile(_paths.noNamePlaceholderPdf);
+  private _noSignaturePlaceholderPdf = new BinaryAssetFile(_paths.noSignaturePlaceholderPdf);
+  private _noVisualPlaceholderPdf = new BinaryAssetFile(_paths.noVisualPlaceholderPdf);
+  private _noOptionalsPlaceholderPdf = new BinaryAssetFile(_paths.noOptionalsPlaceholderPdf);
+
+  private _fieldPdf            = new BinaryAssetFile(_paths.fieldPdf);
+  private _noNameFieldPdf      = new BinaryAssetFile(_paths.noNameFieldPdf);
+  private _noOptionalsFieldPdf = new BinaryAssetFile(_paths.noOptionalsFieldPdf);
+
+  private _signedPdf            = new BinaryAssetFile(_paths.signedPdf);
+  private _noNameSignedPdf      = new BinaryAssetFile(_paths.noNameSignedPdf);
+  private _noSignatureSignedPdf = new BinaryAssetFile(_paths.noSignatureSignedPdf);
+  private _noVisualSignedPdf    = new BinaryAssetFile(_paths.noVisualSignedPdf);
+  private _noOptionalsSignedPdf = new BinaryAssetFile(_paths.noOptionalsSignedPdf);
+
   private _positiveCoordinatesPlaceholderPdf = new BinaryAssetFile(_paths.positiveCoordinatesPlaceholderPdf);
   private _positiveCoordinatesFieldPdf = new BinaryAssetFile(_paths.positiveCoordinatesFieldPdf);
   private _negativeCoordinatesPlaceholderPdf = new BinaryAssetFile(_paths.negativeCoordinatesPlaceholderPdf);
@@ -80,7 +126,6 @@ class PdfSignerAssets13 {
   private _signatureJpgImage = new BinaryAssetFile(_paths.signatureJpgImage);
   private _signaturePngImage = new BinaryAssetFile(_paths.signaturePngImage);
 
-  private _signedPdf = new BinaryAssetFile(_paths.signedPdf);
   private _positiveCoordinatesSignedPdf = new BinaryAssetFile(_paths.positiveCoordinatesSignedPdf);
   private _negativeCoordinatesSignedPdf = new BinaryAssetFile(_paths.negativeCoordinatesSignedPdf);
   private _twiceSignedPdf = new BinaryAssetFile(_paths.twiceSignedPdf);
@@ -115,8 +160,24 @@ class PdfSignerAssets13 {
 
   public paths = {
     pdf: _paths.pdf,
+  
     placeholderPdf: _paths.placeholderPdf,
-    fieldPdf: _paths.fieldPdf,
+  
+    noNamePlaceholderPdf: _paths.noNamePlaceholderPdf,
+    noSignaturePlaceholderPdf: _paths.noSignaturePlaceholderPdf,
+    noVisualPlaceholderPdf: _paths.noVisualPlaceholderPdf,
+    noOptionalsPlaceholderPdf: _paths.noOptionalsPlaceholderPdf,
+
+    fieldPdf:            _paths.fieldPdf,
+    noNameFieldPdf:      _paths.noNameFieldPdf,
+    noOptionalsFieldPdf: _paths.noOptionalsFieldPdf,
+
+    signedPdf:            _paths.signedPdf,
+    noNameSignedPdf:      _paths.noNameSignedPdf,
+    noSignatureSignedPdf: _paths.noSignatureSignedPdf,
+    noVisualSignedPdf:    _paths.noVisualSignedPdf,
+    noOptionalsSignedPdf: _paths.noOptionalsSignedPdf,
+
     positiveCoordinatesPlaceholderPdf: _paths.positiveCoordinatesPlaceholderPdf,
     positiveCoordinatesFieldPdf: _paths.positiveCoordinatesFieldPdf,
     negativeCoordinatesPlaceholderPdf: _paths.negativeCoordinatesPlaceholderPdf,
@@ -129,7 +190,6 @@ class PdfSignerAssets13 {
     textsPlaceholderPdf: _paths.textsPlaceholderPdf,
     textsAndBackgroundPlaceholderPdf: _paths.textsAndBackgroundPlaceholderPdf,
 
-    signedPdf: _paths.signedPdf,
     positiveCoordinatesSignedPdf: _paths.positiveCoordinatesSignedPdf,
     negativeCoordinatesSignedPdf: _paths.negativeCoordinatesSignedPdf,
     twiceSignedPdf: _paths.twiceSignedPdf,
@@ -171,8 +231,32 @@ class PdfSignerAssets13 {
     return this._placeholderPdf.content;
   }
 
+  get noNamePlaceholderPdf() {
+    return this._noNamePlaceholderPdf.content;
+  }
+
+  get noSignaturePlaceholderPdf() {
+    return this._noSignaturePlaceholderPdf.content;
+  }
+
+  get noVisualPlaceholderPdf() {
+    return this._noVisualPlaceholderPdf.content;
+  }
+
+  get noOptionalsPlaceholderPdf() {
+    return this._noOptionalsPlaceholderPdf.content;
+  }
+
   get fieldPdf() {
     return this._fieldPdf.content;
+  }
+
+  get noNameFieldPdf() {
+    return this._noNameFieldPdf.content;
+  }
+
+  get noOptionalsFieldPdf() {
+    return this._noOptionalsFieldPdf.content;
   }
 
   get positiveCoordinatesPlaceholderPdf() {
@@ -229,6 +313,22 @@ class PdfSignerAssets13 {
   
   get signedPdf() {
     return this._signedPdf.content;
+  }
+
+  get noNameSignedPdf() {
+    return this._noNameSignedPdf.content;
+  }
+
+  get noSignatureSignedPdf() {
+    return this._noSignatureSignedPdf.content;
+  }
+
+  get noVisualSignedPdf() {
+    return this._noVisualSignedPdf.content;
+  }
+
+  get noOptionalsSignedPdf() {
+    return this._noOptionalsSignedPdf.content;
   }
 
   get positiveCoordinatesSignedPdf() {

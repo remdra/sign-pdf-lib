@@ -23,13 +23,12 @@ export class PdfSigner {
     public async addPlaceholderAsync(pdf: Buffer, info: SignDigitalParameters): Promise<Buffer> {
         const pdfDocSigner = await PdfDocumentDigitalSigner.fromPdfAsync(pdf);
         const pageIndex = info.pageNumber - 1;
-        const background = (info.visual && 'background' in info.visual) ? info.visual.background : undefined;
-        const texts = (info.visual && 'texts' in info.visual) ? info.visual.texts : undefined;
+        const { background , texts } = info.visual ?? {};
         const visualRef = await pdfDocSigner.addVisualAsync({ background, texts });
         const placeholderInfo = this.getPlaceholderParameters();
         const placeholderRef = pdfDocSigner.addSignaturePlaceholder({ ...info.signature, ...placeholderInfo });
         const rectangle = info.visual?.rectangle;
-        const embedFont = !!(info.visual && 'texts' in info.visual);
+        const embedFont = !!(info.visual && info.visual?.texts);
         const name = info.name;
         pdfDocSigner.addSignatureField({ name, pageIndex, rectangle, visualRef, placeholderRef, embedFont });
         return pdfDocSigner.saveAsync();

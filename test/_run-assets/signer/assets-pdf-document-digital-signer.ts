@@ -49,13 +49,14 @@ const _paths = {
   noOptionalsVisualPdf:  getVisualPath('visual-no-optional.pdf'),
   emptyVisualPdf:        getVisualPath('visual-empty.pdf'),
 
-  placeholderPdf:              getPlaceholderPath('palceholder.pdf'),
-  noNamePlaceholderPdf:        getPlaceholderPath('palceholder-no-name.pdf'),
-  noReasonPlaceholderPdf:      getPlaceholderPath('palceholder-no-reason.pdf'),
-  noLocationPlaceholderPdf:    getPlaceholderPath('palceholder-no-location.pdf'),
-  noContactInfoPlaceholderPdf: getPlaceholderPath('palceholder-no-contact-info.pdf'),
-  noDatePlaceholderPdf:        getPlaceholderPath('palceholder-no-date.pdf'),
-  noOptionalsPlaceholderPdf:   getPlaceholderPath('palceholder-no-optionals.pdf'),
+  placeholderPdf:                  getPlaceholderPath('palceholder.pdf'),
+  noNamePlaceholderPdf:            getPlaceholderPath('palceholder-no-name.pdf'),
+  noReasonPlaceholderPdf:          getPlaceholderPath('palceholder-no-reason.pdf'),
+  noLocationPlaceholderPdf:        getPlaceholderPath('palceholder-no-location.pdf'),
+  noContactInfoPlaceholderPdf:     getPlaceholderPath('palceholder-no-contact-info.pdf'),
+  noDatePlaceholderPdf:            getPlaceholderPath('palceholder-no-date.pdf'),
+  noOptionalsPlaceholderPdf:       getPlaceholderPath('palceholder-no-optionals.pdf'),
+  differentSettingsPlaceholderPdf: getPlaceholderPath('palceholder-different-settings.pdf'),
 
   updatePdf:             getUpdatePath('update.pdf'),
   noVisualRefUpdatePdf:  getUpdatePath('update-no-visual-ref.pdf'),
@@ -88,13 +89,14 @@ class PdfDocumentDigitalSignerAssets {
   private _noOptionalsVisualPdf  = new BinaryAssetFile(_paths.noOptionalsVisualPdf);
   private _emptyVisualPdf        = new BinaryAssetFile(_paths.emptyVisualPdf);
 
-  private _placeholderPdf              = new BinaryAssetFile(_paths.placeholderPdf);
-  private _noNamePlaceholderPdf        = new BinaryAssetFile(_paths.noNamePlaceholderPdf);
-  private _noReasonPlaceholderPdf      = new BinaryAssetFile(_paths.noReasonPlaceholderPdf);
-  private _noLocationPlaceholderPdf    = new BinaryAssetFile(_paths.noLocationPlaceholderPdf);
-  private _noContactInfoPlaceholderPdf = new BinaryAssetFile(_paths.noContactInfoPlaceholderPdf);
-  private _noDatePlaceholderPdf        = new BinaryAssetFile(_paths.noDatePlaceholderPdf);
-  private _noOptionalsPlaceholderPdf   = new BinaryAssetFile(_paths.noOptionalsPlaceholderPdf);
+  private _placeholderPdf                  = new BinaryAssetFile(_paths.placeholderPdf);
+  private _noNamePlaceholderPdf            = new BinaryAssetFile(_paths.noNamePlaceholderPdf);
+  private _noReasonPlaceholderPdf          = new BinaryAssetFile(_paths.noReasonPlaceholderPdf);
+  private _noLocationPlaceholderPdf        = new BinaryAssetFile(_paths.noLocationPlaceholderPdf);
+  private _noContactInfoPlaceholderPdf     = new BinaryAssetFile(_paths.noContactInfoPlaceholderPdf);
+  private _noDatePlaceholderPdf            = new BinaryAssetFile(_paths.noDatePlaceholderPdf);
+  private _noOptionalsPlaceholderPdf       = new BinaryAssetFile(_paths.noOptionalsPlaceholderPdf);
+  private _differentSettingsPlaceholderPdf = new BinaryAssetFile(_paths.differentSettingsPlaceholderPdf);
 
   private _updatePdf             = new BinaryAssetFile(_paths.updatePdf);
   private _noVisualRefUpdatePdf  = new BinaryAssetFile(_paths.noVisualRefUpdatePdf);
@@ -125,13 +127,14 @@ class PdfDocumentDigitalSignerAssets {
     noOptionalsVisualPdf:  _paths.noOptionalsVisualPdf,
     emptyVisualPdf:        _paths.emptyVisualPdf,
 
-    placeholderPdf:              _paths.placeholderPdf,
-    noNamePlaceholderPdf:        _paths.noNamePlaceholderPdf,
-    noReasonPlaceholderPdf:      _paths.noReasonPlaceholderPdf,
-    noLocationPlaceholderPdf:    _paths.noLocationPlaceholderPdf,
-    noContactInfoPlaceholderPdf: _paths.noContactInfoPlaceholderPdf,
-    noDatePlaceholderPdf:        _paths.noDatePlaceholderPdf,
-    noOptionalsPlaceholderPdf:   _paths.noOptionalsPlaceholderPdf,
+    placeholderPdf:                  _paths.placeholderPdf,
+    noNamePlaceholderPdf:            _paths.noNamePlaceholderPdf,
+    noReasonPlaceholderPdf:          _paths.noReasonPlaceholderPdf,
+    noLocationPlaceholderPdf:        _paths.noLocationPlaceholderPdf,
+    noContactInfoPlaceholderPdf:     _paths.noContactInfoPlaceholderPdf,
+    noDatePlaceholderPdf:            _paths.noDatePlaceholderPdf,
+    noOptionalsPlaceholderPdf:       _paths.noOptionalsPlaceholderPdf,
+    differentSettingsPlaceholderPdf: _paths.differentSettingsPlaceholderPdf,
 
     updatePdf:             _paths.updatePdf,
     noVisualRefUpdatePdf:  _paths.noVisualRefUpdatePdf,
@@ -237,6 +240,10 @@ class PdfDocumentDigitalSignerAssets {
 
   get noOptionalsPlaceholderPdf() {
     return this._noOptionalsPlaceholderPdf.content;
+  }
+
+  get differentSettingsPlaceholderPdf() {
+    return this._differentSettingsPlaceholderPdf.content;
   }
 
   get updatePdf() {

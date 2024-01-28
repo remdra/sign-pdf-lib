@@ -216,7 +216,7 @@ describe('PdfDocumentDigitalSigner', function () {
 
     describe('addSignaturePlaceholder', function() {
         it('adds placeholder', async function() {
-            const placeholderRef = await pdfDocSigner.addVisualAsync(addVisualParameters);
+            const placeholderRef = await pdfDocSigner.addSignaturePlaceholder(addPlaceholderParameters);
             const placeholderPdf = await pdfDocSigner.saveAsync();
 
             expect(placeholderRef).to.not.be.undefined;
@@ -227,7 +227,7 @@ describe('PdfDocumentDigitalSigner', function () {
         it('adds placeholder (no name)', async function() {
             delete addPlaceholderParameters.name;
 
-            const placeholderRef = await pdfDocSigner.addVisualAsync(addVisualParameters);
+            const placeholderRef = await pdfDocSigner.addSignaturePlaceholder(addPlaceholderParameters);
             const noNamePlaceholderPdf = await pdfDocSigner.saveAsync();
 
             expect(placeholderRef).to.not.be.undefined;
@@ -238,7 +238,7 @@ describe('PdfDocumentDigitalSigner', function () {
         it('adds placeholder (no reason)', async function() {
             delete addPlaceholderParameters.reason;
             
-            const placeholderRef = await pdfDocSigner.addVisualAsync(addVisualParameters);
+            const placeholderRef = await pdfDocSigner.addSignaturePlaceholder(addPlaceholderParameters);
             const noReasonPlaceholderPdf = await pdfDocSigner.saveAsync();
 
             expect(placeholderRef).to.not.be.undefined;
@@ -249,7 +249,7 @@ describe('PdfDocumentDigitalSigner', function () {
         it('adds placeholder (no location)', async function() {
             delete addPlaceholderParameters.location;
             
-            const placeholderRef = await pdfDocSigner.addVisualAsync(addVisualParameters);
+            const placeholderRef = await pdfDocSigner.addSignaturePlaceholder(addPlaceholderParameters);
             const noLocationPlaceholderPdf = await pdfDocSigner.saveAsync();
 
             expect(placeholderRef).to.not.be.undefined;
@@ -260,7 +260,7 @@ describe('PdfDocumentDigitalSigner', function () {
         it('adds placeholder (no contact info)', async function() {
             delete addPlaceholderParameters.contactInfo;
             
-            const placeholderRef = await pdfDocSigner.addVisualAsync(addVisualParameters);
+            const placeholderRef = await pdfDocSigner.addSignaturePlaceholder(addPlaceholderParameters);
             const noContactInfoPlaceholderPdf = await pdfDocSigner.saveAsync();
 
             expect(placeholderRef).to.not.be.undefined;
@@ -271,7 +271,7 @@ describe('PdfDocumentDigitalSigner', function () {
         it('adds placeholder (no date)', async function() {
             delete addPlaceholderParameters.date;
             
-            const placeholderRef = await pdfDocSigner.addVisualAsync(addVisualParameters);
+            const placeholderRef = await pdfDocSigner.addSignaturePlaceholder(addPlaceholderParameters);
             const noDatePlaceholderPdf = await pdfDocSigner.saveAsync();
 
             expect(placeholderRef).to.not.be.undefined;
@@ -286,12 +286,25 @@ describe('PdfDocumentDigitalSigner', function () {
             delete addPlaceholderParameters.contactInfo;
             delete addPlaceholderParameters.date;
             
-            const placeholderRef = await pdfDocSigner.addVisualAsync(addVisualParameters);
+            const placeholderRef = await pdfDocSigner.addSignaturePlaceholder(addPlaceholderParameters);
             const noOptionalsPlaceholderPdf = await pdfDocSigner.saveAsync();
 
             expect(placeholderRef).to.not.be.undefined;
             await generateAsset.generateBinaryAsync(pdfDocumentDigitalSignerAssets.paths.noOptionalsPlaceholderPdf, noOptionalsPlaceholderPdf);
             expect(noOptionalsPlaceholderPdf).to.be.deep.equal(pdfDocumentDigitalSignerAssets.noOptionalsPlaceholderPdf);
+        })
+
+        it('adds placeholder for different settings', async function() {
+            addPlaceholderParameters.signaturePlaceholder = 'A'.repeat(5000),
+            addPlaceholderParameters.rangePlaceHolder = 9999;
+
+            const placeholderRef = await pdfDocSigner.addSignaturePlaceholder(addPlaceholderParameters);
+            const differentSettingsPlaceholderPdf = await pdfDocSigner.saveAsync();
+
+            expect(placeholderRef).to.not.be.undefined;
+            await generateAsset.generateBinaryAsync(pdfDocumentDigitalSignerAssets.paths.differentSettingsPlaceholderPdf, differentSettingsPlaceholderPdf);
+            expect(differentSettingsPlaceholderPdf).to.be.deep.equal(pdfDocumentDigitalSignerAssets.differentSettingsPlaceholderPdf);
+            expect(differentSettingsPlaceholderPdf).to.not.be.deep.equal(pdfDocumentDigitalSignerAssets.placeholderPdf);
         })
     })
 
