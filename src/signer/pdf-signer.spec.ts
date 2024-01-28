@@ -1,12 +1,12 @@
 import { PdfSigner } from './pdf-signer';
-import { SignDigitalParameters, SignFieldParameters, AddFieldParameters, SignVisualParameters } from './models/parameters';
-import { SignerSettings } from './models/settings';
+import { SignDigitalParameters, SignFieldParameters, AddFieldParameters, SignVisualParameters } from '../models/parameters';
+import { SignerSettings } from '../models/settings';
 
 
-import { pdfSignerAssets13 } from '../test/_run-assets/pdf-signer/assets-pdf-signer-pdf-13';
-import { pdfSignerAssetsRegression } from '../test/_run-assets/pdf-signer/assets-pdf-signer-regression';
-import { commonAssets } from '../test/_run-assets/_assets-common';
-import { generateAsset, generatePdfAsync } from '../test/_helpers';
+import { pdfSignerAssets13 } from '../../test/_run-assets/signer/assets-pdf-signer-pdf';
+import { pdfSignerAssetsRegression } from '../../test/_run-assets/signer/assets-pdf-signer-regression';
+import { commonAssets } from '../../test/_run-assets/_assets-common';
+import { generateAsset, generatePdfAsync } from '../../test/_helpers';
 
 import { use as chaiUse } from 'chai';
 import { expect } from 'chai';

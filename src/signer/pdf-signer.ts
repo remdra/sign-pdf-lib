@@ -1,14 +1,14 @@
 import { PDFName, PDFString } from 'pdf-lib';
 
-import { PdfVerifySignaturesResult, SignatureField } from './models';
-import { SignFieldParameters, AddFieldParameters, SignVisualParameters, SignDigitalParameters } from './models/parameters';
-import { SignerSettings } from './models/settings';
-import { PdfDocumentDigitalSigner } from './signer/pdf-document-digital-signer';
-import { PdfDocumentVisualSigner } from './signer/pdf-document-visual-signer';
-import { SignatureEmbeder } from './signer/signature-embeder';
-import { SignatureComputer } from './signer/signature-computer';
-import { PdfSigningDocument } from './signer';
-import { SignatureChecker } from './signer/signature-checker';
+import { PdfVerifySignaturesResult, SignatureField } from '../models';
+import { SignFieldParameters, AddFieldParameters, SignVisualParameters, SignDigitalParameters } from '../models/parameters';
+import { SignerSettings } from '../models/settings';
+import { PdfDocumentDigitalSigner } from './pdf-document-digital-signer';
+import { PdfDocumentVisualSigner } from './pdf-document-visual-signer';
+import { SignatureEmbeder } from './signature-embeder';
+import { SignatureComputer } from './signature-computer';
+import { PdfSigningDocument } from './pdf-signing-document';
+import { SignatureChecker } from './signature-checker';
 
 export class PdfSigner {
 

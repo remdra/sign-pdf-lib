@@ -1,4 +1,4 @@
-import { PdfSigner } from '../../src/pdf-signer';
+import { PdfSigner } from '../../src/signer/pdf-signer';
 import { SignatureComputerSettings, SignerSettings } from '../../src/models/settings';
 import { SignatureComputer } from '../../src/signer/signature-computer';
 import { SignatureParameters } from '../../src/models/parameters';
@@ -17,7 +17,7 @@ function getText(pageIndex: number, pageCount: number, lib: string) {
 }
 
 export async function generatePdfAsync({ pageCount}: { pageCount?: number } = {}): Promise<Buffer> {
-    return await generatePdf13Async({ pageCount })
+    return await generatePdf17Async({ pageCount })
 }
 
 export async function generatePdf13Async({ pageCount }: { pageCount?: number } = {}): Promise<Buffer> {

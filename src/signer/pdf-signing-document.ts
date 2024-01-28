@@ -137,7 +137,6 @@ export class PdfSigningDocument {
         const pageContents = page.node.lookup(PDFName.of('Contents'), PDFArray);
         pageContents.push(visualRef);
         this.#docSnapshot.markRefForSave(page.ref);
-
     }
 
     addPageResource(resourceRef: PDFRef, pageIndex: number, name: string): void {

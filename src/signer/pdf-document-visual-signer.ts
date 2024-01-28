@@ -60,11 +60,12 @@ export class PdfDocumentVisualSigner {
         const backgroundRef = background ? await this.#signingDoc.embedImageAsync(background) : undefined;
 
         let drawBuffer = backgroundRef 
-            ? `q 1 0 0 -1 ${left} ${bottom} cm 1 0 0 1 0 0 cm ${width} 0 0 ${height} 0 0 cm 1 0 0 1 0 0 cm /${backgroundName} Do Q`
+            ? `q 1 0 0 -1 0 ${pageSize.height} cm 1 0 0 -1 ${left} ${bottom} cm 1 0 0 1 0 0 cm ${width} 0 0 ${height} 0 0 cm 1 0 0 1 0 0 cm /${backgroundName} Do Q`
             : '';
         if(texts) {
             drawBuffer = drawBuffer
                 + ' q'
+                + ` 1 0 0 -1 0 ${pageSize.height} cm `
                 + ' 0 0 106 68 re'
                 + ` 1 0 0 1 ${left} ${bottom} cm`
                 + ' BT'
