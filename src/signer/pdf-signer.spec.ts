@@ -23,7 +23,7 @@ it('_generate', async function () {
     await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.reverseYPdf, reverseYPdf);
 })
 
-describe('PdfSigner (pdf 1.3)', function () {
+describe('PdfSigner', function () {
 
     let pdfSigner: PdfSigner;
     let info: SignDigitalParameters;
