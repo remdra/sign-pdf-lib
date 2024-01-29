@@ -2,11 +2,12 @@
   "name": "sign-pdf-lib",
   "version": "1.0.17",
   "description": "Signs PDF files or just add a placeholder for signature.",
+  "files": ["dist/src/**"],
   "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "ts-mocha --type-check src/**/*.spec.ts",
-    "test:dev": "ts-mocha --type-check -watch --watch-files=**/*.ts src/**/*.spec.ts",
+    "test": "ts-mocha --type-check '**/*.spec.ts'",
+    "test:dev": "ts-mocha --type-check -watch --watch-files='**/*.ts' '**/*.spec.ts'",
     "prepublishOnly": "tsc"
   },
   "repository": {
@@ -30,7 +31,7 @@
     "@pdf-lib/upng": "^1.0.1",
     "lodash": "^4.17.21",
     "node-forge": "^1.3.1",
-    "pdf-lib": "npm:pdf-lib-incremental-save@^1.17.3"
+    "pdf-lib": "npm:pdf-lib-incremental-save@^1.17.4"
   },
   "devDependencies": {
     "@types/chai": "^4.3.4",

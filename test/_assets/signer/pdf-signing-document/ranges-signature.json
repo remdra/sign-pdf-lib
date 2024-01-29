@@ -1,0 +1,14 @@
+{
+  "before": {
+    "start": 0,
+    "length": 7048
+  },
+  "signature": {
+    "start": 7048,
+    "length": 4098
+  },
+  "after": {
+    "start": 11146,
+    "length": 494
+  }
+}
