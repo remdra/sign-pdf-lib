@@ -1,12 +1,12 @@
 {
   "name": "sign-pdf-lib",
-  "version": "1.0.17",
+  "version": "2.0.0",
   "lockfileVersion": 2,
   "requires": true,
   "packages": {
     "": {
       "name": "sign-pdf-lib",
-      "version": "1.0.17",
+      "version": "2.0.0",
       "bundleDependencies": [
         "pdf-lib",
         "@pdf-lib/standard-fonts",
