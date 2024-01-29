@@ -18,7 +18,7 @@
         "@pdf-lib/upng": "^1.0.1",
         "lodash": "^4.17.21",
         "node-forge": "^1.3.1",
-        "pdf-lib": "npm:pdf-lib-incremental-save@^1.17.3"
+        "pdf-lib": "npm:pdf-lib-incremental-save@^1.17.4"
       },
       "devDependencies": {
         "@types/chai": "^4.3.4",
@@ -1902,9 +1902,9 @@
     },
     "node_modules/pdf-lib": {
       "name": "pdf-lib-incremental-save",
-      "version": "1.17.3",
-      "resolved": "https://registry.npmjs.org/pdf-lib-incremental-save/-/pdf-lib-incremental-save-1.17.3.tgz",
-      "integrity": "sha512-YTxITmmsywI2/Ag3OxkkbaoQzeYbNs2XnSXud4wjzo6l+b9S1cj8xZ+AJUwvl4vTHPvd2C9sramQel+7MI403Q==",
+      "version": "1.17.4",
+      "resolved": "https://registry.npmjs.org/pdf-lib-incremental-save/-/pdf-lib-incremental-save-1.17.4.tgz",
+      "integrity": "sha512-MUuR0iMWvX2RF72V9mQWE8xe7vlHN4kgCfjFGtn807989psNt3F3+XkLdfkUzYRV/nsWMuWur+QmRTaF4jZF7Q==",
       "inBundle": true,
       "dependencies": {
         "@pdf-lib/standard-fonts": "^1.0.0",
@@ -4151,9 +4151,9 @@
       "dev": true
     },
     "pdf-lib": {
-      "version": "npm:pdf-lib-incremental-save@1.17.3",
-      "resolved": "https://registry.npmjs.org/pdf-lib-incremental-save/-/pdf-lib-incremental-save-1.17.3.tgz",
-      "integrity": "sha512-YTxITmmsywI2/Ag3OxkkbaoQzeYbNs2XnSXud4wjzo6l+b9S1cj8xZ+AJUwvl4vTHPvd2C9sramQel+7MI403Q==",
+      "version": "npm:pdf-lib-incremental-save@1.17.4",
+      "resolved": "https://registry.npmjs.org/pdf-lib-incremental-save/-/pdf-lib-incremental-save-1.17.4.tgz",
+      "integrity": "sha512-MUuR0iMWvX2RF72V9mQWE8xe7vlHN4kgCfjFGtn807989psNt3F3+XkLdfkUzYRV/nsWMuWur+QmRTaF4jZF7Q==",
       "requires": {
         "@pdf-lib/standard-fonts": "^1.0.0",
         "@pdf-lib/upng": "^1.0.1",
