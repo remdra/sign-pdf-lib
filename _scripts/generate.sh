@@ -136,5 +136,6 @@ cp $ENTITY_CERTIFICATES_FOLDER/certs/signing-entity-1.cert.pem  ../assets/certif
 
 ## openssl x509 -noout -text -in $ENTITY_CERTIFICATES_FOLDER/certs/signing-entity-1.cert.p12 -passin pass:$PASSWORD -purpose
 
+echo
 echo Done.
 echo
