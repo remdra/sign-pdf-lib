@@ -7,11 +7,6 @@
     "": {
       "name": "sign-pdf-lib",
       "version": "2.0.1",
-      "bundleDependencies": [
-        "pdf-lib",
-        "@pdf-lib/standard-fonts",
-        "@pdf-lib/upng"
-      ],
       "license": "ISC",
       "dependencies": {
         "@pdf-lib/standard-fonts": "^1.0.0",
@@ -162,7 +157,6 @@
       "version": "1.0.0",
       "resolved": "https://registry.npmjs.org/@pdf-lib/standard-fonts/-/standard-fonts-1.0.0.tgz",
       "integrity": "sha512-hU30BK9IUN/su0Mn9VdlVKsWBS6GyhVfqjwl1FjZN4TxP6cCw0jP2w7V3Hf5uX7M0AZJ16vey9yE0ny7Sa59ZA==",
-      "inBundle": true,
       "dependencies": {
         "pako": "^1.0.6"
       }
@@ -171,7 +165,6 @@
       "version": "1.0.1",
       "resolved": "https://registry.npmjs.org/@pdf-lib/upng/-/upng-1.0.1.tgz",
       "integrity": "sha512-dQK2FUMQtowVP00mtIksrlZhdFXQZPC+taih1q4CvPZ5vqdxR/LKBaFg0oAfzd1GlHZXXSPdQfzQnt+ViGvEIQ==",
-      "inBundle": true,
       "dependencies": {
         "pako": "^1.0.10"
       }
@@ -1862,8 +1855,7 @@
     "node_modules/pako": {
       "version": "1.0.11",
       "resolved": "https://registry.npmjs.org/pako/-/pako-1.0.11.tgz",
-      "integrity": "sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==",
-      "inBundle": true
+      "integrity": "sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw=="
     },
     "node_modules/path-exists": {
       "version": "4.0.0",
@@ -1905,7 +1897,6 @@
       "version": "1.17.4",
       "resolved": "https://registry.npmjs.org/pdf-lib-incremental-save/-/pdf-lib-incremental-save-1.17.4.tgz",
       "integrity": "sha512-MUuR0iMWvX2RF72V9mQWE8xe7vlHN4kgCfjFGtn807989psNt3F3+XkLdfkUzYRV/nsWMuWur+QmRTaF4jZF7Q==",
-      "inBundle": true,
       "dependencies": {
         "@pdf-lib/standard-fonts": "^1.0.0",
         "@pdf-lib/upng": "^1.0.1",
@@ -2497,8 +2488,7 @@
     "node_modules/tslib": {
       "version": "1.14.1",
       "resolved": "https://registry.npmjs.org/tslib/-/tslib-1.14.1.tgz",
-      "integrity": "sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==",
-      "inBundle": true
+      "integrity": "sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg=="
     },
     "node_modules/type": {
       "version": "1.2.0",
