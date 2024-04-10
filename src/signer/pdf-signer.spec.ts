@@ -220,6 +220,17 @@ describe('PdfSigner', function () {
             expect(signedPdf).to.be.deep.equal(pdfSignerAssets.signedPdf);
         })
 
+        it('signs document (chinese characters)', async function() {
+            info.signature!.name = '小白';
+            info.signature!.location= '哈哈哈';
+            info.signature!.reason = '我同意';
+
+            const signedPdf = await pdfSigner.signAsync(pdfSignerAssets.pdf, info);
+
+            await generateAsset.generateBinaryAsync(pdfSignerAssets.paths.chineseSignedPdf, signedPdf);
+            expect(signedPdf).to.be.deep.equal(pdfSignerAssets.chineseSignedPdf);
+        })
+
         it('signs document (no name)', async function() {
             delete info.name;
 

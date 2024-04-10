@@ -52,6 +52,7 @@ const _paths = {
   noOptionalsFieldPdf: getFieldPath('field-no-optionals.pdf'),
 
   signedPdf:            getSignedPath('signed.pdf'),
+  chineseSignedPdf:     getSignedPath('signed-chinese.pdf'),
   twiceSignedPdf:       getSignedPath('signed-twice.pdf'),
   noNameSignedPdf:      getSignedPath('signed-no-name.pdf'),
   noSignatureSignedPdf: getSignedPath('signed-no-signature.pdf'),
@@ -91,7 +92,8 @@ class PdfSignerAssets {
   private _noOptionalsFieldPdf = new BinaryAssetFile(_paths.noOptionalsFieldPdf);
 
   private _signedPdf            = new BinaryAssetFile(_paths.signedPdf);
-  private _twiceSignedPdf = new BinaryAssetFile(_paths.twiceSignedPdf);
+  private _chineseSignedPdf     = new BinaryAssetFile(_paths.chineseSignedPdf);
+  private _twiceSignedPdf       = new BinaryAssetFile(_paths.twiceSignedPdf);
   private _noNameSignedPdf      = new BinaryAssetFile(_paths.noNameSignedPdf);
   private _noSignatureSignedPdf = new BinaryAssetFile(_paths.noSignatureSignedPdf);
   private _noVisualSignedPdf    = new BinaryAssetFile(_paths.noVisualSignedPdf);
@@ -129,6 +131,7 @@ class PdfSignerAssets {
     specifiedFieldSignedPdf: _paths.specifiedFieldSignedPdf,
 
     signedPdf:            _paths.signedPdf,
+    chineseSignedPdf:     _paths.chineseSignedPdf,
     twiceSignedPdf:       _paths.twiceSignedPdf,
     noNameSignedPdf:      _paths.noNameSignedPdf,
     noSignatureSignedPdf: _paths.noSignatureSignedPdf,
@@ -195,6 +198,10 @@ class PdfSignerAssets {
 
   get signedPdf() {
     return this._signedPdf.content;
+  }
+
+  get chineseSignedPdf() {
+    return this._chineseSignedPdf.content;
   }
 
   get noNameSignedPdf() {

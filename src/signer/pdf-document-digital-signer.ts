@@ -1,7 +1,7 @@
 import { PdfSigningDocument } from './pdf-signing-document';
 import { PdfByteRanges, Rectangle, SignatureText } from '../models';
 import { SignatureParameters } from '../models/parameters';
-import { computeAbsolutePageReverseRectangle } from '../helpers';
+import { computeAbsolutePageReverseRectangle, escapeString } from '../helpers';
 import { AlreadySignedError } from '../errors';
 
 import { PDFDict, PDFHexString, PDFName, PDFRef, PDFString } from 'pdf-lib';
@@ -191,11 +191,11 @@ export class PdfDocumentDigitalSigner {
             'Contents': PDFHexString.of(signaturePlaceholder),
             'ByteRange': [ 0, rangePlaceHolder, rangePlaceHolder, rangePlaceHolder ]
         };
-        if(name) { signature['Name'] = PDFString.of(name); };
-        if(location) { signature['Location'] = PDFString.of(location); };
-        if(reason) { signature['Reason'] = PDFString.of(reason); };
+        if(name) { signature['Name'] = PDFString.of(escapeString(name)); };
+        if(location) { signature['Location'] = PDFString.of(escapeString(location)); };
+        if(reason) { signature['Reason'] = PDFString.of(escapeString(reason)); };
         if(date) { signature['M'] = PDFString.fromDate(date); };
-        if(contactInfo) { signature['ContactInfo'] = PDFString.of(contactInfo); };
+        if(contactInfo) { signature['ContactInfo'] = PDFString.of(escapeString(contactInfo)); };
         
         return this.#signingDoc.registerDict(signature); 
     }
