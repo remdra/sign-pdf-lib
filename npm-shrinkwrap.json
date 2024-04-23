@@ -1,12 +1,12 @@
 {
   "name": "sign-pdf-lib",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "lockfileVersion": 2,
   "requires": true,
   "packages": {
     "": {
       "name": "sign-pdf-lib",
-      "version": "2.0.2",
+      "version": "2.0.3",
       "license": "ISC",
       "dependencies": {
         "@pdf-lib/standard-fonts": "^1.0.0",
