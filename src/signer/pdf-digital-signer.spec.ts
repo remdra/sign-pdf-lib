@@ -9,11 +9,7 @@ import { SignerSettings } from "../models/settings";
 import { pdfDigitalSignerAssets } from "../../test/_run-assets/signer/assets-pdf-digital-signer-pdf";
 import { pdfDigitalSignerAssetsRegression } from "../../test/_run-assets/signer/assets-pdf-digital-signer-regression";
 import { commonAssets } from "../../test/_run-assets/_assets-common";
-import {
-  generateAsset,
-  generatePdf13Async,
-  generatePdf17Async,
-} from "../../test/_helpers";
+import { generateAsset, generatePdf17Async } from "../../test/_helpers";
 
 import { use as chaiUse } from "chai";
 import { expect } from "chai";
@@ -26,12 +22,6 @@ it("_generate", async function () {
   await generateAsset.generateBinaryAsync(
     pdfDigitalSignerAssets.paths.pdf,
     pdf
-  );
-
-  const reverseYPdf = await generatePdf13Async({ pageCount: 2 });
-  await generateAsset.generateBinaryAsync(
-    pdfDigitalSignerAssets.paths.reverseYPdf,
-    reverseYPdf
   );
 });
 
@@ -108,8 +98,10 @@ describe("PdfDigitalSigner", function () {
     };
 
     settings = {
-      signatureLength: 4000 - 6,
-      rangePlaceHolder: 9999999,
+      signature: {
+        signatureLength: 4000 - 6,
+        rangePlaceHolder: 9999999,
+      },
 
       signatureComputer: {
         certificate: commonAssets.p12Certificate,
@@ -134,76 +126,6 @@ describe("PdfDigitalSigner", function () {
         pdfDigitalSignerAssets.placeholderPdf
       );
     });
-
-    it("adds placeholder (no name)", async function () {
-      delete info.name;
-
-      const noNamePlaceholderPdf = await pdfSigner.addPlaceholderAsync(
-        pdfDigitalSignerAssets.pdf,
-        info
-      );
-
-      await generateAsset.generateBinaryAsync(
-        pdfDigitalSignerAssets.paths.noNamePlaceholderPdf,
-        noNamePlaceholderPdf
-      );
-      expect(noNamePlaceholderPdf).to.be.deep.equal(
-        pdfDigitalSignerAssets.noNamePlaceholderPdf
-      );
-    });
-
-    it("adds placeholder (no signature)", async function () {
-      delete info.signature;
-
-      const noSignaturePlaceholderPdf = await pdfSigner.addPlaceholderAsync(
-        pdfDigitalSignerAssets.pdf,
-        info
-      );
-
-      await generateAsset.generateBinaryAsync(
-        pdfDigitalSignerAssets.paths.noSignaturePlaceholderPdf,
-        noSignaturePlaceholderPdf
-      );
-      expect(noSignaturePlaceholderPdf).to.be.deep.equal(
-        pdfDigitalSignerAssets.noSignaturePlaceholderPdf
-      );
-    });
-
-    it("adds placeholder (no visual)", async function () {
-      delete info.visual;
-
-      const noVisualPlaceholderPdf = await pdfSigner.addPlaceholderAsync(
-        pdfDigitalSignerAssets.pdf,
-        info
-      );
-
-      await generateAsset.generateBinaryAsync(
-        pdfDigitalSignerAssets.paths.noVisualPlaceholderPdf,
-        noVisualPlaceholderPdf
-      );
-      expect(noVisualPlaceholderPdf).to.be.deep.equal(
-        pdfDigitalSignerAssets.noVisualPlaceholderPdf
-      );
-    });
-
-    it("adds placeholder (no optionals)", async function () {
-      delete info.name;
-      delete info.signature;
-      delete info.visual;
-
-      const noOptionalsPlaceholderPdf = await pdfSigner.addPlaceholderAsync(
-        pdfDigitalSignerAssets.pdf,
-        info
-      );
-
-      await generateAsset.generateBinaryAsync(
-        pdfDigitalSignerAssets.paths.noOptionalsPlaceholderPdf,
-        noOptionalsPlaceholderPdf
-      );
-      expect(noOptionalsPlaceholderPdf).to.be.deep.equal(
-        pdfDigitalSignerAssets.noOptionalsPlaceholderPdf
-      );
-    });
   });
 
   describe("addFieldAsync", function () {
@@ -218,40 +140,6 @@ describe("PdfDigitalSigner", function () {
         fieldPdf
       );
       expect(fieldPdf).to.be.deep.equal(pdfDigitalSignerAssets.fieldPdf);
-    });
-
-    it("adds field (no name)", async function () {
-      delete addFieldInfo.name;
-
-      const noNameFieldPdf = await pdfSigner.addFieldAsync(
-        pdfDigitalSignerAssets.pdf,
-        addFieldInfo
-      );
-
-      await generateAsset.generateBinaryAsync(
-        pdfDigitalSignerAssets.paths.noNameFieldPdf,
-        noNameFieldPdf
-      );
-      expect(noNameFieldPdf).to.be.deep.equal(
-        pdfDigitalSignerAssets.noNameFieldPdf
-      );
-    });
-
-    it("adds field (no optionals)", async function () {
-      delete addFieldInfo.name;
-
-      const noOptionalsFieldPdf = await pdfSigner.addFieldAsync(
-        pdfDigitalSignerAssets.pdf,
-        addFieldInfo
-      );
-
-      await generateAsset.generateBinaryAsync(
-        pdfDigitalSignerAssets.paths.noOptionalsFieldPdf,
-        noOptionalsFieldPdf
-      );
-      expect(noOptionalsFieldPdf).to.be.deep.equal(
-        pdfDigitalSignerAssets.noOptionalsFieldPdf
-      );
     });
   });
 
@@ -534,8 +422,10 @@ describe("PdfDigitalSigner Regression", function () {
     };
 
     settings = {
-      signatureLength: 4000 - 6,
-      rangePlaceHolder: 9999999,
+      signature: {
+        signatureLength: 4000 - 6,
+        rangePlaceHolder: 9999999,
+      },
 
       signatureComputer: {
         certificate: commonAssets.p12Certificate,

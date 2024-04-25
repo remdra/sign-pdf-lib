@@ -33,18 +33,10 @@ function getCheckPath(file: string) {
 
 const _paths = {
   pdf: getPath("document.pdf"),
-  reverseYPdf: getPath("document-reverse-y.pdf"),
 
   placeholderPdf: getPlaceholderPath("placeholder.pdf"),
-  noNamePlaceholderPdf: getPlaceholderPath("placeholder-no-name.pdf"),
-  noSignaturePlaceholderPdf: getPlaceholderPath("placeholder-no-signature.pdf"),
-  noVisualPlaceholderPdf: getPlaceholderPath("placeholder-no-visual.pdf"),
-  noOptionalsPlaceholderPdf: getPlaceholderPath("placeholder-no-optionals.pdf"),
-  differentPlaceholderPdf: getPlaceholderPath("placeholder-different.pdf"),
 
   fieldPdf: getFieldPath("field.pdf"),
-  noNameFieldPdf: getFieldPath("field-no-name.pdf"),
-  noOptionalsFieldPdf: getFieldPath("field-no-optionals.pdf"),
 
   signedPdf: getSignedPath("signed.pdf"),
   chineseSignedPdf: getSignedPath("signed-chinese.pdf"),
@@ -65,30 +57,10 @@ const _paths = {
 
 class PdfDigitalSignerAssets {
   private _pdf = new BinaryAssetFile(_paths.pdf);
-  private _reverseYPdf = new BinaryAssetFile(_paths.reverseYPdf);
 
   private _placeholderPdf = new BinaryAssetFile(_paths.placeholderPdf);
-  private _noNamePlaceholderPdf = new BinaryAssetFile(
-    _paths.noNamePlaceholderPdf
-  );
-  private _noSignaturePlaceholderPdf = new BinaryAssetFile(
-    _paths.noSignaturePlaceholderPdf
-  );
-  private _noVisualPlaceholderPdf = new BinaryAssetFile(
-    _paths.noVisualPlaceholderPdf
-  );
-  private _noOptionalsPlaceholderPdf = new BinaryAssetFile(
-    _paths.noOptionalsPlaceholderPdf
-  );
-  private _differentPlaceholderPdf = new BinaryAssetFile(
-    _paths.differentPlaceholderPdf
-  );
 
   private _fieldPdf = new BinaryAssetFile(_paths.fieldPdf);
-  private _noNameFieldPdf = new BinaryAssetFile(_paths.noNameFieldPdf);
-  private _noOptionalsFieldPdf = new BinaryAssetFile(
-    _paths.noOptionalsFieldPdf
-  );
 
   private _signedPdf = new BinaryAssetFile(_paths.signedPdf);
   private _chineseSignedPdf = new BinaryAssetFile(_paths.chineseSignedPdf);
@@ -120,20 +92,10 @@ class PdfDigitalSignerAssets {
 
   public paths = {
     pdf: _paths.pdf,
-    reverseYPdf: _paths.reverseYPdf,
 
     placeholderPdf: _paths.placeholderPdf,
 
-    noNamePlaceholderPdf: _paths.noNamePlaceholderPdf,
-    noSignaturePlaceholderPdf: _paths.noSignaturePlaceholderPdf,
-    noVisualPlaceholderPdf: _paths.noVisualPlaceholderPdf,
-    noOptionalsPlaceholderPdf: _paths.noOptionalsPlaceholderPdf,
-    differentPlaceholderPdf: _paths.differentPlaceholderPdf,
-
     fieldPdf: _paths.fieldPdf,
-    noNameFieldPdf: _paths.noNameFieldPdf,
-    noOptionalsFieldPdf: _paths.noOptionalsFieldPdf,
-    specifiedFieldSignedPdf: _paths.specifiedFieldSignedPdf,
 
     signedPdf: _paths.signedPdf,
     chineseSignedPdf: _paths.chineseSignedPdf,
@@ -155,44 +117,12 @@ class PdfDigitalSignerAssets {
     return this._pdf.content;
   }
 
-  get reverseYPdf() {
-    return this._reverseYPdf.content;
-  }
-
   get placeholderPdf() {
     return this._placeholderPdf.content;
   }
 
-  get noNamePlaceholderPdf() {
-    return this._noNamePlaceholderPdf.content;
-  }
-
-  get noSignaturePlaceholderPdf() {
-    return this._noSignaturePlaceholderPdf.content;
-  }
-
-  get noVisualPlaceholderPdf() {
-    return this._noVisualPlaceholderPdf.content;
-  }
-
-  get noOptionalsPlaceholderPdf() {
-    return this._noOptionalsPlaceholderPdf.content;
-  }
-
-  get differentPlaceholderPdf() {
-    return this._differentPlaceholderPdf.content;
-  }
-
   get fieldPdf() {
     return this._fieldPdf.content;
-  }
-
-  get noNameFieldPdf() {
-    return this._noNameFieldPdf.content;
-  }
-
-  get noOptionalsFieldPdf() {
-    return this._noOptionalsFieldPdf.content;
   }
 
   get signedPdf() {

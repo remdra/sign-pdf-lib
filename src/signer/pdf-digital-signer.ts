@@ -1,5 +1,3 @@
-import { PDFName, PDFString } from "pdf-lib";
-
 import { PdfVerifySignaturesResult, SignatureField } from "../models";
 import {
   SignFieldParameters,
@@ -10,8 +8,13 @@ import { SignerSettings } from "../models/settings";
 import { PdfDocumentDigitalSigner } from "./pdf-document-digital-signer";
 import { SignatureEmbeder } from "./signature-embeder";
 import { SignatureComputer } from "./signature-computer";
-import { PdfSigningDocument } from "./pdf-signing-document";
-import { SignatureChecker } from "./signature-checker";
+import {
+  addFieldAsync,
+  addPlaceholderAsync,
+  getFieldsAsync,
+  getPlaceholderParameters,
+  verifySignaturesAsync,
+} from "./pdf-helper";
 
 export class PdfDigitalSigner {
   #settings: SignerSettings;
@@ -26,41 +29,14 @@ export class PdfDigitalSigner {
     pdf: Buffer,
     info: SignDigitalParameters
   ): Promise<Buffer> {
-    const pdfDocSigner = await PdfDocumentDigitalSigner.fromPdfAsync(pdf);
-    const pageIndex = info.pageNumber - 1;
-    const { background, texts } = info.visual ?? {};
-    const visualRef = await pdfDocSigner.addVisualAsync({ background, texts });
-    const placeholderInfo = this.getPlaceholderParameters();
-    const placeholderRef = pdfDocSigner.addSignaturePlaceholder({
-      ...info.signature,
-      ...placeholderInfo,
-    });
-    const rectangle = info.visual?.rectangle;
-    const embedFont = !!(info.visual && info.visual?.texts);
-    const name = info.name;
-    pdfDocSigner.addSignatureField({
-      name,
-      pageIndex,
-      rectangle,
-      visualRef,
-      placeholderRef,
-      embedFont,
-    });
-    return pdfDocSigner.saveAsync();
+    return await addPlaceholderAsync(pdf, info, this.#settings.signature);
   }
 
   public async addFieldAsync(
     pdf: Buffer,
     info: AddFieldParameters
   ): Promise<Buffer> {
-    const pdfDocSigner = await PdfDocumentDigitalSigner.fromPdfAsync(pdf);
-    const pageIndex = info.pageNumber - 1;
-    const rectangle = info.rectangle;
-    const embedFont = false;
-    const name = info.name;
-    pdfDocSigner.addSignatureField({ name, pageIndex, rectangle, embedFont });
-
-    return pdfDocSigner.saveAsync();
+    return await addFieldAsync(pdf, info);
   }
 
   public async signAsync(
@@ -84,7 +60,7 @@ export class PdfDigitalSigner {
     info: SignFieldParameters
   ): Promise<Buffer> {
     const pdfDocSigner = await PdfDocumentDigitalSigner.fromPdfAsync(pdf);
-    const placeholderInfo = this.getPlaceholderParameters();
+    const placeholderInfo = getPlaceholderParameters(this.#settings.signature);
     const placeholderRef = pdfDocSigner.addSignaturePlaceholder({
       ...info.signature,
       ...placeholderInfo,
@@ -111,26 +87,10 @@ export class PdfDigitalSigner {
   public async verifySignaturesAsync(
     pdf: Buffer
   ): Promise<PdfVerifySignaturesResult | undefined> {
-    const signatureChecker = await SignatureChecker.fromPdfAsync(pdf);
-    return await signatureChecker.verifySignaturesAsync();
+    return await verifySignaturesAsync(pdf);
   }
 
   public async getFieldsAsync(pdf: Buffer): Promise<SignatureField[]> {
-    const signingDoc = await PdfSigningDocument.fromPdfAsync(pdf);
-    return signingDoc.getFields().map((field) => {
-      const name = field.lookup(PDFName.of("T"), PDFString).asString();
-      const pageNumber = signingDoc.getSignaturePageNumber(name);
-      return {
-        name,
-        pageNumber,
-      };
-    });
-  }
-
-  private getPlaceholderParameters() {
-    return {
-      signaturePlaceholder: "A".repeat(this.#settings.signatureLength),
-      rangePlaceHolder: this.#settings.rangePlaceHolder,
-    };
+    return await getFieldsAsync(pdf);
   }
 }
