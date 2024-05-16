@@ -15,7 +15,7 @@ npm i sign-pdf-lib
 Instantiate digital signer:
 
 ```
-const settings: SignatureSettings {
+const settings: SignatureSettings = {
     signatureLength: ...,
     rangePlaceHolder: ...,
 
