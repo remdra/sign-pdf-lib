@@ -7,7 +7,7 @@ import { addRandomSuffix } from 'pdf-lib';
 export interface AddVisualSignatureBackgroundParameters { 
     pageIndex: number;
     rectangle: Rectangle;
-    background: Buffer; 
+    background: ArrayBuffer | Buffer; 
     texts?: SignatureText[];
 
     reverseY?: boolean;
@@ -18,7 +18,7 @@ export interface AddVisualSignatureBackgroundParameters {
 export interface AddVisualSignatureTextsParameters { 
     pageIndex: number;
     rectangle: Rectangle;
-    background?: Buffer; 
+    background?: ArrayBuffer | Buffer; 
     texts: SignatureText[];
 
     reverseY?: boolean;
@@ -32,7 +32,7 @@ export class PdfDocumentVisualSigner {
 
     #signingDoc: PdfSigningDocument;
 
-    static async fromPdfAsync(pdf: Buffer): Promise<PdfDocumentVisualSigner> {
+    static async fromPdfAsync(pdf: ArrayBuffer | Buffer): Promise<PdfDocumentVisualSigner> {
         const signingDoc = await PdfSigningDocument.fromPdfAsync(pdf);
 
         return new PdfDocumentVisualSigner(signingDoc);
@@ -110,7 +110,7 @@ export class PdfDocumentVisualSigner {
         }
     }
 
-    async saveAsync(): Promise<Buffer> {
+    async saveAsync(): Promise<Uint8Array> {
         return await this.#signingDoc.saveAsync();
     }
 }

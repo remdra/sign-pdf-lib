@@ -109,6 +109,7 @@ class PdfDigitalSignerAssets {
     noSignatureFieldSignedPdf: _paths.noSignatureFieldSignedPdf,
     noVisualFieldSignedPdf: _paths.noVisualFieldSignedPdf,
     noOptionalsFieldSignedPdf: _paths.noOptionalsFieldSignedPdf,
+    specifiedFieldSignedPdf: _paths.specifiedFieldSignedPdf,
 
     checkSignedPdf: _paths.checkSignedPdf,
   };

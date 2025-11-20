@@ -1,5 +1,5 @@
 export interface P12SignatureComputerSettings {
-    certificate: Buffer;
+    certificate: ArrayBuffer | Buffer;
     password: string;
 }
 

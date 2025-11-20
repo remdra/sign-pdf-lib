@@ -5,7 +5,7 @@ export interface SignFieldParameters {
     fieldName: string;
     signature?: SignatureParameters;
     visual?: {
-        background?: Buffer;
+        background?: ArrayBuffer | Buffer;
         texts?: SignatureText[];
     }
 };

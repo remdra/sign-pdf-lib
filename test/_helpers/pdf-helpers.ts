@@ -5,11 +5,12 @@ import {
 } from "../../src/models/settings";
 import { SignatureComputer } from "../../src/signer/signature-computer";
 import { SignatureParameters } from "../../src/models/parameters";
+import { indexOf } from "../../src/helpers";
 
 import { bufferReplace } from "./buffer-helpers";
 import { commonAssets } from "../_run-assets/_assets-common";
 
-import { PDFDocument } from "pdf-lib";
+import { mergeUint8Arrays, PDFDocument } from "pdf-lib";
 import PdfPrinter = require("pdfmake");
 import streamBuffers = require("stream-buffers");
 
@@ -21,19 +22,19 @@ function getText(pageIndex: number, pageCount: number, lib: string) {
 
 export async function generatePdfAsync({
   pageCount,
-}: { pageCount?: number } = {}): Promise<Buffer> {
+}: { pageCount?: number } = {}): Promise<Uint8Array> {
   return await generatePdf17Async({ pageCount });
 }
 
 export async function generatePdf13Async({
   pageCount,
-}: { pageCount?: number } = {}): Promise<Buffer> {
+}: { pageCount?: number } = {}): Promise<Uint8Array> {
   return await generatePdfWithPdfMakeAsync({ pageCount });
 }
 
 export async function generatePdf17Async({
   pageCount,
-}: { pageCount?: number } = {}): Promise<Buffer> {
+}: { pageCount?: number } = {}): Promise<Uint8Array> {
   return await generatePdfWithPdfLibAsync({
     pageCount,
     useObjectStreams: false,
@@ -42,7 +43,7 @@ export async function generatePdf17Async({
 
 export async function generatePdf17StreamsAsync({
   pageCount,
-}: { pageCount?: number } = {}): Promise<Buffer> {
+}: { pageCount?: number } = {}): Promise<Uint8Array> {
   return await generatePdfWithPdfLibAsync({
     pageCount,
     useObjectStreams: true,
@@ -52,7 +53,7 @@ export async function generatePdf17StreamsAsync({
 async function generatePdfWithPdfLibAsync({
   pageCount,
   useObjectStreams,
-}: { pageCount?: number; useObjectStreams?: boolean } = {}): Promise<Buffer> {
+}: { pageCount?: number; useObjectStreams?: boolean } = {}): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
   pdfDoc.setProducer("SignPdfLib");
   pdfDoc.setCreator("SignPdfLib");
@@ -78,12 +79,12 @@ async function generatePdfWithPdfLibAsync({
   }
 
   useObjectStreams = useObjectStreams == undefined ? false : useObjectStreams;
-  return Buffer.from(await pdfDoc.save({ useObjectStreams }));
+  return await pdfDoc.save({ useObjectStreams });
 }
 
 async function generatePdfWithPdfMakeAsync({
   pageCount,
-}: { pageCount?: number } = {}): Promise<Buffer> {
+}: { pageCount?: number } = {}): Promise<Uint8Array> {
   const fonts = {
     Helvetica: {
       normal: "Helvetica",
@@ -131,38 +132,42 @@ async function generatePdfWithPdfMakeAsync({
 }
 
 export async function generatePlaceholderPdfAsync(
-  pdf: Buffer
-): Promise<Buffer> {
+  pdf: Buffer | Uint8Array
+): Promise<Uint8Array> {
   const pdfSigner = createPdfSigner();
   const signDate: Date = new Date(2023, 1, 20, 18, 47, 35);
 
-  return await pdfSigner.addPlaceholderAsync(pdf, {
+  const placeholderPdf = await pdfSigner.addPlaceholderAsync(pdf, {
     pageNumber: 1,
     name: "Signature",
     signature: { date: signDate },
   });
+
+  return placeholderPdf;
 }
 
-export async function generateFieldPdfAsync(pdf: Buffer): Promise<Buffer> {
+export async function generateFieldPdfAsync(pdf: Buffer | Uint8Array): Promise<Uint8Array> {
   const pdfSigner = createPdfSigner();
 
-  return await pdfSigner.addFieldAsync(pdf, {
+  const fieldPdf = await pdfSigner.addFieldAsync(pdf, {
     pageNumber: 1,
     name: "Signature",
     rectangle: { left: 50, top: 100, right: 50 + 214, bottom: 100 + 70 },
   });
+
+  return fieldPdf;
 }
 
 export async function generateSignedFieldPdfAsync(
-  fieldPdf: Buffer
-): Promise<Buffer> {
+  fieldPdf: Buffer | Uint8Array
+): Promise<Uint8Array> {
   return await generateSignedPdfAsync(fieldPdf, { name: "Signature2" });
 }
 
 export async function generateSignedPdfAsync(
-  pdf: Buffer,
+  pdf: Buffer | Uint8Array,
   { name }: { name?: string } = {}
-): Promise<Buffer> {
+): Promise<Uint8Array> {
   const pdfSigner = createPdfSigner();
   const signature: SignatureParameters = {
     name: "Test Signer",
@@ -178,15 +183,15 @@ export async function generateSignedPdfAsync(
 }
 
 export async function generateSignedTwicePdfAsync(
-  pdf: Buffer
-): Promise<Buffer> {
+  pdf: Buffer | Uint8Array
+): Promise<Uint8Array> {
   const signedPdf = await generateSignedPdfAsync(pdf, { name: "Signature1" });
   return await generateSignedPdfAsync(signedPdf, { name: "Signature2" });
 }
 
 export async function generateTamperedPdfAsync(
-  signedPdf: Buffer
-): Promise<Buffer> {
+  signedPdf: Buffer | Uint8Array
+): Promise<Uint8Array> {
   return bufferReplace(
     signedPdf,
     "signer@semnezonline.ro",
@@ -195,26 +200,26 @@ export async function generateTamperedPdfAsync(
 }
 
 export async function generateOnlyFirstTamperedPdfAsync(
-  tamperedSignedPdf: Buffer
-): Promise<Buffer> {
+  tamperedSignedPdf: Buffer | Uint8Array
+): Promise<Uint8Array> {
   return await generateSignedPdfAsync(tamperedSignedPdf, {
     name: "Signature2",
   });
 }
 
 export async function generateAppendTamperedPdfAsync(
-  signedPdf: Buffer
-): Promise<Buffer> {
-  return Buffer.concat([signedPdf, signedPdf]);
+  signedPdf: Buffer | Uint8Array
+): Promise<Uint8Array> {
+  return mergeUint8Arrays([signedPdf, signedPdf]);
 }
 
-export function generateSignature(placeholderPdf: Buffer): Buffer {
+export function generateSignature(placeholderPdf: Buffer | Uint8Array): Uint8Array {
   const signatureComputer = createSignatureComputer();
   const signDate: Date = new Date(2023, 1, 20, 18, 47, 35);
 
-  const signBuffer = Buffer.concat([
-    placeholderPdf.subarray(0, placeholderPdf.indexOf("<AA")),
-    placeholderPdf.subarray(placeholderPdf.indexOf("AA>") + 3),
+  const signBuffer = mergeUint8Arrays([
+    placeholderPdf.subarray(0, indexOf(placeholderPdf, "<AA")),
+    placeholderPdf.subarray(indexOf(placeholderPdf, "AA>") + "AA>".length),
   ]);
   return signatureComputer.computeSignature(signBuffer, signDate);
 }

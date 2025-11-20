@@ -3,9 +3,9 @@ import { PdfDocumentVisualSigner } from "./pdf-document-visual-signer";
 
 export class PdfVisualSigner {
   public async signAsync(
-    pdf: Buffer,
+    pdf: ArrayBuffer | Buffer,
     { pageNumber, rectangle, ...visual }: SignVisualParameters
-  ): Promise<Buffer> {
+  ): Promise<Uint8Array> {
     const pdfDocSigner = await PdfDocumentVisualSigner.fromPdfAsync(pdf);
     const pageIndex = pageNumber - 1;
     await pdfDocSigner.addVisualSignatureAsync({

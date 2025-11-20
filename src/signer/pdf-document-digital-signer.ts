@@ -37,7 +37,7 @@ export interface AddSignatureFieldParameters {
 };
 
 export interface AddVisualParameters { 
-    background?: Buffer; 
+    background?: ArrayBuffer | Buffer; 
     texts?: SignatureText[] 
 };
 
@@ -57,7 +57,7 @@ export class PdfDocumentDigitalSigner {
     #signingDoc: PdfSigningDocument;
     #nameProvider: NameProvider;
 
-    static async fromPdfAsync(pdf: Buffer): Promise<PdfDocumentDigitalSigner> {
+    static async fromPdfAsync(pdf: ArrayBuffer | Buffer | Uint8Array): Promise<PdfDocumentDigitalSigner> {
         const signingDoc = await PdfSigningDocument.fromPdfAsync(pdf);
 
         return new PdfDocumentDigitalSigner(signingDoc);
@@ -221,7 +221,7 @@ export class PdfDocumentDigitalSigner {
         }
     }
 
-    async saveAsync(): Promise<Buffer> {
+    async saveAsync(): Promise<Uint8Array> {
         return await this.#signingDoc.saveAsync();
     }
 

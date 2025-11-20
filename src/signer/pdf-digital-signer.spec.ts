@@ -11,11 +11,12 @@ import { pdfDigitalSignerAssetsRegression } from "../../test/_run-assets/signer/
 import { commonAssets } from "../../test/_run-assets/_assets-common";
 import { generateAsset, generatePdf17Async } from "../../test/_helpers";
 
-import { use as chaiUse } from "chai";
-import { expect } from "chai";
+import * as chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
-const chaiAsPromised = require("chai-as-promised");
-chaiUse(chaiAsPromised);
+chai.use(chaiAsPromised);
+
+const expect = chai.expect;
 
 it("_generate", async function () {
   const pdf = await generatePdf17Async({ pageCount: 2 });

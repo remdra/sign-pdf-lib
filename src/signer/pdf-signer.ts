@@ -19,42 +19,42 @@ export class PdfSigner {
   }
 
   public async addPlaceholderAsync(
-    pdf: Buffer,
+    pdf: ArrayBuffer | Buffer | Uint8Array,
     info: SignDigitalParameters
-  ): Promise<Buffer> {
+  ): Promise<Uint8Array> {
     return this.#digitalSigner.addPlaceholderAsync(pdf, info);
   }
 
   public async addFieldAsync(
-    pdf: Buffer,
+    pdf: ArrayBuffer | Buffer | Uint8Array,
     info: AddFieldParameters
-  ): Promise<Buffer> {
+  ): Promise<Uint8Array> {
     return this.#digitalSigner.addFieldAsync(pdf, info);
   }
 
   public async signAsync(
-    pdf: Buffer,
+    pdf: ArrayBuffer | Buffer | Uint8Array,
     info: SignDigitalParameters
-  ): Promise<Buffer> {
+  ): Promise<Uint8Array> {
     return this.#digitalSigner.signAsync(pdf, info);
   }
 
   public async signFieldAsync(
-    pdf: Buffer,
+    pdf: ArrayBuffer | Buffer,
     info: SignFieldParameters
-  ): Promise<Buffer> {
+  ): Promise<Uint8Array> {
     return this.#digitalSigner.signFieldAsync(pdf, info);
   }
 
   public async signVisualAsync(
-    pdf: Buffer,
+    pdf: ArrayBuffer | Buffer,
     info: SignVisualParameters
-  ): Promise<Buffer> {
+  ): Promise<Uint8Array> {
     return this.#visualSigner.signAsync(pdf, info);
   }
 
   public async verifySignaturesAsync(
-    pdf: Buffer
+    pdf: ArrayBuffer | Buffer
   ): Promise<PdfVerifySignaturesResult | undefined> {
     return this.#digitalSigner.verifySignaturesAsync(pdf);
   }

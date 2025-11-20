@@ -26,23 +26,23 @@ export class PdfDigitalSigner {
   }
 
   public async addPlaceholderAsync(
-    pdf: Buffer,
+    pdf: ArrayBuffer | Buffer | Uint8Array,
     info: SignDigitalParameters
-  ): Promise<Buffer> {
+  ): Promise<Uint8Array> {
     return await addPlaceholderAsync(pdf, info, this.#settings.signature);
   }
 
   public async addFieldAsync(
-    pdf: Buffer,
+    pdf: ArrayBuffer | Buffer | Uint8Array,
     info: AddFieldParameters
-  ): Promise<Buffer> {
+  ): Promise<Uint8Array> {
     return await addFieldAsync(pdf, info);
   }
 
   public async signAsync(
-    pdf: Buffer,
+    pdf: ArrayBuffer | Buffer | Uint8Array,
     info: SignDigitalParameters
-  ): Promise<Buffer> {
+  ): Promise<Uint8Array> {
     const placeholderPdf = await this.addPlaceholderAsync(pdf, info);
     const signatureEmbeder = await SignatureEmbeder.fromPdfAsync(
       placeholderPdf
@@ -56,9 +56,9 @@ export class PdfDigitalSigner {
   }
 
   public async signFieldAsync(
-    pdf: Buffer,
+    pdf: ArrayBuffer | Buffer | Uint8Array,
     info: SignFieldParameters
-  ): Promise<Buffer> {
+  ): Promise<Uint8Array> {
     const pdfDocSigner = await PdfDocumentDigitalSigner.fromPdfAsync(pdf);
     const placeholderInfo = getPlaceholderParameters(this.#settings.signature);
     const placeholderRef = pdfDocSigner.addSignaturePlaceholder({
@@ -85,12 +85,12 @@ export class PdfDigitalSigner {
   }
 
   public async verifySignaturesAsync(
-    pdf: Buffer
+    pdf: ArrayBuffer | Buffer
   ): Promise<PdfVerifySignaturesResult | undefined> {
     return await verifySignaturesAsync(pdf);
   }
 
-  public async getFieldsAsync(pdf: Buffer): Promise<SignatureField[]> {
+  public async getFieldsAsync(pdf: ArrayBuffer | Buffer): Promise<SignatureField[]> {
     return await getFieldsAsync(pdf);
   }
 }

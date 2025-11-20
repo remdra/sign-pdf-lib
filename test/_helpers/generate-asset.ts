@@ -17,7 +17,7 @@ const generateTextAsync = async (file: string, text: string) => {
     await fse.outputFile(file, text, 'utf-8');
 };
 
-const generateBinaryAsync = async (file: string, binary: Buffer) => {
+const generateBinaryAsync = async (file: string, binary: Uint8Array) => {
     if(!generate) return;
    
     await fse.outputFile(file, binary);

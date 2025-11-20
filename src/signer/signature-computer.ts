@@ -1,4 +1,5 @@
 import { P12SignatureComputerSettings, PemSignatureComputerSettings, SignatureComputerSettings } from '../models/settings/signature-computer-settings';
+import { toArrayBuffer } from '../helpers';
 
 import * as forge from 'node-forge';
 import { PDFString } from 'pdf-lib';
@@ -10,7 +11,7 @@ interface SigningSettings {
 }
 
 function getSigningSettingsP12(settings: P12SignatureComputerSettings): SigningSettings {
-    const forgeCert = forge.util.createBuffer(settings.certificate.toString('binary'));
+    const forgeCert = forge.util.createBuffer(toArrayBuffer(settings.certificate));
     const p12Asn1 = forge.asn1.fromDer(forgeCert);
     const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, settings.password);
 
@@ -74,6 +75,12 @@ function getSigningSettings(settings: SignatureComputerSettings) : SigningSettin
     }
 }
 
+function toBuffer(arr: Uint8Array | ArrayBuffer): Buffer {
+    if(arr instanceof Uint8Array) {
+        return Buffer.from(arr);
+    }
+    return Buffer.from(arr);
+}
 
 export class SignatureComputer {
 
@@ -83,9 +90,9 @@ export class SignatureComputer {
         this.#settings = getSigningSettings(settings);
     }
 
-    computeSignature(signBuffer: Buffer, date: Date): Buffer {
+    computeSignature(signBuffer: ArrayBuffer | Buffer | Uint8Array, date: Date): Uint8Array {
         const p7 = forge.pkcs7.createSignedData();
-        p7.content = forge.util.createBuffer(signBuffer.toString('binary'));
+        p7.content = forge.util.createBuffer(toBuffer(signBuffer).toString('binary'));
         this.#settings.certificates.forEach(cert => p7.addCertificate(cert));
         p7.addSigner({
             key: this.#settings.privateKey,

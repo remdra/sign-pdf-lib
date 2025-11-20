@@ -1,20 +1,20 @@
 import { PdfByteRanges, Size } from '../models';
 import { InvalidImageError, NoPlaceholderError, SignatureNotFoundError } from '../errors';
-import { getPdfRangesFromSignature } from '../helpers';
+import { getPdfRangesFromSignature, indexOf, toUint8Array } from '../helpers';
 
-import { DocumentSnapshot, PDFArray, PDFContext, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFObject, PDFRef, PDFString } from 'pdf-lib';
+import { DocumentSnapshot, mergeUint8Arrays, PDFArray, PDFContext, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFObject, PDFRef, PDFString } from 'pdf-lib';
 import * as _ from 'lodash';
 
-function getSignatureRange(pdf: Buffer) {
+function getSignatureRange(pdf: Buffer | Uint8Array) {
     let contentsStartIndex = 0;
     while(pdf[contentsStartIndex] != '<'.charCodeAt(0)) {
-        contentsStartIndex = pdf.indexOf('/Contents', contentsStartIndex) + '/Contents'.length;
+        contentsStartIndex = indexOf(pdf, '/Contents', contentsStartIndex) + '/Contents'.length;
         while(pdf[contentsStartIndex] == ' '.charCodeAt(0)) {
             contentsStartIndex++;
         }
     }
-    const start = pdf.indexOf('<', contentsStartIndex) + 1;
-    const end = pdf.indexOf('>', start);
+    const start = indexOf(pdf, '<', contentsStartIndex) + 1;
+    const end = indexOf(pdf, '>', start);
 
     return {
         start,
@@ -22,7 +22,7 @@ function getSignatureRange(pdf: Buffer) {
     };
 }
 
-function getPdfSigningRanges(initialPdfLength: number, incrementalPdf: Buffer): PdfByteRanges {
+function getPdfSigningRanges(initialPdfLength: number, incrementalPdf: Buffer | Uint8Array): PdfByteRanges {
     const { start: startSignature, end: endSignature } = getSignatureRange(incrementalPdf);
 
     return {
@@ -41,8 +41,8 @@ function getPdfSigningRanges(initialPdfLength: number, incrementalPdf: Buffer): 
     };
 }
 
-function updateByteRange(incrementalPdf: Buffer, initialPdfLength: number): Buffer | undefined {
-    const byteRangeStartIndex = incrementalPdf.indexOf('/ByteRange');
+function updateByteRange(incrementalPdf: Buffer | Uint8Array, initialPdfLength: number): Uint8Array | undefined {
+    const byteRangeStartIndex = indexOf(incrementalPdf, '/ByteRange');
     if(byteRangeStartIndex < 0) {
         return undefined;
     }
@@ -50,44 +50,51 @@ function updateByteRange(incrementalPdf: Buffer, initialPdfLength: number): Buff
     const { before, after } = getPdfSigningRanges(initialPdfLength, incrementalPdf);
 
     const byteRangeArray = PDFContext.create().obj([ before.start, before.length, after.start, after.length ]);
-    const startOfByteRange = incrementalPdf.indexOf('[', byteRangeStartIndex);
-    const endOfByteRange = incrementalPdf.indexOf(']', startOfByteRange) + 1;
+    const startOfByteRange = indexOf(incrementalPdf, '[', byteRangeStartIndex);
+    const endOfByteRange = indexOf(incrementalPdf, ']', startOfByteRange) + 1;
     if(endOfByteRange - startOfByteRange < byteRangeArray.sizeInBytes()) {
         throw new Error('Not enough space to store range.');
     }
-    const byteRangeBuffer = Buffer.from(' '.repeat(endOfByteRange - startOfByteRange));
-    byteRangeArray.copyBytesInto(byteRangeBuffer, 0);
+    const byteRangeBufferArray= new Uint8Array(endOfByteRange - startOfByteRange).fill(' '.charCodeAt(0));
+    byteRangeArray.copyBytesInto(byteRangeBufferArray, 0);
 
-    return Buffer.concat([ 
+    return mergeUint8Arrays([ 
         incrementalPdf.subarray(0, startOfByteRange),
-        byteRangeBuffer,
+        byteRangeBufferArray,
         incrementalPdf.subarray(endOfByteRange)
     ]);
 }
 
-function getSignBuffer(pdf: Buffer, signRanges: PdfByteRanges): Buffer {
-    return Buffer.concat([
+function getSignBuffer(pdf: Uint8Array, signRanges: PdfByteRanges): Uint8Array {
+    return mergeUint8Arrays([
         pdf.subarray(signRanges.before.start, signRanges.before.start + signRanges.before.length), 
         pdf.subarray(signRanges.after.start, signRanges.after.start + signRanges.after.length)
     ]);
+}
+
+function toArrayBuffer(arr: ArrayBuffer | Buffer | Uint8Array): ArrayBuffer {
+    if(arr instanceof ArrayBuffer) {
+        return arr;
+    }
+    return new Uint8Array(arr).buffer;
 }
 
 
 export class PdfSigningDocument {
 
     #pdfDoc: PDFDocument;
-    #pdf: Buffer;
+    #pdf: Uint8Array;
     #docSnapshot: DocumentSnapshot;
 
-    static async fromPdfAsync(pdf: Buffer): Promise<PdfSigningDocument> {
-        const pdfDoc = await PDFDocument.load(pdf);
+    static async fromPdfAsync(pdf: ArrayBuffer | Buffer | Uint8Array): Promise<PdfSigningDocument> {
+        const pdfDoc = await PDFDocument.load(toArrayBuffer(pdf));
 
         return new PdfSigningDocument(pdfDoc, pdf);
     }
 
-    private constructor(pdfDoc: PDFDocument, pdf: Buffer) {
+    private constructor(pdfDoc: PDFDocument, pdf: ArrayBuffer | Buffer | Uint8Array) {
         this.#pdfDoc = pdfDoc;
-        this.#pdf = pdf;
+        this.#pdf = toUint8Array(pdf);
 
         if(pdfDoc.context.pdfFileDetails.useObjectStreams) { pdfDoc.context.largestObjectNumber += 1; };
         this.#docSnapshot = pdfDoc.takeSnapshot();
@@ -162,11 +169,11 @@ export class PdfSigningDocument {
         this.#docSnapshot.markObjForSave(obj);
     }
 
-    async saveAsync(): Promise<Buffer> {
-        let incrementalPdf = Buffer.from(await this.#pdfDoc.saveIncremental(this.#docSnapshot));
+    async saveAsync(): Promise<Uint8Array> {
+        let incrementalPdf = await this.#pdfDoc.saveIncremental(this.#docSnapshot);
         incrementalPdf = updateByteRange(incrementalPdf, this.#pdf.length) || incrementalPdf;
 
-        return Buffer.concat([
+        return mergeUint8Arrays([
             this.#pdf,
             incrementalPdf
         ]);
@@ -236,7 +243,7 @@ export class PdfSigningDocument {
         }
     }
 
-    async embedImageAsync(image: Buffer): Promise<PDFRef> {
+    async embedImageAsync(image: ArrayBuffer | Buffer): Promise<PDFRef> {
         let img: PDFImage;
         try { 
             img = await this.#pdfDoc.embedJpg(image);
@@ -302,7 +309,7 @@ export class PdfSigningDocument {
         throw new SignatureNotFoundError(name);
     }
 
-    getSignatureBuffer(signature: PDFDict): Buffer {
+    getSignatureBuffer(signature: PDFDict): Uint8Array {
         const signRanges = getPdfRangesFromSignature(signature); 
         return getSignBuffer(this.#pdf, signRanges);
     }

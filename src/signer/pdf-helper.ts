@@ -11,10 +11,10 @@ import { PdfSigningDocument } from "./pdf-signing-document";
 import { SignatureChecker } from "./signature-checker";
 
 export async function addPlaceholderAsync(
-  pdf: Buffer,
+  pdf: ArrayBuffer | Buffer | Uint8Array,
   info: SignDigitalParameters,
   signatureInfo: SignatureSettings
-): Promise<Buffer> {
+): Promise<Uint8Array> {
   const pdfDocSigner = await PdfDocumentDigitalSigner.fromPdfAsync(pdf);
   const pageIndex = info.pageNumber - 1;
   const { background, texts } = info.visual ?? {};
@@ -39,9 +39,9 @@ export async function addPlaceholderAsync(
 }
 
 export async function addFieldAsync(
-  pdf: Buffer,
+  pdf: ArrayBuffer | Buffer | Uint8Array,
   info: AddFieldParameters
-): Promise<Buffer> {
+): Promise<Uint8Array> {
   const pdfDocSigner = await PdfDocumentDigitalSigner.fromPdfAsync(pdf);
   const pageIndex = info.pageNumber - 1;
   const rectangle = info.rectangle;
@@ -53,13 +53,13 @@ export async function addFieldAsync(
 }
 
 export async function verifySignaturesAsync(
-  pdf: Buffer
+  pdf: ArrayBuffer | Buffer
 ): Promise<PdfVerifySignaturesResult | undefined> {
   const signatureChecker = await SignatureChecker.fromPdfAsync(pdf);
   return await signatureChecker.verifySignaturesAsync();
 }
 
-export async function getFieldsAsync(pdf: Buffer): Promise<SignatureField[]> {
+export async function getFieldsAsync(pdf: ArrayBuffer | Buffer): Promise<SignatureField[]> {
   const signingDoc = await PdfSigningDocument.fromPdfAsync(pdf);
   return signingDoc.getFields().map((field) => {
     const name = field.lookup(PDFName.of("T"), PDFString).asString();

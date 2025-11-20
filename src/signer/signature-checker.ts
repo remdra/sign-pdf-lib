@@ -16,7 +16,7 @@ export class SignatureChecker {
 
     #signingDoc: PdfSigningDocument;
 
-    static async fromPdfAsync(pdf: Buffer): Promise<SignatureChecker> {
+    static async fromPdfAsync(pdf: ArrayBuffer | Buffer): Promise<SignatureChecker> {
         const signingDoc = await PdfSigningDocument.fromPdfAsync(pdf);
 
         return new SignatureChecker(signingDoc);
@@ -81,7 +81,7 @@ export class SignatureChecker {
         const attrDigest = fullAttrDigest.value[1].value[0].value;
         const dataDigest = (forge.md as any)[hashAlgorithm]
             .create()
-            .update(signBuffer.toString('latin1'))
+            .update(Buffer.from(signBuffer).toString('latin1'))
             .digest()
             .getBytes();
 
