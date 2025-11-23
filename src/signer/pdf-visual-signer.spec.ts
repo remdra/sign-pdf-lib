@@ -1,5 +1,6 @@
 import { PdfVisualSigner } from "./pdf-visual-signer";
 import { SignVisualParameters } from "../models/parameters";
+import { toArrayBuffer, toBuffer } from "../helpers";
 
 import { pdfVisualSignerAssets } from "../../test/_run-assets/signer/assets-pdf-visual-signer-pdf";
 import {
@@ -59,6 +60,38 @@ describe("PdfVisualSigner", function () {
 
   describe("signAsync", function () {
     it("signs document", async function () {
+      const visualSignedPdf = await pdfSigner.signAsync(
+        pdfVisualSignerAssets.pdf,
+        visualInfo
+      );
+
+      await generateAsset.generateBinaryAsync(
+        pdfVisualSignerAssets.paths.visualSignedPdf,
+        visualSignedPdf
+      );
+      expect(visualSignedPdf).to.be.deep.equal(
+        pdfVisualSignerAssets.visualSignedPdf
+      );
+    });
+
+    it("signs document (background is ArrayBuffer)", async function () {
+      visualInfo.background = toArrayBuffer(visualInfo.background!);
+      const visualSignedPdf = await pdfSigner.signAsync(
+        pdfVisualSignerAssets.pdf,
+        visualInfo
+      );
+
+      await generateAsset.generateBinaryAsync(
+        pdfVisualSignerAssets.paths.visualSignedPdf,
+        visualSignedPdf
+      );
+      expect(visualSignedPdf).to.be.deep.equal(
+        pdfVisualSignerAssets.visualSignedPdf
+      );
+    });
+
+    it("signs document (background is Buffer)", async function () {
+      visualInfo.background = toBuffer(visualInfo.background!);
       const visualSignedPdf = await pdfSigner.signAsync(
         pdfVisualSignerAssets.pdf,
         visualInfo

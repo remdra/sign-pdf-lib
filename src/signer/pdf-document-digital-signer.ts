@@ -1,10 +1,29 @@
-import { PdfSigningDocument } from './pdf-signing-document';
+import { SignDocumentBasic } from './new-sign-document-basic';
 import { PdfByteRanges, Rectangle, SignatureText } from '../models';
-import { SignatureParameters } from '../models/parameters';
+import { hasTextContentEx, PlaceholderParameters, SignatureParameters, SignatureVisualParameters } from '../models/parameters';
 import { computeAbsolutePageReverseRectangle, escapeString } from '../helpers';
 import { AlreadySignedError } from '../errors';
 
-import { PDFDict, PDFHexString, PDFName, PDFRef, PDFString } from 'pdf-lib';
+import { beginText, concatTransformationMatrix, drawObject, endText, nextLine, PDFDict, PDFHexString, PDFName, PDFNumber, PDFOperator, PDFOperatorNames, PDFRef, PDFString, popGraphicsState, pushGraphicsState, rectangle, setCharacterSpacing, setCharacterSqueeze, setFontAndSize, setTextMatrix, setTextRenderingMode, setTextRise, setWordSpacing, showText, TextRenderingMode } from 'pdf-lib';
+
+
+class PDFNameEx { ////////////////
+    static Annot = PDFName.of('Annot');
+    static Fields = PDFName.of('Fields');
+    static FT = PDFName.of('FT');
+    static Sig = PDFName.of('Sig');
+    static SigFlags = PDFName.of('SigFlags');
+    static Subtype = PDFName.of('Subtype');
+    static T = PDFName.of('T');
+    static V = PDFName.of('V');
+    static Widget = PDFName.of('Widget');
+
+    static Helvetica = PDFName.of('Helvetica');
+}
+
+const showTextEx = (text: string) =>
+            PDFOperator.of(PDFOperatorNames.ShowText, [PDFString.of(text)])
+
 
 class NameProvider {
 
@@ -36,8 +55,8 @@ export interface AddSignatureFieldParameters {
     embedFont: boolean
 };
 
-export interface AddVisualParameters { 
-    background?: ArrayBuffer | Buffer; 
+export interface AddVisualParameters { /*check*/
+    background?: ArrayBuffer | Buffer; /*tested*/
     texts?: SignatureText[] 
 };
 
@@ -54,16 +73,39 @@ export interface UpdateSignatureParameters {
 
 export class PdfDocumentDigitalSigner {
 
-    #signingDoc: PdfSigningDocument;
+    #signingDoc: SignDocumentBasic;
     #nameProvider: NameProvider;
 
-    static async fromPdfAsync(pdf: ArrayBuffer | Buffer | Uint8Array): Promise<PdfDocumentDigitalSigner> {
-        const signingDoc = await PdfSigningDocument.fromPdfAsync(pdf);
+    static async addSignaturePlaceholderForFieldAsync(
+        pdf: ArrayBuffer | Buffer | Uint8Array, /*tested*/
+        fieldName: string,
+        placeholderParameters: PlaceholderParameters,
+        signatureParameters?: SignatureParameters,
+        signatureVisualParameters?: SignatureVisualParameters
+    ): Promise<Uint8Array> {
+        const pdfDocSigner = await PdfDocumentDigitalSigner.fromPdfAsync(pdf);
+        const placeholderRef = pdfDocSigner.addSignaturePlaceholder({
+            ...signatureParameters,
+            ...placeholderParameters,
+        });
+        const visualRef = await pdfDocSigner.addVisualAsync(signatureVisualParameters);
+        const embedFont = hasTextContentEx(signatureVisualParameters);
+        pdfDocSigner.updateSignature(fieldName, {
+            placeholderRef,
+            visualRef,
+            embedFont,
+        });
+
+        return await pdfDocSigner.saveAsync();
+    }
+
+    static async fromPdfAsync(pdf: ArrayBuffer | Buffer | Uint8Array): Promise<PdfDocumentDigitalSigner> { /*tested*/
+        const signingDoc = await SignDocumentBasic.fromPdfAsync(pdf);
 
         return new PdfDocumentDigitalSigner(signingDoc);
     }
 
-    private constructor(signingDoc: PdfSigningDocument) {
+    private constructor(signingDoc: SignDocumentBasic) {
         this.#signingDoc = signingDoc;
         
         this.#nameProvider = new NameProvider(this.#signingDoc.getSignatureCount() + 1);
@@ -73,7 +115,7 @@ export class PdfDocumentDigitalSigner {
         this.#signingDoc.ensureAcroForm();
         this.#signingDoc.ensurePageAnnots(pageIndex);
 
-        name = name || this.#nameProvider.getSignatureName();
+        name = name ?? this.#nameProvider.getSignatureName();
 
         const pageSize = this.#signingDoc.getPageSize(pageIndex);
         const pageRect = computeAbsolutePageReverseRectangle(rectangle, pageSize);
@@ -101,11 +143,11 @@ export class PdfDocumentDigitalSigner {
         this.#signingDoc.addFormField(fieldRef);
 
         if(embedFont) {
-            this.#signingDoc.embedSignatureFont(pageIndex);
+            this.#signingDoc.ensureSignatureFont(pageIndex);
         }
     }
 
-    async addVisualAsync({ background, texts }: AddVisualParameters): Promise<PDFRef | undefined> {
+    async addVisualAsync({ background, texts }: AddVisualParameters = {}): Promise<PDFRef | undefined> {
         if(!background && !texts) {
             return undefined;
         }
@@ -152,8 +194,40 @@ export class PdfDocumentDigitalSigner {
                 + ` (${texts[1].lines[3]})Tj`
                 + ' ET'
                 + ' Q';
+        
+        const ops = [
+            pushGraphicsState(),
+            concatTransformationMatrix(214, 0, 0, 70, 0, 0),
+            drawObject(this.#nameProvider.getFrmName()),
+            popGraphicsState(),
+
+            pushGraphicsState(),
+            rectangle(0, 0, 106, 68),
+            beginText(),
+            setFontAndSize(PDFNameEx.Helvetica, 1),
+            setCharacterSpacing(0),
+            setWordSpacing(0),
+            setTextRise(0),
+            setCharacterSqueeze(100),
+            setTextRenderingMode(TextRenderingMode.Fill),
+            setTextMatrix(27.849, 0, 0, 27.849, 1, 43.646),
+            showTextEx(texts[0].lines[0]),
+            PDFOperator.of(PDFOperatorNames.MoveTextSetLeading, [PDFNumber.of(0), PDFNumber.of(-1.2)]),
+            showTextEx(texts[0].lines[1]),
+            setTextMatrix(12.637, 0, 0, 12.637, 109.1188, 54.087),
+            showTextEx(texts[1].lines[0]),
+            nextLine(),
+            showTextEx(texts[1].lines[1]),
+            nextLine(),
+            showTextEx(texts[1].lines[2]),
+            nextLine(),
+            showTextEx(texts[1].lines[3]),
+            endText(),
+            popGraphicsState()
+        ];
+        console.log('11111111111', drawBuffer);
+        console.log('22222222222', ops.map(o => o.toString()).join(' '));
         }
-    
         const visualObj: any = {
             'FT': 'XObject',
             'Subtype': 'Form',
@@ -216,8 +290,8 @@ export class PdfDocumentDigitalSigner {
         }
         this.#signingDoc.markObjAsChanged(signature);
 
-        if(embedFont) {
-            this.#signingDoc.embedSignatureFont(signature.get(PDFName.of('P')) as PDFRef);
+        if(embedFont) {///rename
+            this.#signingDoc.ensureSignatureFont(signature.get(PDFName.of('P')) as PDFRef);
         }
     }
 

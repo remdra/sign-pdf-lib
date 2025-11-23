@@ -23,7 +23,7 @@ const _paths = {
 };
 
 
-class CommonAssets {
+class CommonAssets { //FIXME: rename to fixed or static
   
   private _jpgImage = new BinaryAssetFile(_paths.jpgImage);
   private _pngImage = new BinaryAssetFile(_paths.pngImage);

@@ -9,6 +9,7 @@ import {
   AddFieldParameters,
 } from "../models/parameters";
 import { SignatureSettings } from "../models/settings";
+import { toArrayBuffer, toBuffer } from "../helpers";
 
 import { pdfHelperAssets } from "../../test/_run-assets/signer/assets-pdf-helper-pdf";
 import {
@@ -77,6 +78,36 @@ describe("addPlaceholderAsync", function () {
   });
 
   it("adds placeholder", async function () {
+    const placeholderPdf = await addPlaceholderAsync(
+      pdfHelperAssets.pdf,
+      info,
+      signatureInfo
+    );
+
+    await generateAsset.generateBinaryAsync(
+      pdfHelperAssets.paths.placeholderPdf,
+      placeholderPdf
+    );
+    expect(placeholderPdf).to.be.deep.equal(pdfHelperAssets.placeholderPdf);
+  });
+
+  it("adds placeholder (background is ArrayBuffer)", async function () {
+    info.visual!.background = toArrayBuffer(info.visual!.background!);
+    const placeholderPdf = await addPlaceholderAsync(
+      pdfHelperAssets.pdf,
+      info,
+      signatureInfo
+    );
+
+    await generateAsset.generateBinaryAsync(
+      pdfHelperAssets.paths.placeholderPdf,
+      placeholderPdf
+    );
+    expect(placeholderPdf).to.be.deep.equal(pdfHelperAssets.placeholderPdf);
+  });
+
+  it("adds placeholder (background is Buffer)", async function () {
+    info.visual!.background = toBuffer(info.visual!.background!);
     const placeholderPdf = await addPlaceholderAsync(
       pdfHelperAssets.pdf,
       info,

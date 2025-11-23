@@ -1,6 +1,6 @@
-import { PdfSigningDocument } from "./pdf-signing-document";
+import { SignDocumentBasic } from "./new-sign-document-basic";
 import { PdfVerifySignaturesResult, VerifySignatureResult } from "../models";
-import { getSignatureDetails, getSignatureName } from "../helpers";
+import { getSignatureDetails, getSignatureHexString, getSignatureName } from "../helpers";
 
 import { PDFDict, PDFName } from "pdf-lib";
 import * as forge from 'node-forge';
@@ -14,20 +14,20 @@ function getMessageFromSignature(signature: string) {
 
 export class SignatureChecker {
 
-    #signingDoc: PdfSigningDocument;
+    #signingDoc: SignDocumentBasic;
 
-    static async fromPdfAsync(pdf: ArrayBuffer | Buffer): Promise<SignatureChecker> {
-        const signingDoc = await PdfSigningDocument.fromPdfAsync(pdf);
+    static async fromPdfAsync(pdf: ArrayBuffer | Buffer): Promise<SignatureChecker> {/*tested*/
+        const signingDoc = await SignDocumentBasic.fromPdfAsync(pdf);
 
         return new SignatureChecker(signingDoc);
     }
 
-    private constructor(signingDoc: PdfSigningDocument) {
+    private constructor(signingDoc: SignDocumentBasic) {
         this.#signingDoc = signingDoc;
     }
 
     async verifySignaturesAsync(): Promise<PdfVerifySignaturesResult | undefined> {
-        const signatures = this.#signingDoc.getSignatures();
+        const signatures = this.#signingDoc.getSignatureRefs();
         
         if(_.isEmpty(signatures)) {
             return undefined;
@@ -61,7 +61,7 @@ export class SignatureChecker {
         }
     
         const signBuffer = this.#signingDoc.getSignatureBuffer(signature); 
-        const signatureHexStr = this.#signingDoc.getSignatureHexString(signature);
+        const signatureHexStr = getSignatureHexString(signature);
         const signatureStr = Buffer.from(signatureHexStr, 'hex').toString('latin1');
         
         const message = getMessageFromSignature(signatureStr);

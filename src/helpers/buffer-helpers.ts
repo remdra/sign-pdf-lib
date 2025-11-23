@@ -13,7 +13,7 @@ export function toUint8Array(buffer: ArrayBuffer | Buffer | Uint8Array): Uint8Ar
     throw new Error(`Unhandled type ${buffer.constructor.name}}`);
 }
 
-export function toArrayBuffer(buffer: ArrayBuffer | Buffer): ArrayBuffer {
+export function toArrayBuffer(buffer: ArrayBuffer | Buffer | Uint8Array): ArrayBuffer {
     if(buffer instanceof ArrayBuffer) {
         return buffer;
     }
@@ -24,4 +24,11 @@ export function toArrayBuffer(buffer: ArrayBuffer | Buffer): ArrayBuffer {
         view[i] = buffer[i];
     }
     return arrayBuffer;
+}
+
+export function toBuffer(arr: Uint8Array | ArrayBuffer): Buffer {
+    if(arr instanceof Uint8Array) {
+        return Buffer.from(arr);
+    }
+    return Buffer.from(arr);
 }

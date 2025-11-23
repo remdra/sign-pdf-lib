@@ -1,11 +1,8 @@
-import { SignatureText } from '../signature-text';
 import { SignatureParameters } from './signature-parameters';
+import { SignatureVisualParameters } from './signature-visual-parameters';
 
-export interface SignFieldParameters {
+export interface SignFieldParameters {/*testing*/ //check for signature and visual not present
     fieldName: string;
     signature?: SignatureParameters;
-    visual?: {
-        background?: ArrayBuffer | Buffer;
-        texts?: SignatureText[];
-    }
+    visual?: SignatureVisualParameters;
 };

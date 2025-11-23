@@ -19,42 +19,42 @@ export class PdfSigner {
   }
 
   public async addPlaceholderAsync(
-    pdf: ArrayBuffer | Buffer | Uint8Array,
+    pdf: ArrayBuffer | Buffer | Uint8Array, /*tested*/
     info: SignDigitalParameters
   ): Promise<Uint8Array> {
     return this.#digitalSigner.addPlaceholderAsync(pdf, info);
   }
 
   public async addFieldAsync(
-    pdf: ArrayBuffer | Buffer | Uint8Array,
+    pdf: ArrayBuffer | Buffer | Uint8Array, /*tested*/
     info: AddFieldParameters
   ): Promise<Uint8Array> {
     return this.#digitalSigner.addFieldAsync(pdf, info);
   }
 
   public async signAsync(
-    pdf: ArrayBuffer | Buffer | Uint8Array,
+    pdf: ArrayBuffer | Buffer | Uint8Array, /*tested*/
     info: SignDigitalParameters
   ): Promise<Uint8Array> {
     return this.#digitalSigner.signAsync(pdf, info);
   }
 
   public async signFieldAsync(
-    pdf: ArrayBuffer | Buffer,
+    pdf: ArrayBuffer | Buffer, /*tested*/
     info: SignFieldParameters
   ): Promise<Uint8Array> {
     return this.#digitalSigner.signFieldAsync(pdf, info);
   }
 
   public async signVisualAsync(
-    pdf: ArrayBuffer | Buffer,
+    pdf: ArrayBuffer | Buffer, /*tested*/
     info: SignVisualParameters
   ): Promise<Uint8Array> {
     return this.#visualSigner.signAsync(pdf, info);
   }
 
   public async verifySignaturesAsync(
-    pdf: ArrayBuffer | Buffer
+    pdf: ArrayBuffer | Buffer /*tested*/
   ): Promise<PdfVerifySignaturesResult | undefined> {
     return this.#digitalSigner.verifySignaturesAsync(pdf);
   }

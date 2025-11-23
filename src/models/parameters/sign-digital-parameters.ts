@@ -5,13 +5,13 @@ import { SignatureParameters } from './signature-parameters';
 
 export interface SignDigitalVisualBackgroundParameters {
     rectangle: Rectangle;
-    background: ArrayBuffer | Buffer;
+    background: ArrayBuffer | Buffer; /*tested*///use existing
     texts?: SignatureText[];
 };
 
 export interface SignDigitalVisualTextsParameters {
     rectangle: Rectangle;
-    background?: ArrayBuffer | Buffer;
+    background?: ArrayBuffer | Buffer; /*tested*/
     texts: SignatureText[];
 };
 

@@ -8,8 +8,9 @@
   ],
   "main": "_dist/src/index.js",
   "scripts": {
-    "build": "tsc",
     "browserify": "browserify _dist/src/index.js --standalone SignPdfLib -o _dist/sign-pdf-lib.js",
+    "build": "tsc",
+    "build:dev": "tsc --watch",
     "test": "ts-mocha --type-check '**/*.spec.ts'",
     "test:dev": "ts-mocha --type-check -watch --watch-files='**/*.ts' '**/*.spec.ts'",
     "prepublishOnly": "tsc"

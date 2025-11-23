@@ -3,48 +3,48 @@ import { commonAssets } from '../_assets-common';
 
 import * as path from 'path';
 
-const baseFolder = path.join('test', '_assets', 'signer', 'pdf-signing-document'); 
+const baseFolder = path.join('test', '_assets', 'signer', 'sign-document-basic'); 
 
 function getPath(file: string) {
   return path.join(baseFolder, file);
 }
 
 const _paths = {
-  pdf:                           getPath('pdf.pdf'),
-  placeholderPdf:                getPath('pdf-placeholder.pdf'),
-  fieldPdf:                      getPath('pdf-field.pdf'),
-  registerDictPdf:               getPath('pdf-register-dict.pdf'),
-  addDictPdf:                    getPath('pdf-add-dict.pdf'),
-  addPageAnnotPdf:               getPath('pdf-add-page-annot.pdf'),
-  addFormFieldPdf:               getPath('pdf-add-form-field.pdf'),
-  addPageContentPdf:             getPath('pdf-add-page-content.pdf'),
-  addPageResourcePdf:            getPath('pdf-add-page-resource.pdf'),
-  registerStreamPdf:             getPath('pdf-register-stream.pdf'),
-  markObjAsChangedPdf:           getPath('pdf-mark-obj-as-changed.pdf'),
-  savePdf:                       getPath('pdf-save.pdf'),
+  docPdf:                        getPath('doc.pdf'),
+  placeholderPdf:                getPath('placeholder.pdf'),
+  fieldPdf:                      getPath('field.pdf'),
+  registerDictPdf:               getPath('register-dict.pdf'),
+  addDictPdf:                    getPath('add-dict.pdf'),
+  addPageAnnotPdf:               getPath('add-page-annot.pdf'),
+  addFormFieldPdf:               getPath('add-form-field.pdf'),
+  addPageContentPdf:             getPath('add-page-content.pdf'),
+  addPageResourcePdf:            getPath('add-page-resource.pdf'),
+  registerStreamPdf:             getPath('register-stream.pdf'),
+  markObjAsChangedPdf:           getPath('mark-obj-as-changed.pdf'),
+  savePdf:                       getPath('save.pdf'),
   placeholderRanges:             getPath('ranges-placeholder.json'),
   signatureRanges:               getPath('ranges-signature.json'),
-  acroFormPdf:                   getPath('pdf-acro-form.pdf'),
-  pageAnnotsPdf:                 getPath('pdf-page-annots.pdf'),
-  secondPageAnnotsPdf:           getPath('pdf-second-page-annots.pdf'),
-  pageContentsArrayPdf:          getPath('pdf-page-contents-array.pdf'),
-  secondPageContentsArrayPdf:    getPath('pdf-second-page-contents-array.pdf'),
-  pageResourcesXobjectPdf:       getPath('pdf-page-resources-xobject.pdf'),
-  secondPageResourcesXobjectPdf: getPath('pdf-second-page-resources-xobject.pdf'),
-  jpgImagePdf:                   getPath('pdf-jpg-signature.pdf'),
-  pngImagePdf:                   getPath('pdf-png-signature.pdf'),
-  signedTwicePdf:                getPath('pdf-signed-twice.pdf'),
-  pageEmbededFontPdf:            getPath('pdf-page-font.pdf'),
-  secondPageEmbededFontPdf:      getPath('pdf-second-page-font.pdf'),
+  acroFormPdf:                   getPath('acro-form.pdf'),
+  pageAnnotsPdf:                 getPath('page-annots.pdf'),
+  secondPageAnnotsPdf:           getPath('second-page-annots.pdf'),
+  pageContentsArrayPdf:          getPath('page-contents-array.pdf'),
+  secondPageContentsArrayPdf:    getPath('second-page-contents-array.pdf'),
+  pageResourcesXobjectPdf:       getPath('page-resources-xobject.pdf'),
+  secondPageResourcesXobjectPdf: getPath('second-page-resources-xobject.pdf'),
+  jpgImagePdf:                   getPath('jpg-signature.pdf'),
+  pngImagePdf:                   getPath('png-signature.pdf'),
+  signedTwicePdf:                getPath('signed-twice.pdf'),
+  pageFontPdf:                   getPath('page-font.pdf'),
+  secondPageFontPdf:             getPath('second-page-font.pdf'),
 
   signatureBuffer:               getPath('signature-buffer.bin'),
   signatureHexString:            getPath('signature-hex-string.hex')
 };
 
 
-class PdfSigningDocumentAssets {
+class SignDocumentBasicAssets {
   
-  private _pdf                           = new BinaryAssetFile(_paths.pdf);
+  private _docPdf                        = new BinaryAssetFile(_paths.docPdf);
   private _placeholderPdf                = new BinaryAssetFile(_paths.placeholderPdf);
   private _fieldPdf                      = new BinaryAssetFile(_paths.fieldPdf);
   private _registerDictPdf               = new BinaryAssetFile(_paths.registerDictPdf);
@@ -68,14 +68,14 @@ class PdfSigningDocumentAssets {
   private _jpgImagePdf                   = new BinaryAssetFile(_paths.jpgImagePdf);
   private _pngImagePdf                   = new BinaryAssetFile(_paths.pngImagePdf);
   private _signedTwicePdf                = new BinaryAssetFile(_paths.signedTwicePdf);
-  private _pageEmbededFontPdf            = new BinaryAssetFile(_paths.pageEmbededFontPdf);
-  private _secondPageEmbededFontPdf      = new BinaryAssetFile(_paths.secondPageEmbededFontPdf);
+  private _pageFontPdf                   = new BinaryAssetFile(_paths.pageFontPdf);
+  private _secondPageFontPdf             = new BinaryAssetFile(_paths.secondPageFontPdf);
 
   private _signatureBuffer               = new BinaryAssetFile(_paths.signatureBuffer);
   private _signatureHexString            = new TextAssetFile(_paths.signatureHexString);
 
   public paths = {
-    pdf:                           _paths.pdf,
+    docPdf:                        _paths.docPdf,
     placeholderPdf:                _paths.placeholderPdf,
     fieldPdf:                      _paths.fieldPdf,
     registerDictPdf:               _paths.registerDictPdf,
@@ -99,15 +99,15 @@ class PdfSigningDocumentAssets {
     jpgImagePdf:                   _paths.jpgImagePdf,
     pngImagePdf:                   _paths.pngImagePdf,
     signedTwicePdf:                _paths.signedTwicePdf,
-    pageEmbededFontPdf:            _paths.pageEmbededFontPdf,
-    secondPageEmbededFontPdf:      _paths.secondPageEmbededFontPdf,
+    pageFontPdf:                   _paths.pageFontPdf,
+    secondPageEmbededFontPdf:      _paths.secondPageFontPdf,
 
     signatureBuffer:    _paths.signatureBuffer,
     signatureHexString: _paths.signatureHexString
   }
 
-  get pdf() {
-    return this._pdf.content;
+  get docPdf() {
+    return this._docPdf.content;
   }
 
   get placeholderPdf() {
@@ -202,12 +202,12 @@ class PdfSigningDocumentAssets {
     return this._signedTwicePdf.content;
   }
 
-  get pageEmbededFontPdf() {
-    return this._pageEmbededFontPdf.content;
+  get pageFontPdf() {
+    return this._pageFontPdf.content;
   }
 
-  get secondPageEmbededFontPdf() {
-    return this._secondPageEmbededFontPdf.content;
+  get secondPageFontPdf() {
+    return this._secondPageFontPdf.content;
   }
 
   get jpgImage() {
@@ -231,4 +231,4 @@ class PdfSigningDocumentAssets {
   }
 };
 
-export const signingDocumentAssets = new PdfSigningDocumentAssets();
+export const signDocumentBasicAssets = new SignDocumentBasicAssets();

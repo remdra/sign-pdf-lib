@@ -1,13 +1,13 @@
-import { PdfSigningDocument } from './pdf-signing-document';
+import { SignDocumentBasic } from './new-sign-document-basic';
 import { Rectangle, SignatureText } from '../models';
 import { DigitallySignedError } from '../errors';
 import { computeAbsolutePageReverseRectangle } from '../helpers';
 import { addRandomSuffix } from 'pdf-lib';
 
-export interface AddVisualSignatureBackgroundParameters { 
+export interface AddVisualSignatureBackgroundParameters { /*check*/
     pageIndex: number;
     rectangle: Rectangle;
-    background: ArrayBuffer | Buffer; 
+    background: ArrayBuffer | Buffer;  /*tested*/
     texts?: SignatureText[];
 
     reverseY?: boolean;
@@ -15,10 +15,10 @@ export interface AddVisualSignatureBackgroundParameters {
     backgroundName?: string;
 };
 
-export interface AddVisualSignatureTextsParameters { 
+export interface AddVisualSignatureTextsParameters { /*check*/
     pageIndex: number;
     rectangle: Rectangle;
-    background?: ArrayBuffer | Buffer; 
+    background?: ArrayBuffer | Buffer;  /*tested*/
     texts: SignatureText[];
 
     reverseY?: boolean;
@@ -30,15 +30,15 @@ export type AddVisualSignatureParameters = AddVisualSignatureBackgroundParameter
 
 export class PdfDocumentVisualSigner {
 
-    #signingDoc: PdfSigningDocument;
+    #signingDoc: SignDocumentBasic;
 
-    static async fromPdfAsync(pdf: ArrayBuffer | Buffer): Promise<PdfDocumentVisualSigner> {
-        const signingDoc = await PdfSigningDocument.fromPdfAsync(pdf);
+    static async fromPdfAsync(pdf: ArrayBuffer | Buffer): Promise<PdfDocumentVisualSigner> { /*tested*/
+        const signingDoc = await SignDocumentBasic.fromPdfAsync(pdf);
 
         return new PdfDocumentVisualSigner(signingDoc);
     }
 
-    private constructor(signingDoc: PdfSigningDocument) {
+    private constructor(signingDoc: SignDocumentBasic) {
         this.#signingDoc = signingDoc;
     }
     
@@ -100,13 +100,13 @@ export class PdfDocumentVisualSigner {
         }
     
         const visualRef = this.#signingDoc.registerStream(drawBuffer, {});
-        this.#signingDoc.addPageContent(visualRef, pageIndex);
+        this.#signingDoc.addPageContent(pageIndex, visualRef);
         if(backgroundRef) {
             this.#signingDoc.addPageResource(backgroundRef, pageIndex, backgroundName);
         }
 
         if(texts) {
-            this.#signingDoc.embedSignatureFont(pageIndex);
+            this.#signingDoc.ensureSignatureFont(pageIndex);
         }
     }
 

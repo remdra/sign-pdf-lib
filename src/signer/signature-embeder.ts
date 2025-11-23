@@ -10,14 +10,14 @@ export class SignatureEmbeder {
     #pdf: Uint8Array;
     #signRanges: PdfByteRanges;
 
-    static async fromPdfAsync(pdf: ArrayBuffer | Buffer | Uint8Array): Promise<SignatureEmbeder> {
+    static async fromPdfAsync(pdf: ArrayBuffer | Buffer | Uint8Array): Promise<SignatureEmbeder> {/*testing*/
         const pdfDocSigner = await PdfDocumentDigitalSigner.fromPdfAsync(pdf);
         const signRanges = pdfDocSigner.getPlaceholderRanges();
 
         return new SignatureEmbeder(signRanges, pdf);
     }
 
-    private constructor(signRanges: PdfByteRanges, pdf: ArrayBuffer | Buffer | Uint8Array) {
+    private constructor(signRanges: PdfByteRanges, pdf: ArrayBuffer | Buffer | Uint8Array) {/*tested*/
         this.#pdf = toUint8Array(pdf);
         this.#signRanges = signRanges;
     }
@@ -29,7 +29,7 @@ export class SignatureEmbeder {
         ]);
     }
     
-    embedSignature(signature: ArrayBuffer | Buffer | Uint8Array): Uint8Array {
+    embedSignature(signature: ArrayBuffer | Buffer | Uint8Array): Uint8Array {/*testing*/
         const hexSignature = signature.toString('hex').toUpperCase();
     
         return this.embedHexSignature(hexSignature);

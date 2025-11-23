@@ -5,6 +5,7 @@ import {
   AddFieldParameters,
 } from "../models/parameters";
 import { SignerSettings } from "../models/settings";
+import { toArrayBuffer, toBuffer } from "../helpers";
 
 import { pdfDigitalSignerAssets } from "../../test/_run-assets/signer/assets-pdf-digital-signer-pdf";
 import { pdfDigitalSignerAssetsRegression } from "../../test/_run-assets/signer/assets-pdf-digital-signer-regression";
@@ -157,109 +158,6 @@ describe("PdfDigitalSigner", function () {
       );
       expect(signedPdf).to.be.deep.equal(pdfDigitalSignerAssets.signedPdf);
     });
-
-    it("signs document (chinese characters)", async function () {
-      info.signature!.name = "小白";
-      info.signature!.location = "哈哈哈";
-      info.signature!.reason = "我同意";
-
-      const signedPdf = await pdfSigner.signAsync(
-        pdfDigitalSignerAssets.pdf,
-        info
-      );
-
-      await generateAsset.generateBinaryAsync(
-        pdfDigitalSignerAssets.paths.chineseSignedPdf,
-        signedPdf
-      );
-      expect(signedPdf).to.be.deep.equal(
-        pdfDigitalSignerAssets.chineseSignedPdf
-      );
-    });
-
-    it("signs document (no name)", async function () {
-      delete info.name;
-
-      const noNameSignedPdf = await pdfSigner.signAsync(
-        pdfDigitalSignerAssets.pdf,
-        info
-      );
-
-      await generateAsset.generateBinaryAsync(
-        pdfDigitalSignerAssets.paths.noNameSignedPdf,
-        noNameSignedPdf
-      );
-      expect(noNameSignedPdf).to.be.deep.equal(
-        pdfDigitalSignerAssets.noNameSignedPdf
-      );
-    });
-
-    it("signs document (no signature)", async function () {
-      delete info.signature;
-
-      const noSignatureSignedPdf = await pdfSigner.signAsync(
-        pdfDigitalSignerAssets.pdf,
-        info
-      );
-
-      await generateAsset.generateBinaryAsync(
-        pdfDigitalSignerAssets.paths.noSignatureSignedPdf,
-        noSignatureSignedPdf
-      );
-      expect(noSignatureSignedPdf).to.be.deep.equal(
-        pdfDigitalSignerAssets.noSignatureSignedPdf
-      );
-    });
-
-    it("signs document (no visual)", async function () {
-      delete info.visual;
-
-      const noVisualSignedPdf = await pdfSigner.signAsync(
-        pdfDigitalSignerAssets.pdf,
-        info
-      );
-
-      await generateAsset.generateBinaryAsync(
-        pdfDigitalSignerAssets.paths.noVisualSignedPdf,
-        noVisualSignedPdf
-      );
-      expect(noVisualSignedPdf).to.be.deep.equal(
-        pdfDigitalSignerAssets.noVisualSignedPdf
-      );
-    });
-
-    it("signs document (no optionals)", async function () {
-      delete info.name;
-      delete info.signature;
-      delete info.visual;
-
-      const noOptionalsSignedPdf = await pdfSigner.signAsync(
-        pdfDigitalSignerAssets.pdf,
-        info
-      );
-
-      await generateAsset.generateBinaryAsync(
-        pdfDigitalSignerAssets.paths.noOptionalsSignedPdf,
-        noOptionalsSignedPdf
-      );
-      expect(noOptionalsSignedPdf).to.be.deep.equal(
-        pdfDigitalSignerAssets.noOptionalsSignedPdf
-      );
-    });
-
-    it("signs already signed document", async function () {
-      info.name = "Signature2";
-      const res = await pdfSigner.signAsync(
-        pdfDigitalSignerAssets.signedPdf,
-        info
-      );
-
-      await generateAsset.generateBinaryAsync(
-        pdfDigitalSignerAssets.paths.twiceSignedPdf,
-        res
-      );
-      expect(res).to.be.deep.equal(pdfDigitalSignerAssets.twiceSignedPdf);
-    });
   });
 
   describe("signFieldAsync", function () {
@@ -276,91 +174,6 @@ describe("PdfDigitalSigner", function () {
       expect(fieldSignedPdf).to.be.deep.equal(
         pdfDigitalSignerAssets.fieldSignedPdf
       );
-    });
-
-    it("signs document (no signature)", async function () {
-      delete fieldInfo.signature;
-
-      const noSignatureFieldSignedPdf = await pdfSigner.signFieldAsync(
-        pdfDigitalSignerAssets.fieldPdf,
-        fieldInfo
-      );
-
-      await generateAsset.generateBinaryAsync(
-        pdfDigitalSignerAssets.paths.noSignatureFieldSignedPdf,
-        noSignatureFieldSignedPdf
-      );
-      expect(noSignatureFieldSignedPdf).to.be.deep.equal(
-        pdfDigitalSignerAssets.noSignatureFieldSignedPdf
-      );
-    });
-
-    it("signs document (no visual)", async function () {
-      delete fieldInfo.visual;
-
-      const noVisualFieldSignedPdf = await pdfSigner.signFieldAsync(
-        pdfDigitalSignerAssets.fieldPdf,
-        fieldInfo
-      );
-
-      await generateAsset.generateBinaryAsync(
-        pdfDigitalSignerAssets.paths.noVisualFieldSignedPdf,
-        noVisualFieldSignedPdf
-      );
-      expect(noVisualFieldSignedPdf).to.be.deep.equal(
-        pdfDigitalSignerAssets.noVisualFieldSignedPdf
-      );
-    });
-
-    it("signs document (no optionals)", async function () {
-      delete fieldInfo.signature;
-      delete fieldInfo.visual;
-
-      const noOptionalsFieldSignedPdf = await pdfSigner.signFieldAsync(
-        pdfDigitalSignerAssets.fieldPdf,
-        fieldInfo
-      );
-
-      await generateAsset.generateBinaryAsync(
-        pdfDigitalSignerAssets.paths.noOptionalsFieldSignedPdf,
-        noOptionalsFieldSignedPdf
-      );
-      expect(noOptionalsFieldSignedPdf).to.be.deep.equal(
-        pdfDigitalSignerAssets.noOptionalsFieldSignedPdf
-      );
-    });
-
-    it("signs specified field", async function () {
-      addFieldInfo.rectangle.left += 250;
-      addFieldInfo.rectangle.right += 250;
-      addFieldInfo.name = "Signature2";
-      const twoFieldsPdf = await pdfSigner.addFieldAsync(
-        pdfDigitalSignerAssets.fieldPdf,
-        addFieldInfo
-      );
-
-      fieldInfo.fieldName = "Signature2";
-
-      const specifiedFieldSignedPdf = await pdfSigner.signFieldAsync(
-        twoFieldsPdf,
-        fieldInfo
-      );
-
-      await generateAsset.generateBinaryAsync(
-        pdfDigitalSignerAssets.paths.specifiedFieldSignedPdf,
-        specifiedFieldSignedPdf
-      );
-      expect(specifiedFieldSignedPdf).to.be.deep.equal(
-        pdfDigitalSignerAssets.specifiedFieldSignedPdf
-      );
-    });
-
-    it("throws when field not found", async function () {
-      fieldInfo.fieldName = "Another name";
-
-      await expect(
-        pdfSigner.signFieldAsync(pdfDigitalSignerAssets.fieldPdf, fieldInfo)
-      ).to.be.rejected;
     });
   });
 

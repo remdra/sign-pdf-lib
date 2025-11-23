@@ -26,71 +26,64 @@ export class PdfDigitalSigner {
   }
 
   public async addPlaceholderAsync(
-    pdf: ArrayBuffer | Buffer | Uint8Array,
+    pdf: ArrayBuffer | Buffer | Uint8Array, /*tested*/
     info: SignDigitalParameters
   ): Promise<Uint8Array> {
     return await addPlaceholderAsync(pdf, info, this.#settings.signature);
   }
 
   public async addFieldAsync(
-    pdf: ArrayBuffer | Buffer | Uint8Array,
+    pdf: ArrayBuffer | Buffer | Uint8Array, /*tested*/
     info: AddFieldParameters
   ): Promise<Uint8Array> {
     return await addFieldAsync(pdf, info);
   }
 
   public async signAsync(
-    pdf: ArrayBuffer | Buffer | Uint8Array,
+    pdf: ArrayBuffer | Buffer | Uint8Array, /*tested*/
     info: SignDigitalParameters
   ): Promise<Uint8Array> {
     const placeholderPdf = await this.addPlaceholderAsync(pdf, info);
-    const signatureEmbeder = await SignatureEmbeder.fromPdfAsync(
-      placeholderPdf
-    );
-    const toBeSignedBuffer = signatureEmbeder.getSignBuffer();
-    const signature = this.#signatureComputer.computeSignature(
-      toBeSignedBuffer,
-      info.signature?.date || new Date()
-    );
-    return signatureEmbeder.embedSignature(signature);
+    const signatureDate = info.signature?.date;
+    return await this.signLastPlaceholderAsync(placeholderPdf, signatureDate);
   }
 
   public async signFieldAsync(
-    pdf: ArrayBuffer | Buffer | Uint8Array,
+    pdf: ArrayBuffer | Buffer | Uint8Array, /*tested*/
     info: SignFieldParameters
   ): Promise<Uint8Array> {
-    const pdfDocSigner = await PdfDocumentDigitalSigner.fromPdfAsync(pdf);
-    const placeholderInfo = getPlaceholderParameters(this.#settings.signature);
-    const placeholderRef = pdfDocSigner.addSignaturePlaceholder({
-      ...info.signature,
-      ...placeholderInfo,
-    });
-    const visualRef = await pdfDocSigner.addVisualAsync({ ...info.visual });
-    const embedFont = !!(info.visual && "texts" in info.visual);
-    pdfDocSigner.updateSignature(info.fieldName, {
-      placeholderRef,
-      visualRef,
-      embedFont,
-    });
-    const placeholderPdf = await pdfDocSigner.saveAsync();
-    const signatureEmbeder = await SignatureEmbeder.fromPdfAsync(
-      placeholderPdf
+    const placeholderParameters = getPlaceholderParameters(this.#settings.signature);
+    const placeholderPdf = await PdfDocumentDigitalSigner.addSignaturePlaceholderForFieldAsync(
+      pdf,
+      info.fieldName,
+      placeholderParameters,
+      info.signature,
+      info.visual
     );
-    const toBeSignedBuffer = signatureEmbeder.getSignBuffer();
-    const signature = this.#signatureComputer.computeSignature(
-      toBeSignedBuffer,
-      info.signature?.date || new Date()
-    );
-    return signatureEmbeder.embedSignature(signature);
+    const signatureDate = info.signature?.date;
+    return await this.signLastPlaceholderAsync(placeholderPdf, signatureDate);
   }
 
   public async verifySignaturesAsync(
-    pdf: ArrayBuffer | Buffer
+    pdf: ArrayBuffer | Buffer /*tested*/
   ): Promise<PdfVerifySignaturesResult | undefined> {
     return await verifySignaturesAsync(pdf);
   }
 
-  public async getFieldsAsync(pdf: ArrayBuffer | Buffer): Promise<SignatureField[]> {
+  public async getFieldsAsync(pdf: ArrayBuffer | Buffer): Promise<SignatureField[]> { /*tested*/
     return await getFieldsAsync(pdf);
+  }
+
+  private async signLastPlaceholderAsync(
+    placeholderPdf: Uint8Array, /*tested*/
+    signatureDate?: Date
+  ): Promise<Uint8Array> {
+    const signatureEmbeder = await SignatureEmbeder.fromPdfAsync(placeholderPdf);
+    const toBeSignedBuffer = signatureEmbeder.getSignBuffer();
+    const signature = this.#signatureComputer.computeSignature(
+      toBeSignedBuffer,
+      signatureDate
+    );
+    return signatureEmbeder.embedSignature(signature);
   }
 }

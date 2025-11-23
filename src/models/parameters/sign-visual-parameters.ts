@@ -7,7 +7,7 @@ interface SignVisualBackgroundParameters {
 
     reverseY?: boolean;
     
-    background: ArrayBuffer | Buffer;
+    background: ArrayBuffer | Buffer; /*tested*/ ////////////use existing
     texts?: SignatureText[];
 };
 
@@ -17,7 +17,7 @@ interface SignVisualTextsParameters {
     
     reverseY?: boolean;
 
-    background?: ArrayBuffer | Buffer;
+    background?: ArrayBuffer | Buffer; /*tested*/
     texts: SignatureText[];
 };
 

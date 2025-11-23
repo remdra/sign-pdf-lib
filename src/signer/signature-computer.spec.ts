@@ -1,5 +1,6 @@
 import { SignatureComputer } from './signature-computer';
 import { P12SignatureComputerSettings, PemSignatureComputerSettings } from '../models/settings';
+import { toArrayBuffer, toBuffer } from '../helpers';
 
 import { generatePdfAsync, generateAsset } from '../../test/_helpers';
 import { signatureComputerAssets } from '../../test/_run-assets/signer/assets-signature-computer';
@@ -28,6 +29,26 @@ describe('SignatureComputer', function () {
 
     describe('computeSignature', function() {
         it('computes signature', async function() {
+            const signature = signatureComputer.computeSignature(signatureComputerAssets.pdf, signDate);
+
+            await generateAsset.generateBinaryAsync(signatureComputerAssets.paths.signature, signature);
+            expect(signature).to.be.deep.equal(signatureComputerAssets.signature);
+        })
+
+        it('computes signature (certificate is ArrayBuffer)', async function() {
+            p12SignatureComputerSettings.certificate = toArrayBuffer(p12SignatureComputerSettings.certificate);
+            const signatureComputer: SignatureComputer = new SignatureComputer(p12SignatureComputerSettings);
+
+            const signature = signatureComputer.computeSignature(signatureComputerAssets.pdf, signDate);
+
+            await generateAsset.generateBinaryAsync(signatureComputerAssets.paths.signature, signature);
+            expect(signature).to.be.deep.equal(signatureComputerAssets.signature);
+        })
+
+        it('computes signature (certificate is Buffer)', async function() {
+            p12SignatureComputerSettings.certificate = toBuffer(p12SignatureComputerSettings.certificate);
+            const signatureComputer: SignatureComputer = new SignatureComputer(p12SignatureComputerSettings);
+
             const signature = signatureComputer.computeSignature(signatureComputerAssets.pdf, signDate);
 
             await generateAsset.generateBinaryAsync(signatureComputerAssets.paths.signature, signature);

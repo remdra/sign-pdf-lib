@@ -1,7 +1,7 @@
 import { SignatureParameters } from "../models/parameters";
 import { NoPlaceholderError } from "../errors";
 
-import { PDFArray, PDFDict, PDFName, PDFNumber, PDFString } from "pdf-lib";
+import { PDFArray, PDFDict, PDFHexString, PDFName, PDFNumber, PDFString } from "pdf-lib";
 import { PdfByteRanges } from "src/models";
 
 export function getSignatureDetails(signature: PDFDict): SignatureParameters {
@@ -67,3 +67,28 @@ function getDateMaybe(dict: PDFDict, key: string): Date | undefined {
 
     return value?.decodeDate();
 }
+
+export function    getSignatureHexString(signature: PDFDict): string {
+        const v = signature.lookup(PDFName.of('V'), PDFDict);
+        let signatureHex = v.lookup(PDFName.of('Contents'), PDFHexString).asString();
+        while(signatureHex[signatureHex.length - 1] == '0' && signatureHex[signatureHex.length - 2] == '0') {
+            signatureHex = signatureHex.substring(0, signatureHex.length - 2);
+        }
+    
+        return signatureHex;
+    }
+/*
+    describe('getSignatureHexString', function() {
+        it('returns signature hex string', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentAssets.signedTwicePdf);
+
+            const signatures = signDoc.getSignatureRefs();
+
+            expect(signatures).to.have.length(2);
+
+            const signatureHexString = await signDoc.getSignatureHexString(signatures[0]);
+            await generateAsset.generateTextAsync(signDocumentAssets.paths.signatureHexString, signatureHexString);
+            expect(signatureHexString).to.be.deep.equal(signDocumentAssets.signatureHexString);
+        })
+    })
+*/
