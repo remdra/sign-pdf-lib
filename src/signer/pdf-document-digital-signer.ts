@@ -1,6 +1,6 @@
 import { SignDocumentBasic } from './new-sign-document-basic';
 import { PdfByteRanges, Rectangle, SignatureText } from '../models';
-import { hasTextContentEx, PlaceholderParameters, SignatureParameters, SignatureVisualParameters } from '../models/parameters';
+import { hasTextContentEx, PlaceholderMaskParameters, SignatureParameters, SignatureVisualParameters } from '../models/parameters';
 import { computeAbsolutePageReverseRectangle, escapeString } from '../helpers';
 import { AlreadySignedError } from '../errors';
 
@@ -61,8 +61,8 @@ export interface AddVisualParameters { /*check*/
 };
 
 export interface AddSignaturePlaceholderParameters extends SignatureParameters { 
-    signaturePlaceholder: string; 
-    rangePlaceHolder: number;
+    signatureMask: string; 
+    offsetMask: number;
 };
 
 export interface UpdateSignatureParameters { 
@@ -79,7 +79,7 @@ export class PdfDocumentDigitalSigner {
     static async addSignaturePlaceholderForFieldAsync(
         pdf: ArrayBuffer | Buffer | Uint8Array, /*tested*/
         fieldName: string,
-        placeholderParameters: PlaceholderParameters,
+        placeholderParameters: PlaceholderMaskParameters,
         signatureParameters?: SignatureParameters,
         signatureVisualParameters?: SignatureVisualParameters
     ): Promise<Uint8Array> {
@@ -143,7 +143,7 @@ export class PdfDocumentDigitalSigner {
         this.#signingDoc.addFormField(fieldRef);
 
         if(embedFont) {
-            this.#signingDoc.ensureSignatureFont(pageIndex);
+            this.#signingDoc.ensureSignatureFontOld(pageIndex);
         }
     }
 
@@ -225,8 +225,6 @@ export class PdfDocumentDigitalSigner {
             endText(),
             popGraphicsState()
         ];
-        console.log('11111111111', drawBuffer);
-        console.log('22222222222', ops.map(o => o.toString()).join(' '));
         }
         const visualObj: any = {
             'FT': 'XObject',
@@ -256,22 +254,22 @@ export class PdfDocumentDigitalSigner {
         return this.#signingDoc.registerStream(drawBuffer, visualObj);
     }
 
-    addSignaturePlaceholder({ name, reason, location, contactInfo, date, signaturePlaceholder, rangePlaceHolder }: AddSignaturePlaceholderParameters): PDFRef {
+    addSignaturePlaceholder({ name, reason, location, contactInfo, date, signatureMask, offsetMask }: AddSignaturePlaceholderParameters): PDFRef {
 
-        const signature: any = {
+        const signature2: any = {
             'Type': 'Sig',
             'Filter': 'Adobe.PPKLite',
             'SubFilter': 'adbe.pkcs7.detached',
-            'Contents': PDFHexString.of(signaturePlaceholder),
-            'ByteRange': [ 0, rangePlaceHolder, rangePlaceHolder, rangePlaceHolder ]
+            'Contents': PDFHexString.of(signatureMask),
+            'ByteRange': [ 0, offsetMask, offsetMask, offsetMask ]
         };
-        if(name) { signature['Name'] = PDFString.of(escapeString(name)); };
-        if(location) { signature['Location'] = PDFString.of(escapeString(location)); };
-        if(reason) { signature['Reason'] = PDFString.of(escapeString(reason)); };
-        if(date) { signature['M'] = PDFString.fromDate(date); };
-        if(contactInfo) { signature['ContactInfo'] = PDFString.of(escapeString(contactInfo)); };
+        if(name) { signature2['Name'] = PDFString.of(escapeString(name)); };
+        if(location) { signature2['Location'] = PDFString.of(escapeString(location)); };
+        if(reason) { signature2['Reason'] = PDFString.of(escapeString(reason)); };
+        if(date) { signature2['M'] = PDFString.fromDate(date); };
+        if(contactInfo) { signature2['ContactInfo'] = PDFString.of(escapeString(contactInfo)); };
         
-        return this.#signingDoc.registerDict(signature); 
+        return this.#signingDoc.registerDict(signature2); 
     }
 
     updateSignature(name: string, { placeholderRef, visualRef, embedFont }: UpdateSignatureParameters): void {

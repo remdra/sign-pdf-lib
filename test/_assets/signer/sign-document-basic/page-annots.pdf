@@ -128,30 +128,9 @@ trailer
 startxref
 1376
 %%EOF
-4 0 obj
-<<
-/Type /Page
-/Parent 1 0 R
-/Resources <<
-/Font <<
-/Helvetica-7098480789 5 0 R
->>
-/XObject <<
->>
-/ExtGState <<
->>
->>
-/MediaBox [ 0 0 595.28 841.89 ]
-/Annots [ ]
-/Contents [ 6 0 R ]
->>
-endobj
-
 xref
 0 1
 0000000000 65535 f 
-4 1
-0000001656 00000 n 
 
 trailer
 <<
@@ -162,5 +141,5 @@ trailer
 >>
 
 startxref
-1857
+1656
 %%EOF

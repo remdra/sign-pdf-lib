@@ -1,4 +1,4 @@
-import { SignDocument, AddSignatureFieldParameters } from "./new-sign-document";
+import { SignDocument, SignatureFieldParameters, SignaturePlaceholderParameters, SignatureVisualParametersEx } from "./new-sign-document";
 
 import {
   generateAsset,
@@ -19,19 +19,55 @@ it("_generate", async function () {
 
 describe("SignDocument", function () {
   let signDoc: SignDocument;
-  let addFieldParams: AddSignatureFieldParameters;
+  let fieldParams: SignatureFieldParameters;
+  let placeholderParams: SignaturePlaceholderParameters;
 
   beforeEach(async function () {
-    addFieldParams = {
+    fieldParams = {
       name: "Signature",
       pageIndex: 0,
       pageRect: {
         left: 50,
-        top: 100,
-        right: 50 + 214,
-        bottom: 100 + 70,
+        top: 741.89,
+        right: 264,
+        bottom: 671.89,
       }
     };
+
+    placeholderParams = { 
+      ...fieldParams,
+      info: {
+        name: 'Test Signer',
+        location: 'Timisoara',
+        reason: 'Signing',
+        date: new Date(2023, 1, 20, 18, 47, 35),
+        contactInfo: 'signer@semnezonline.ro'
+      },
+      visual: {
+        background: {
+          image: signDocumentAssets.signatureBackground,
+          imageName: 'background1',
+          frmName: 'frm1'
+        },
+        texts: [
+          {
+            lines: ["JOHN", "DOE"],
+          },
+          {
+            lines: [
+              "Digitally signed by",
+              "JOHN DOE",
+              "Date: 2023.11.03",
+              "20:28:46 +02'00'",
+            ],
+          },
+        ],   
+      },
+      placeholder: {
+        signatureMaxLen: 4096,
+        offsetMaxLen: 5
+      }
+    }
 
     signDoc = await SignDocument.fromPdfAsync(
       signDocumentAssets.docPdf
@@ -40,7 +76,7 @@ describe("SignDocument", function () {
 
   describe("addSignatureField", function () {
     it("adds signature field", async function () {
-      signDoc.addSignatureField(addFieldParams);
+      signDoc.addSignatureField(fieldParams);
       const fieldPdf = await signDoc.saveAsync();
 
       await generateAsset.generateBinaryAsync(signDocumentAssets.paths.fieldPdf, fieldPdf);
@@ -48,13 +84,23 @@ describe("SignDocument", function () {
     });
 
     it("adds signature field (page two)", async function () {
-      addFieldParams.pageIndex = 1;
+      fieldParams.pageIndex = 1;
 
-      signDoc.addSignatureField(addFieldParams);
+      signDoc.addSignatureField(fieldParams);
       const pageTwoFieldPdf = await signDoc.saveAsync();
 
       await generateAsset.generateBinaryAsync(signDocumentAssets.paths.pageTwoFieldPdf, pageTwoFieldPdf);
       expect(pageTwoFieldPdf).to.be.deep.equal(signDocumentAssets.pageTwoFieldPdf);
+    });
+  });
+
+  describe("addSignaturePlaceholderAsync", function () {
+    it("adds signature placeholder", async function () {
+      await signDoc.addSignaturePlaceholderAsync(placeholderParams);
+      const placeholderPdf = await signDoc.saveAsync();
+
+      await generateAsset.generateBinaryAsync(signDocumentAssets.paths.placeholderPdf, placeholderPdf);
+      expect(placeholderPdf).to.be.deep.equal(signDocumentAssets.placeholderPdf);
     });
   });
 });

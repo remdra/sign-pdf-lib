@@ -1,4 +1,9 @@
+export interface PlaceholderMaskParameters { /*FIXME: remove it from here */
+    signatureMask: string;
+    offsetMask: number;
+}
+
 export interface PlaceholderParameters {
-    signaturePlaceholder: string;
-    rangePlaceHolder: number;
+    signatureMaxLen: number;
+    offsetMaxLen: number;
 }

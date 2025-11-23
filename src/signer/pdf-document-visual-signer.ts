@@ -106,7 +106,7 @@ export class PdfDocumentVisualSigner {
         }
 
         if(texts) {
-            this.#signingDoc.ensureSignatureFont(pageIndex);
+            this.#signingDoc.ensureSignatureFontOld(pageIndex);
         }
     }
 

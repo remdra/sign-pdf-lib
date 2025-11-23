@@ -2,7 +2,7 @@ import { SignDocumentBasic } from './new-sign-document-basic';
 import { InvalidImageError, NoPlaceholderError, SignatureNotFoundError } from '../errors';
 import { toArrayBuffer, toBuffer } from "../helpers";
 
-import { generatePdfAsync, generateAsset, generatePlaceholderPdfAsync, generateFieldPdfAsync, generateSignedTwicePdfAsync } from '../../test/_helpers';
+import { generatePdfAsync, generateAsset, generatePlaceholderPdfAsync, generateFieldPdfAsync, generateSignedTwicePdfAsync, bufferReplace } from '../../test/_helpers';
 import { signDocumentBasicAssets } from '../../test/_run-assets/signer/assets-sign-document-basic';
 
 import { PDFRef } from 'pdf-lib';
@@ -241,14 +241,14 @@ describe('SignDocumentBasic', function () {
 
     describe('ensureSignatureFont', function() {
         it('ensures signature font', async function() {
-            signDoc.ensureSignatureFont(0);
+            signDoc.ensureSignatureFont(PDFRef.of(4));
             
             const fontPdf = await signDoc.saveAsync();
 
             await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.pageFontPdf, fontPdf);
             expect(fontPdf).to.be.deep.equal(signDocumentBasicAssets.pageFontPdf);
 
-            signDoc.ensureSignatureFont(0);
+            signDoc.ensureSignatureFont(PDFRef.of(4));
             
             const pageEmbededFontPdf2 = await signDoc.saveAsync();
 
@@ -256,7 +256,7 @@ describe('SignDocumentBasic', function () {
         })
 
         it('ensures signature font (page 2)', async function() {
-            signDoc.ensureSignatureFont(1);
+            signDoc.ensureSignatureFont(PDFRef.of(7));
             
             const secondPageFontPdf = await signDoc.saveAsync();
 

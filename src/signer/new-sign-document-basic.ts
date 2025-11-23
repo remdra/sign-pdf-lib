@@ -1,25 +1,11 @@
 import { PdfByteRanges, Size } from '../models';
-import { InvalidImageError, NoPlaceholderError, SignatureNotFoundError } from '../errors';
+import { AlreadySignedError, InvalidImageError, NoPlaceholderError, SignatureNotFoundError } from '../errors';
 import { getPdfRangesFromSignature, toUint8Array } from '../helpers';
+import { PDFNameEx } from '../hacks';
 
 import { DocumentSnapshot, mergeUint8Arrays, PDFArray, PDFDict, PDFDocument, PDFImage, PDFName, PDFNumber, PDFObject, PDFPage, PDFRef, PDFString } from 'pdf-lib';
 import * as _ from 'lodash';
 import { getSignBuffer, loadPdfDocumentAsync, updateByteRange } from './tmp';
-
-class PDFNameEx {
-    static Annot = PDFName.of('Annot');
-    static Fields = PDFName.of('Fields');
-    static FT = PDFName.of('FT');
-    static Sig = PDFName.of('Sig');
-    static SigFlags = PDFName.of('SigFlags');
-    static Subtype = PDFName.of('Subtype');
-    static T = PDFName.of('T');
-    static V = PDFName.of('V');
-    static Widget = PDFName.of('Widget');
-
-    static Helvetica = PDFName.of('Helvetica');
-}
-
 
 export class SignDocumentBasic {
 
@@ -58,13 +44,14 @@ export class SignDocumentBasic {
         const page = this.#pdfDoc.getPage(pageIndex);
         const pageAnnots = page.node.lookup(PDFName.Annots, PDFArray);
         pageAnnots.push(annotRef);
+        this.#docSnapshot.markRefForSave(page.ref);
     }
 
     addFormField(fieldRef: PDFRef): void {
         const formDict = this.#pdfDoc.getForm().acroForm.dict;
         const formFields = formDict.lookup(PDFNameEx.Fields, PDFArray);
         formFields.push(fieldRef);
-        this.#docSnapshot.markObjForSave(formDict)
+        this.#docSnapshot.markObjForSave(formDict);
     }
 
     addPageContent(pageIndex: number, visualRef: PDFRef): void {
@@ -137,7 +124,6 @@ export class SignDocumentBasic {
 
     ensurePageAnnots(pageIndex: number): void {
         const page = this.#pdfDoc.getPage(pageIndex);
-        this.#docSnapshot.markRefForSave(page.ref);
 
         let annots = page.node.lookupMaybe(PDFName.Annots, PDFArray);
         if(annots) {
@@ -146,6 +132,7 @@ export class SignDocumentBasic {
     
         annots = this.#pdfDoc.context.obj([]);
         page.node.set(PDFName.Annots, annots);
+        this.#docSnapshot.markRefForSave(page.ref);
     }
 
     ensurePageContentsArray(pageIndex: number): void {
@@ -172,8 +159,8 @@ export class SignDocumentBasic {
         this.markForSave(page, PDFName.Resources);
     }
 
-    ensureSignatureFont(pageHint: number | PDFRef): void {
-        const page = this.getPageDict(pageHint);
+    ensureSignatureFont(pageRef: PDFRef): void {
+        const page = this.#pdfDoc.context.lookup(pageRef, PDFDict);
         const resources = page.lookup(PDFName.Resources, PDFDict);
         const fontDict = resources.lookup(PDFName.Font, PDFDict);
         if(fontDict.has(PDFNameEx.Helvetica)) {
@@ -182,7 +169,27 @@ export class SignDocumentBasic {
 
         const fontRef = this.registerFont(PDFNameEx.Helvetica);
         fontDict.set(PDFNameEx.Helvetica, fontRef);
-        this.markForSaveDict(page, PDFName.Resources);
+        this.#docSnapshot.markRefForSave(pageRef);
+    }
+
+    ensureSignatureFontOld(pageIndex: number): void { /* FIXME: remove */
+        const page = this.#pdfDoc.getPage(pageIndex);
+        const pageDict = page.node;
+        const resources = pageDict.lookup(PDFName.Resources, PDFDict);
+        const fontDict = resources.lookup(PDFName.Font, PDFDict);
+        if(fontDict.has(PDFNameEx.Helvetica)) {
+            return;
+        }
+
+        const fontRef = this.registerFont(PDFNameEx.Helvetica);
+        fontDict.set(PDFNameEx.Helvetica, fontRef);
+        const obj = pageDict.get(PDFName.Resources);
+        if(obj instanceof PDFRef) {
+            this.#docSnapshot.markRefForSave(obj);
+        } else {
+            this.#docSnapshot.markRefForSave(page.ref);
+        }
+
     }
 
     async embedImageAsync(image: ArrayBuffer | Buffer): Promise<PDFRef> {
@@ -232,6 +239,15 @@ export class SignDocumentBasic {
             };
         };
         throw new SignatureNotFoundError(name);
+    }
+
+    getUnsignedField(name: string): PDFDict { /*FIXME: add tests*/
+        const signature = this.getSignature(name);
+        if(signature.get(PDFName.of('V'))) {
+            throw new AlreadySignedError(name);
+        }
+
+        return signature;
     }
 
     getSignaturePageNumber(name: string): number {
@@ -287,29 +303,12 @@ export class SignDocumentBasic {
         return this.#pdfDoc.context.lookup(ref, PDFDict);
     }
 
-    private markForSave(page: PDFPage, name: PDFName) {
+    private markForSave(page: PDFPage, name: PDFName): void {
         const obj = page.node.get(name);
         if(obj instanceof PDFRef) {
             this.#docSnapshot.markRefForSave(obj);
         } else {
             this.#docSnapshot.markRefForSave(page.ref);
-        }
-    }
-
-    private markForSaveDict(pageDict: PDFDict, name: PDFName) {
-        const obj = pageDict.get(name);
-        if(obj instanceof PDFRef) {
-            this.#docSnapshot.markRefForSave(obj);
-        } else {
-            this.#docSnapshot.markObjForSave(pageDict);
-        }
-    }
-
-    private getPageDict(pageHint: number | PDFRef): PDFDict {
-        if(pageHint instanceof PDFRef) {
-            return this.#pdfDoc.context.lookup(pageHint, PDFDict);
-        } else {
-            return this.#pdfDoc.getPage(pageHint).node;
         }
     }
 

@@ -3,7 +3,7 @@ import { PDFName, PDFString } from "pdf-lib";
 import { PdfVerifySignaturesResult, SignatureField } from "../models";
 import {
   AddFieldParameters,
-  PlaceholderParameters,
+  PlaceholderMaskParameters,
   SignDigitalParameters,
 } from "../models/parameters";
 import { SignatureSettings } from "../models/settings";
@@ -72,9 +72,9 @@ export async function getFieldsAsync(pdf: ArrayBuffer | Buffer): Promise<Signatu
   });
 }
 
-export function getPlaceholderParameters(settings: SignatureSettings): PlaceholderParameters {
+export function getPlaceholderParameters(settings: SignatureSettings): PlaceholderMaskParameters {
   return {
-    signaturePlaceholder: "A".repeat(settings.signatureLength),
-    rangePlaceHolder: settings.rangePlaceHolder,
+    signatureMask: "A".repeat(settings.signatureLength),
+    offsetMask: settings.rangePlaceHolder,
   };
 }

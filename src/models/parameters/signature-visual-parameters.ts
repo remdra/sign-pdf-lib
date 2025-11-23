@@ -1,24 +1,28 @@
 import { SignatureText } from '../signature-text';
 
-export interface SignatureVisualBackgroundParameters {
-    background: ArrayBuffer | Buffer; /*tested*/
+export interface SignatureBackgroundParameters {
+    background: ArrayBuffer | Buffer;
     texts?: SignatureText[];
 }
 
-export interface SignatureVisualTextsParameters {
-    background?: ArrayBuffer | Buffer; /*tested*/
+export interface SignatureTextsParameters {
+    background?: ArrayBuffer | Buffer;
     texts: SignatureText[];
 }
 
-export type SignatureVisualParameters = SignatureVisualBackgroundParameters | SignatureVisualTextsParameters;
+export type SignatureVisualParameters = SignatureBackgroundParameters | SignatureTextsParameters;
 
 
-export function hasTextContent(parameters: SignatureVisualParameters): boolean {
-    return "texts" in parameters;
+export function hasTextContent(params: SignatureVisualParameters): params is SignatureTextsParameters {
+    return "texts" in params;
 }
 
-export function hasTextContentEx(parameters?: SignatureVisualParameters): boolean {
-    return !!parameters && hasTextContent(parameters);
+export function hasTextContentEx(params?: SignatureVisualParameters): params is SignatureTextsParameters { /*FIXME: remove it */
+    return !!params && hasTextContent(params);
+}
+
+export function hasBackgroundContent(params: SignatureVisualParameters): params is SignatureBackgroundParameters {
+    return "background" in params;
 }
 
 

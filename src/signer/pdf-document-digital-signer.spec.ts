@@ -82,8 +82,8 @@ describe("PdfDocumentDigitalSigner", function () {
       date: new Date(2023, 1, 20, 18, 47, 35),
       contactInfo: "signer@semnezonline.ro",
 
-      signaturePlaceholder: "A".repeat(4096),
-      rangePlaceHolder: 9999,
+      signatureMask: "A".repeat(4096),
+      offsetMask: 9999,
     };
     updateParameters = {
       placeholderRef: PDFRef.of(180),
@@ -428,8 +428,8 @@ describe("PdfDocumentDigitalSigner", function () {
     });
 
     it("adds placeholder for different settings", async function () {
-      (addPlaceholderParameters.signaturePlaceholder = "A".repeat(5000)),
-        (addPlaceholderParameters.rangePlaceHolder = 9999);
+      (addPlaceholderParameters.signatureMask = "A".repeat(5000)),
+        (addPlaceholderParameters.offsetMask = 9999);
 
       const placeholderRef = await pdfDocSigner.addSignaturePlaceholder(
         addPlaceholderParameters

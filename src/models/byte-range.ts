@@ -3,7 +3,7 @@ export interface ByteRange {
     length: number;
 };
 
-export interface PdfByteRanges { 
+export interface PdfByteRanges {  /*FIXME: rename SignatureRanges*/
     before: ByteRange;
     signature: ByteRange;
     after: ByteRange;
