@@ -171,14 +171,14 @@ export class SignDocument {
 
         if (visualParams.background) { 
             const backgroundRef = await this.addSignatureBackgroundAsync(visualParams.background.image, visualParams.background.imageName);
-            drawBuffer += `q 214 0 0 70 0 0 cm /${visualParams.background.frmName} Do Q`; /* FIXME: 214, 70 */
+            drawBuffer += this.getSignatureDrawBackgroundOperations(visualParams.background.frmName);
             visual['Resources']['XObject'] = {
                 [visualParams.background.frmName]: backgroundRef
             }
         }
 
         if (visualParams.texts) {
-            drawBuffer += this.getSignatureTextOperations(visualParams.texts);
+            drawBuffer += this.getSignatureDrawTextOperations(visualParams.texts);
         }
         
         return this.#signDoc.registerStream(drawBuffer, visual);
@@ -201,7 +201,7 @@ export class SignDocument {
         return this.#signDoc.registerStream(drawStream, visual);
     }
 
-    private getSignatureTextOperations(texts: SignatureText[]): string {
+    private getSignatureDrawTextOperations(texts: SignatureText[]): string {
         return ' q'  /* FIXME: use operators */
                     + ' 0 0 106 68 re'
                     + ' BT'
@@ -221,6 +221,10 @@ export class SignDocument {
                     + ` (${texts[1].lines[3]})Tj`
                     + ' ET'
                     + ' Q';
+    }
+
+    private getSignatureDrawBackgroundOperations(frmName: string): string {
+        return `q 214 0 0 70 0 0 cm /${frmName} Do Q`; /* FIXME: 214, 70 */
     }
 
     private updateSignatureField(name: string, updateParams: UpdateSignatureFieldParameters): void {

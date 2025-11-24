@@ -100,7 +100,7 @@ class SignDocumentBasicAssets {
     pngImagePdf:                   _paths.pngImagePdf,
     signedTwicePdf:                _paths.signedTwicePdf,
     pageFontPdf:                   _paths.pageFontPdf,
-    secondPageEmbededFontPdf:      _paths.secondPageFontPdf,
+    secondPageFontPdf:             _paths.secondPageFontPdf,
 
     signatureBuffer:    _paths.signatureBuffer,
     signatureHexString: _paths.signatureHexString

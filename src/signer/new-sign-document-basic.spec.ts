@@ -4,6 +4,7 @@ import { toArrayBuffer, toBuffer } from "../helpers";
 
 import { generatePdfAsync, generateAsset, generatePlaceholderPdfAsync, generateFieldPdfAsync, generateSignedTwicePdfAsync, bufferReplace } from '../../test/_helpers';
 import { signDocumentBasicAssets } from '../../test/_run-assets/signer/assets-sign-document-basic';
+import { signDocumentBasicRegressionAssets } from '../../test/_run-assets/signer/assets-sign-document-basic-regression';
 
 import { PDFRef } from 'pdf-lib';
 import { expect } from 'chai';
@@ -238,7 +239,6 @@ describe('SignDocumentBasic', function () {
         })
     })
 
-
     describe('ensureSignatureFont', function() {
         it('ensures signature font', async function() {
             signDoc.ensureSignatureFont(PDFRef.of(4));
@@ -260,7 +260,7 @@ describe('SignDocumentBasic', function () {
             
             const secondPageFontPdf = await signDoc.saveAsync();
 
-            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.secondPageEmbededFontPdf, secondPageFontPdf);
+            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.secondPageFontPdf, secondPageFontPdf);
             expect(secondPageFontPdf).to.be.deep.equal(signDocumentBasicAssets.secondPageFontPdf);
         })
 
@@ -492,3 +492,133 @@ describe('SignDocumentBasic', function () {
         })
     })
 })
+
+describe("SignDocumentBasic Regression", function () {
+    let signDoc: SignDocumentBasic;
+    
+    beforeEach(async function () {
+        signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicRegressionAssets.blankPdf);
+    })
+
+    describe('ensureAcroForm', function() {
+        it('ensures acro form', async function() {
+            signDoc.ensureAcroForm();
+            
+            const acroFormPdf = await signDoc.saveAsync();
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicRegressionAssets.paths.acroFormPdf, acroFormPdf);
+            expect(acroFormPdf).to.be.deep.equal(signDocumentBasicRegressionAssets.acroFormPdf);
+
+            signDoc.ensureAcroForm();
+            
+            const acroFormPdf2 = await signDoc.saveAsync();
+
+            expect(acroFormPdf2).to.be.deep.equal(signDocumentBasicRegressionAssets.acroFormPdf);
+        })
+    })
+
+    describe('ensurePageAnnots', function() {
+        it('ensures page annotations', async function() {
+            signDoc.ensurePageAnnots(0);
+            
+            const pageAnnotsPdf = await signDoc.saveAsync();
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicRegressionAssets.paths.pageAnnotsPdf, pageAnnotsPdf);
+            expect(pageAnnotsPdf).to.be.deep.equal(signDocumentBasicRegressionAssets.pageAnnotsPdf);
+
+            signDoc.ensurePageAnnots(0);
+            
+            const pageAnnotsPdf2 = await signDoc.saveAsync();
+
+            expect(pageAnnotsPdf2).to.be.deep.equal(signDocumentBasicRegressionAssets.pageAnnotsPdf);
+        })
+
+        it('ensures page annotations (page 2)', async function() {
+            signDoc.ensurePageAnnots(1);
+            
+            const pageAnnotsPdf = await signDoc.saveAsync();
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicRegressionAssets.paths.secondPageAnnotsPdf, pageAnnotsPdf);
+            expect(pageAnnotsPdf).to.be.deep.equal(signDocumentBasicRegressionAssets.secondPageAnnotsPdf);
+        })
+    })
+
+    describe('ensurePageContentsArray', function() {
+        it('ensures page contents array', async function() {
+            signDoc.ensurePageContentsArray(0);
+            
+            const pageContentsArrayPdf = await signDoc.saveAsync();
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicRegressionAssets.paths.pageContentsArrayPdf, pageContentsArrayPdf);
+            expect(pageContentsArrayPdf).to.be.deep.equal(signDocumentBasicRegressionAssets.pageContentsArrayPdf);
+
+            signDoc.ensurePageContentsArray(0);
+            
+            const pageContentsArrayPdf2 = await signDoc.saveAsync();
+
+            expect(pageContentsArrayPdf2).to.be.deep.equal(signDocumentBasicRegressionAssets.pageContentsArrayPdf);
+        })
+
+        it('ensures page contents array (page 2)', async function() {
+            signDoc.ensurePageContentsArray(1);
+            
+            const pageContentsArrayPdf = await signDoc.saveAsync();
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicRegressionAssets.paths.secondPageContentsArrayPdf, pageContentsArrayPdf);
+            expect(pageContentsArrayPdf).to.be.deep.equal(signDocumentBasicRegressionAssets.secondPageContentsArrayPdf);
+        })
+    })
+    
+    describe('ensurePageResourcesXObject', function() {
+        it('ensures page resources xobject', async function() {
+            signDoc.ensurePageResourcesXObject(0);
+            
+            const pageResourcesXobjectPdf = await signDoc.saveAsync();
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicRegressionAssets.paths.pageResourcesXobjectPdf, pageResourcesXobjectPdf);
+            expect(pageResourcesXobjectPdf).to.be.deep.equal(signDocumentBasicRegressionAssets.pageResourcesXobjectPdf);
+
+            signDoc.ensurePageResourcesXObject(0);
+            
+            const pageResourcesXobjectPdf2 = await signDoc.saveAsync();
+
+            expect(pageResourcesXobjectPdf2).to.be.deep.equal(signDocumentBasicRegressionAssets.pageResourcesXobjectPdf);
+        })
+
+        it('ensures page resources xobject (page 2)', async function() {
+            signDoc.ensurePageResourcesXObject(1);
+            
+            const pageResourcesXobjectPdf = await signDoc.saveAsync();
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicRegressionAssets.paths.secondPageResourcesXobjectPdf, pageResourcesXobjectPdf);
+            expect(pageResourcesXobjectPdf).to.be.deep.equal(signDocumentBasicRegressionAssets.secondPageResourcesXobjectPdf);
+        })
+    })
+
+    describe('ensureSignatureFont', function() {
+        it('ensures signature font', async function() {
+            signDoc.ensureSignatureFont(PDFRef.of(4));
+            
+            const fontPdf = await signDoc.saveAsync();
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicRegressionAssets.paths.pageFontPdf, fontPdf);
+            expect(fontPdf).to.be.deep.equal(signDocumentBasicRegressionAssets.pageFontPdf);
+
+            signDoc.ensureSignatureFont(PDFRef.of(4));
+            
+            const pageEmbededFontPdf2 = await signDoc.saveAsync();
+
+            expect(pageEmbededFontPdf2).to.be.deep.equal(signDocumentBasicRegressionAssets.pageFontPdf);
+        })
+
+        it('ensures signature font (page 2)', async function() {
+            signDoc.ensureSignatureFont(PDFRef.of(7));
+            
+            const secondPageFontPdf = await signDoc.saveAsync();
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicRegressionAssets.paths.secondPageFontPdf, secondPageFontPdf);
+            expect(secondPageFontPdf).to.be.deep.equal(signDocumentBasicRegressionAssets.secondPageFontPdf);
+        })
+
+    })
+});

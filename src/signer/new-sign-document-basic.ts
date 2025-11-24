@@ -66,8 +66,8 @@ export class SignDocumentBasic {
     addPageResource(resourceRef: PDFRef, pageIndex: number, name: string): void {
         this.ensurePageResourcesXObject(pageIndex);
 
-        const page = this.#pdfDoc.getPage(pageIndex);
-        const resources = page.node.lookup(PDFName.Resources, PDFDict);
+        const page = this.#pdfDoc.getPage(pageIndex).node;
+        const resources = page.lookup(PDFName.Resources, PDFDict);
         const xObject = resources.lookup(PDFName.XObject, PDFDict);
         const pdfName = PDFName.of(name);
         xObject.set(pdfName, resourceRef);
@@ -142,15 +142,17 @@ export class SignDocumentBasic {
             return;
         }
 
-        const newPageContents = this.#pdfDoc.context.obj([ pageContents ]);
+        const contentArray = pageContents ? [ pageContents] : [];
+        const newPageContents = this.#pdfDoc.context.obj(contentArray);
         page.node.set(PDFName.Contents, newPageContents);
         this.#docSnapshot.markRefForSave(page.ref);
     }
 
     ensurePageResourcesXObject(pageIndex: number): void {
-        const page = this.#pdfDoc.getPage(pageIndex);
-        const resources = page.node.lookup(PDFName.Resources, PDFDict);
-        if(resources.get(PDFName.XObject)) {
+        const page = this.#pdfDoc.getPage(pageIndex).node;
+        this.ensurePageResources(page);
+        const resources = page.lookup(PDFName.Resources, PDFDict);
+        if(resources.has(PDFName.XObject)) {
             return;
         }
             
@@ -161,7 +163,12 @@ export class SignDocumentBasic {
 
     ensureSignatureFont(pageRef: PDFRef): void {
         const page = this.#pdfDoc.context.lookup(pageRef, PDFDict);
+        this.ensurePageResources(page);
         const resources = page.lookup(PDFName.Resources, PDFDict);
+        if(!resources.has(PDFName.Font)) {
+            const font = this.#pdfDoc.context.obj({});
+            resources.set(PDFName.Font, font);
+        }
         const fontDict = resources.lookup(PDFName.Font, PDFDict);
         if(fontDict.has(PDFNameEx.Helvetica)) {
             return;
@@ -243,7 +250,7 @@ export class SignDocumentBasic {
 
     getUnsignedField(name: string): PDFDict { /*FIXME: add tests*/
         const signature = this.getSignature(name);
-        if(signature.get(PDFName.of('V'))) {
+        if(signature.has(PDFNameEx.V)) {
             throw new AlreadySignedError(name);
         }
 
@@ -303,12 +310,12 @@ export class SignDocumentBasic {
         return this.#pdfDoc.context.lookup(ref, PDFDict);
     }
 
-    private markForSave(page: PDFPage, name: PDFName): void {
-        const obj = page.node.get(name);
+    private markForSave(page: PDFDict, name: PDFName): void {
+        const obj = page.get(name);
         if(obj instanceof PDFRef) {
             this.#docSnapshot.markRefForSave(obj);
         } else {
-            this.#docSnapshot.markRefForSave(page.ref);
+            this.#docSnapshot.markObjForSave(page);
         }
     }
 
@@ -320,5 +327,14 @@ export class SignDocumentBasic {
             'Encoding': 'WinAnsiEncoding'
         });
         return this.#pdfDoc.context.register(font);
+    }
+
+    ensurePageResources(page: PDFDict): void {
+        if(page.has(PDFName.Resources)) {
+            return;
+        }
+
+        const resources = this.#pdfDoc.context.obj({});
+        page.set(PDFName.Resources, resources);
     }
 }
