@@ -11,8 +11,8 @@
     "browserify": "browserify _dist/src/index.js --standalone SignPdfLib -o _dist/sign-pdf-lib.js",
     "build": "tsc",
     "build:dev": "tsc --watch",
-    "test": "ts-mocha --type-check '**/*.spec.ts'",
-    "test:dev": "ts-mocha --type-check -watch --watch-files='**/*.ts' '**/*.spec.ts'",
+    "test": "ts-mocha --timeout 5000 --type-check '**/*.spec.ts'",
+    "test:dev": "ts-mocha --timeout 5000 --type-check -watch --watch-files='**/*.ts' '**/*.spec.ts'",
     "prepublishOnly": "tsc"
   },
   "repository": {

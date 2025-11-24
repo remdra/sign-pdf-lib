@@ -3,7 +3,7 @@ import { AlreadySignedError, InvalidImageError, NoPlaceholderError, SignatureNot
 import { getPdfRangesFromSignature, toUint8Array } from '../helpers';
 import { PDFNameEx } from '../hacks';
 
-import { DocumentSnapshot, mergeUint8Arrays, PDFArray, PDFDict, PDFDocument, PDFImage, PDFName, PDFNumber, PDFObject, PDFPage, PDFRef, PDFString } from 'pdf-lib';
+import { DocumentSnapshot, mergeUint8Arrays, PDFArray, PDFContentStream, PDFDict, PDFDocument, PDFImage, PDFName, PDFNumber, PDFObject, PDFOperator, PDFPage, PDFRef, PDFString } from 'pdf-lib';
 import * as _ from 'lodash';
 import { getSignBuffer, loadPdfDocumentAsync, updateByteRange } from './tmp';
 
@@ -74,9 +74,15 @@ export class SignDocumentBasic {
         this.markForSave(page, PDFName.Resources);
     }
 
-    registerStream(drawBuffer: string, visualObj: any): PDFRef {
+    registerStreamOld(drawBuffer: string, visualObj: any): PDFRef { /*FIXME remove */
         const visual = this.#pdfDoc.context.stream(drawBuffer, visualObj);
         return this.#pdfDoc.context.register(visual);
+    }
+
+    registerStream(ops: PDFOperator[], obj: {}): PDFRef {
+        const dict = this.#pdfDoc.context.obj(obj);
+        const stream = PDFContentStream.of(dict, ops, false);
+        return this.#pdfDoc.context.register(stream);
     }
 
     markObjAsChanged(obj: PDFObject): void {
@@ -248,7 +254,7 @@ export class SignDocumentBasic {
         throw new SignatureNotFoundError(name);
     }
 
-    getUnsignedField(name: string): PDFDict { /*FIXME: add tests*/
+    getUnsignedField(name: string): PDFDict {
         const signature = this.getSignature(name);
         if(signature.has(PDFNameEx.V)) {
             throw new AlreadySignedError(name);

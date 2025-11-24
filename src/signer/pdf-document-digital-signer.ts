@@ -167,7 +167,7 @@ export class PdfDocumentDigitalSigner {
                     }
                 }
             };
-            backgroundRef = this.#signingDoc.registerStream(drawBuffer2, visualObj2);    
+            backgroundRef = this.#signingDoc.registerStreamOld(drawBuffer2, visualObj2);    
         }
         
         let drawBuffer = backgroundRef 
@@ -239,7 +239,7 @@ export class PdfDocumentDigitalSigner {
             }
         }
     
-        return this.#signingDoc.registerStream(drawBuffer, visualObj);
+        return this.#signingDoc.registerStreamOld(drawBuffer, visualObj);
     }
 
     addEmptyVisual(): PDFRef {
@@ -251,7 +251,7 @@ export class PdfDocumentDigitalSigner {
             'BBox': [ 0.0, 0.0, 214, 70.0 ],
         }
     
-        return this.#signingDoc.registerStream(drawBuffer, visualObj);
+        return this.#signingDoc.registerStreamOld(drawBuffer, visualObj);
     }
 
     addSignaturePlaceholder({ name, reason, location, contactInfo, date, signatureMask, offsetMask }: AddSignaturePlaceholderParameters): PDFRef {

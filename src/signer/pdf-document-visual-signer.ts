@@ -99,7 +99,7 @@ export class PdfDocumentVisualSigner {
                 + ' Q';
         }
     
-        const visualRef = this.#signingDoc.registerStream(drawBuffer, {});
+        const visualRef = this.#signingDoc.registerStreamOld(drawBuffer, {});
         this.#signingDoc.addPageContent(pageIndex, visualRef);
         if(backgroundRef) {
             this.#signingDoc.addPageResource(backgroundRef, pageIndex, backgroundName);

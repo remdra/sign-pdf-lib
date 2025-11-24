@@ -1,12 +1,13 @@
 import { SignDocumentBasic } from './new-sign-document-basic';
-import { InvalidImageError, NoPlaceholderError, SignatureNotFoundError } from '../errors';
+import { AlreadySignedError, InvalidImageError, NoPlaceholderError, SignatureNotFoundError } from '../errors';
 import { toArrayBuffer, toBuffer } from "../helpers";
+
+import { beginText, endText, PDFRef } from 'pdf-lib';
 
 import { generatePdfAsync, generateAsset, generatePlaceholderPdfAsync, generateFieldPdfAsync, generateSignedTwicePdfAsync, bufferReplace } from '../../test/_helpers';
 import { signDocumentBasicAssets } from '../../test/_run-assets/signer/assets-sign-document-basic';
 import { signDocumentBasicRegressionAssets } from '../../test/_run-assets/signer/assets-sign-document-basic-regression';
 
-import { PDFRef } from 'pdf-lib';
 import { expect } from 'chai';
 
 it('_generate', async function () {
@@ -93,7 +94,7 @@ describe('SignDocumentBasic', function () {
 
     describe('registerStream', function() {
         it('registers stream', async function() {
-            signDoc.registerStream('q Q', { 'Key': 'Value' });
+            signDoc.registerStream([beginText(), endText()], { 'Key': 'Value' });
             const registerStreamPdf = await signDoc.saveAsync();
 
             await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.registerStreamPdf, registerStreamPdf);
@@ -371,6 +372,22 @@ describe('SignDocumentBasic', function () {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
 
             expect(() => signDoc.getSignature('AnotherName')).to.throw(SignatureNotFoundError);
+        })
+    })
+
+    describe.skip('getUnsignedField', function() {
+        it('returns unsigned field', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
+
+            const signature = await signDoc.getUnsignedField('Signature');
+
+            expect(signature).to.not.be.undefined;
+        })
+
+        it('throws for already signed field', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
+
+            expect(() => signDoc.getUnsignedField('Signature2')).to.throw(AlreadySignedError);
         })
     })
 

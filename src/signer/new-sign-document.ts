@@ -1,11 +1,14 @@
 import { SignDocumentBasic } from './new-sign-document-basic';
 import { Rectangle, SignatureText } from '../models';
-import { PlaceholderMaskParameters, PlaceholderParameters, SignatureParameters } from '../models/parameters';
+import { PlaceholderParameters, SignatureParameters } from '../models/parameters';
 import { escapeString } from '../helpers';
 import { PDFNameEx } from '../hacks';
 
-import { beginText, concatTransformationMatrix, drawObject, endText, nextLine, PDFDict, PDFHexString, PDFName, PDFNumber, PDFOperator, PDFOperatorNames, PDFRef, PDFString, popGraphicsState, pushGraphicsState, rectangle, setCharacterSpacing, setCharacterSqueeze, setFontAndSize, setTextMatrix, setTextRenderingMode, setTextRise, setWordSpacing, showText, TextRenderingMode } from 'pdf-lib';
+import { beginText, concatTransformationMatrix, drawObject, endText, nextLine, PDFDict, PDFHexString, PDFName, PDFNumber, PDFOperator, PDFOperatorNames, PDFRef, PDFString, popGraphicsState, pushGraphicsState, rectangle, setCharacterSpacing, setCharacterSqueeze, setFontAndSize, setTextMatrix, setTextRenderingMode, setTextRise, setWordSpacing, TextRenderingMode } from 'pdf-lib';
 
+const showTextEx = (text: string) => PDFOperator.of(PDFOperatorNames.ShowText, [PDFString.of(text)])
+
+const moveTextSetLeadingEx = (offsetX: number, offsetY: number) => PDFOperator.of(PDFOperatorNames.MoveTextSetLeading, [PDFNumber.of(offsetX), PDFNumber.of(offsetY)]);
 
 export interface SignatureFieldParameters { 
     name: string;
@@ -14,13 +17,6 @@ export interface SignatureFieldParameters {
 };
 
 export type SignaturePlaceholderParameters = SignatureFieldParameters & SignaturePlaceholderForFieldParameters;
-
-interface SignaturePlaceholderForFieldParametersEx {
-    name: string;
-    info?: SignatureParameters;
-    visual?: SignatureVisualParametersEx;
-    placeholder: PlaceholderMaskParameters;
-}
 
 interface SignaturePlaceholderForFieldParameters {
     name: string;
@@ -47,34 +43,21 @@ export interface SignatureTextsParametersEx {
     texts: SignatureText[];
 }
 
+export type SignatureVisualParametersEx = SignatureBackgroundParametersEx | SignatureTextsParametersEx;
+
 interface UpdateSignatureFieldParameters { 
     placeholderRef: PDFRef;
     visualRef?: PDFRef;
     hasText: boolean;
 };
 
-function getMaskParameters(placeholderParams: PlaceholderParameters): PlaceholderMaskParameters {
-    const maskParam: PlaceholderMaskParameters = {
-        signatureMask: 'A'.repeat(placeholderParams.signatureMaxLen),
-        offsetMask: +'9'.repeat(placeholderParams.offsetMaxLen)
-    }
-
-    return maskParam;
+function getSignatureMask(signatureMaxLen: number): string {
+    return 'A'.repeat(signatureMaxLen);
 }
 
-function getPlaceholderForFieldMaskParameters(placeholderParams: SignaturePlaceholderForFieldParameters): SignaturePlaceholderForFieldParametersEx {
-    const maskParam = getMaskParameters(placeholderParams.placeholder);
-
-    const placeholderMaskParams: SignaturePlaceholderForFieldParametersEx = {
-        ...placeholderParams,
-        placeholder: maskParam
-    }
-
-    return placeholderMaskParams;
+function getOffsetMask(offsetMaxLen: number): number {
+    return +'9'.repeat(offsetMaxLen)
 }
-
-
-export type SignatureVisualParametersEx = SignatureBackgroundParametersEx | SignatureTextsParametersEx;
 
 export class SignDocument {
 
@@ -111,15 +94,14 @@ export class SignDocument {
 
     async addSignaturePlaceholderAsync(placeholderParams: SignatureFieldParameters & SignaturePlaceholderForFieldParameters): Promise<void> {
         this.addSignatureField(placeholderParams);
-        const placeholderMaskParams = getPlaceholderForFieldMaskParameters(placeholderParams);
-        await this.addSignaturePlaceholderForFieldAsync(placeholderMaskParams);
+        await this.addSignaturePlaceholderForFieldAsync(placeholderParams);
     }
 
     async saveAsync(): Promise<Uint8Array> {
         return await this.#signDoc.saveAsync();
     }
 
-    private async addSignaturePlaceholderForFieldAsync(placeholderParams: SignaturePlaceholderForFieldParametersEx): Promise<void> {
+    private async addSignaturePlaceholderForFieldAsync(placeholderParams: SignaturePlaceholderForFieldParameters): Promise<void> {
         const placeholderRef = this.addSignaturePlaceholder(placeholderParams.info, placeholderParams.placeholder);
         const updateParams: UpdateSignatureFieldParameters = {
             placeholderRef,
@@ -132,13 +114,15 @@ export class SignDocument {
         this.updateSignatureField(placeholderParams.name, updateParams);
     }
 
-    private addSignaturePlaceholder(signatureParams: SignatureParameters = {}, placeholderParams: PlaceholderMaskParameters): PDFRef {
+    private addSignaturePlaceholder(signatureParams: SignatureParameters = {}, placeholderParams: PlaceholderParameters): PDFRef {
+        const signatureMask = getSignatureMask(placeholderParams.signatureMaxLen);
+        const offsetMask = getOffsetMask(placeholderParams.offsetMaxLen);
         const signature: any = {
             'Type': 'Sig',
             'Filter': 'Adobe.PPKLite',
             'SubFilter': 'adbe.pkcs7.detached',
-            'Contents': PDFHexString.of(placeholderParams.signatureMask),
-            'ByteRange': [ 0, placeholderParams.offsetMask, placeholderParams.offsetMask, placeholderParams.offsetMask ]
+            'Contents': PDFHexString.of(signatureMask),
+            'ByteRange': [ 0, offsetMask, offsetMask, offsetMask ]
         };
         
         if(signatureParams.name) { 
@@ -167,26 +151,32 @@ export class SignDocument {
             'BBox': [ 0.0, 0.0, 214.0, 70.0 ], /* FIXME: 214, 70 */
             'Resources': {}
         };
-        let drawBuffer = '';
+        const allDrawOp: PDFOperator[] = [];
 
         if (visualParams.background) { 
             const backgroundRef = await this.addSignatureBackgroundAsync(visualParams.background.image, visualParams.background.imageName);
-            drawBuffer += this.getSignatureDrawBackgroundOperations(visualParams.background.frmName);
+            const drawOp = this.getSignatureDrawBackgroundOperations(visualParams.background.frmName);
+            allDrawOp.push(...drawOp);
             visual['Resources']['XObject'] = {
                 [visualParams.background.frmName]: backgroundRef
             }
         }
 
         if (visualParams.texts) {
-            drawBuffer += this.getSignatureDrawTextOperations(visualParams.texts);
+            const drawOp = this.getSignatureDrawTextOperations(visualParams.texts);
+            allDrawOp.push(...drawOp);
         }
         
-        return this.#signDoc.registerStream(drawBuffer, visual);
+        return this.#signDoc.registerStream(allDrawOp, visual);
     }
     
     private async addSignatureBackgroundAsync(background: ArrayBuffer | Buffer, name: string): Promise<PDFRef> {
         const imageRef = await this.#signDoc.embedImageAsync(background);
-        const drawStream = `q 1 0 0 1 0 0 cm /${name} Do Q`; /* FIXME: use operators */
+        const drawOp: PDFOperator[] = [
+            concatTransformationMatrix(1, 0, 0, 1, 0, 0),
+            drawObject(name),
+            popGraphicsState(),
+        ];
         const visual = {
             'Type': 'XObject',
             'Subtype': 'Form',
@@ -198,33 +188,47 @@ export class SignDocument {
             }
         };
 
-        return this.#signDoc.registerStream(drawStream, visual);
+        return this.#signDoc.registerStream(drawOp, visual);
     }
 
-    private getSignatureDrawTextOperations(texts: SignatureText[]): string {
-        return ' q'  /* FIXME: use operators */
-                    + ' 0 0 106 68 re'
-                    + ' BT'
-                    + ' /Helvetica 1 Tf'
-                    + ' 0 Tc 0 Tw 0 Ts 100 Tz 0 Tr'
-                    + ' 27.849 0 0 27.849 1 43.646 Tm'
-                    + ` (${texts[0].lines[0]})Tj`
-                    + ' 0 -1.2 TD'
-                    + ` (${texts[0].lines[1]})Tj`
-                    + ' 12.637 0 0 12.637 109.1188 54.087 Tm'
-                    + ` (${texts[1].lines[0]})Tj`
-                    + ' T*'
-                    + ` (${texts[1].lines[1]})Tj`
-                    + ' T*'
-                    + ` (${texts[1].lines[2]})Tj`
-                    + ' T*'
-                    + ` (${texts[1].lines[3]})Tj`
-                    + ' ET'
-                    + ' Q';
+    private getSignatureDrawTextOperations(texts: SignatureText[]): PDFOperator[] {
+        const drawOp: PDFOperator[] = [
+            pushGraphicsState(),
+            rectangle(0, 0, 106, 68),
+            beginText(),
+            setFontAndSize(PDFNameEx.Helvetica, 1),
+            setCharacterSpacing(0),
+            setWordSpacing(0),
+            setTextRise(0),
+            setCharacterSqueeze(100),
+            setTextRenderingMode(TextRenderingMode.Fill),
+            setTextMatrix(27.849, 0, 0, 27.849, 1, 43.646),
+            showTextEx(texts[0].lines[0]),
+            moveTextSetLeadingEx(0, -1.2),
+            showTextEx(texts[0].lines[1]),
+            setTextMatrix(12.637, 0, 0, 12.637, 109.1188, 54.087),
+            showTextEx(texts[1].lines[0]),
+            nextLine(),
+            showTextEx(texts[1].lines[1]),
+            nextLine(),
+            showTextEx(texts[1].lines[2]),
+            nextLine(),
+            showTextEx(texts[1].lines[3]),
+            endText(),
+            popGraphicsState()
+        ];
+
+        return drawOp;
     }
 
-    private getSignatureDrawBackgroundOperations(frmName: string): string {
-        return `q 214 0 0 70 0 0 cm /${frmName} Do Q`; /* FIXME: 214, 70 */
+    private getSignatureDrawBackgroundOperations(frmName: string): PDFOperator[] {
+        const drawOp: PDFOperator[] = [
+            pushGraphicsState(),
+            concatTransformationMatrix(214, 0, 0, 70, 0, 0), /* FIXME: 214, 70 */
+            drawObject(frmName),
+            popGraphicsState()
+        ]
+        return drawOp; 
     }
 
     private updateSignatureField(name: string, updateParams: UpdateSignatureFieldParameters): void {
