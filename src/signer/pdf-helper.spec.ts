@@ -18,12 +18,7 @@ import {
   generateSignedPdfAsync,
 } from "../../test/_helpers";
 
-import * as chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
-chai.use(chaiAsPromised);
-
-const expect = chai.expect;
+import { expect } from "chai";
 
 it("_generate", async function () {
   const pdf = await generatePdf17Async({ pageCount: 2 });

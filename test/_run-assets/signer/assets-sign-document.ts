@@ -13,6 +13,7 @@ const _paths = {
   docPdf:                        getPath('doc.pdf'),
   fieldPdf:                      getPath('field.pdf'),
   pageTwoFieldPdf:               getPath('page-two-field.pdf'),
+  twoFieldsPdf:                  getPath('two-fields.pdf'),
   placeholderPdf:                getPath('placeholder.pdf'),
 };
 
@@ -22,12 +23,14 @@ class SignDocumentAssets {
   private _docPdf                        = new BinaryAssetFile(_paths.docPdf);
   private _fieldPdf                      = new BinaryAssetFile(_paths.fieldPdf);
   private _pageTwoFieldPdf               = new BinaryAssetFile(_paths.pageTwoFieldPdf);
+  private _twoFieldsPdf                  = new BinaryAssetFile(_paths.twoFieldsPdf);
   private _placeholderPdf                = new BinaryAssetFile(_paths.placeholderPdf);
 
   public paths = {
     docPdf:                        _paths.docPdf,
     fieldPdf:                      _paths.fieldPdf,
     pageTwoFieldPdf:               _paths.pageTwoFieldPdf,
+    twoFieldsPdf:                  _paths.twoFieldsPdf,
     placeholderPdf:                _paths.placeholderPdf,
   }
 
@@ -41,6 +44,10 @@ class SignDocumentAssets {
 
   get pageTwoFieldPdf() {
     return this._pageTwoFieldPdf.content;
+  }
+
+  get twoFieldsPdf() {
+    return this._twoFieldsPdf.content;
   }
 
   get placeholderPdf() {

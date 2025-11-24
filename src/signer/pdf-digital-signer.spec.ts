@@ -5,19 +5,13 @@ import {
   AddFieldParameters,
 } from "../models/parameters";
 import { SignerSettings } from "../models/settings";
-import { toArrayBuffer, toBuffer } from "../helpers";
 
 import { pdfDigitalSignerAssets } from "../../test/_run-assets/signer/assets-pdf-digital-signer-pdf";
 import { pdfDigitalSignerAssetsRegression } from "../../test/_run-assets/signer/assets-pdf-digital-signer-regression";
 import { commonAssets } from "../../test/_run-assets/_assets-common";
 import { generateAsset, generatePdf17Async } from "../../test/_helpers";
 
-import * as chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
-chai.use(chaiAsPromised);
-
-const expect = chai.expect;
+import { expect } from "chai";
 
 it("_generate", async function () {
   const pdf = await generatePdf17Async({ pageCount: 2 });

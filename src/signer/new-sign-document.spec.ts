@@ -92,6 +92,20 @@ describe("SignDocument", function () {
       await generateAsset.generateBinaryAsync(signDocumentAssets.paths.pageTwoFieldPdf, pageTwoFieldPdf);
       expect(pageTwoFieldPdf).to.be.deep.equal(signDocumentAssets.pageTwoFieldPdf);
     });
+
+    it("adds multiple signature fields", async function () {
+      signDoc.addSignatureField(fieldParams);
+      fieldParams.name = 'Signature2';
+      fieldParams.pageRect.left += 300;
+      fieldParams.pageRect.right += 300;
+      signDoc.addSignatureField(fieldParams);
+      const twoFieldsPdf = await signDoc.saveAsync();
+
+      await generateAsset.generateBinaryAsync(signDocumentAssets.paths.twoFieldsPdf, twoFieldsPdf);
+      expect(twoFieldsPdf).to.be.deep.equal(signDocumentAssets.twoFieldsPdf);
+    });
+
+
   });
 
   describe("addSignaturePlaceholderAsync", function () {

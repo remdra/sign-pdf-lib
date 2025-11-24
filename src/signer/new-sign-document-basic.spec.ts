@@ -131,7 +131,7 @@ describe('SignDocumentBasic', function () {
             expect(placeholderRanges).to.be.deep.equal(signDocumentBasicAssets.placeholderRanges);
         })
 
-        it('throws if no signature placeholder', async function() {
+        it('throws if no signature placeholder', function() {
             expect(() => signDoc.getPlaceholderRanges()).to.throw(NoPlaceholderError);
         })
 
@@ -328,8 +328,8 @@ describe('SignDocumentBasic', function () {
     })
 
     describe('getSignatureRefss', function() {
-        it('returns no signatures (no signatures)', async function() {
-            const signatures = await signDoc.getSignatureRefs();
+        it('returns no signatures (no signatures)', function() {
+            const signatures = signDoc.getSignatureRefs();
 
             expect(signatures).to.have.length(0);
         })
@@ -337,7 +337,7 @@ describe('SignDocumentBasic', function () {
         it('returns signatures', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
 
-            const signatures = await signDoc.getSignatureRefs();
+            const signatures = signDoc.getSignatureRefs();
 
             expect(signatures).to.have.length(2);
         })
@@ -345,7 +345,7 @@ describe('SignDocumentBasic', function () {
         it('returns signatures (for placeholder)', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
 
-            const signatures = await signDoc.getSignatureRefs();
+            const signatures = signDoc.getSignatureRefs();
 
             expect(signatures).to.have.length(1);
         })
@@ -353,7 +353,7 @@ describe('SignDocumentBasic', function () {
         it('returns signatures (for field)', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.fieldPdf);
 
-            const signatures = await signDoc.getSignatureRefs();
+            const signatures = signDoc.getSignatureRefs();
 
             expect(signatures).to.have.length(1);
         })
@@ -363,7 +363,7 @@ describe('SignDocumentBasic', function () {
         it('returns signature', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
 
-            const signature = await signDoc.getSignature('Signature2');
+            const signature = signDoc.getSignature('Signature2');
 
             expect(signature).to.not.be.undefined;
         })
@@ -375,11 +375,11 @@ describe('SignDocumentBasic', function () {
         })
     })
 
-    describe.skip('getUnsignedField', function() {
+    describe('getUnsignedField', function() {
         it('returns unsigned field', async function() {
-            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.fieldPdf);
 
-            const signature = await signDoc.getUnsignedField('Signature');
+            const signature = signDoc.getUnsignedField('Signature');
 
             expect(signature).to.not.be.undefined;
         })
@@ -389,13 +389,19 @@ describe('SignDocumentBasic', function () {
 
             expect(() => signDoc.getUnsignedField('Signature2')).to.throw(AlreadySignedError);
         })
+        
+        it('throws for already signed field (placeholder)', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
+
+            expect(() => signDoc.getUnsignedField('Signature')).to.throw(AlreadySignedError);
+        })
     })
 
     describe('getSignaturePageNumber', function() {
         it('returns signature page', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
 
-            const signaturePage = await signDoc.getSignaturePageNumber('Signature2');
+            const signaturePage = signDoc.getSignaturePageNumber('Signature2');
 
             expect(signaturePage).to.be.equal(1);
         })
@@ -415,7 +421,7 @@ describe('SignDocumentBasic', function () {
 
             expect(signatures).to.have.length(2);
 
-            const signatureBuffer = await signDoc.getSignatureBuffer(signatures[0]);
+            const signatureBuffer = signDoc.getSignatureBuffer(signatures[0]);
             await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.signatureBuffer, signatureBuffer);
             expect(signatureBuffer).to.be.deep.equal(signDocumentBasicAssets.signatureBuffer);
         })
@@ -429,7 +435,7 @@ describe('SignDocumentBasic', function () {
 
             expect(signatures).to.have.length(2);
 
-            const isForEntireDocument = await signDoc.isSignatureForEntireDocument(signatures[1]);
+            const isForEntireDocument = signDoc.isSignatureForEntireDocument(signatures[1]);
             expect(isForEntireDocument).to.be.true;
         })
 
@@ -440,7 +446,7 @@ describe('SignDocumentBasic', function () {
 
             expect(signatures).to.have.length(2);
 
-            const isForEntireDocument = await signDoc.isSignatureForEntireDocument(signatures[0]);
+            const isForEntireDocument = signDoc.isSignatureForEntireDocument(signatures[0]);
             expect(isForEntireDocument).to.be.false;
         })
     })
@@ -449,13 +455,13 @@ describe('SignDocumentBasic', function () {
         it('returns signature count', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
 
-            const signatureCount = await signDoc.getSignatureCount();
+            const signatureCount = signDoc.getSignatureCount();
 
             expect(signatureCount).to.be.equal(2);
         })
 
-        it('returns signature count (no signature)', async function() {
-            const signatureCount = await signDoc.getSignatureCount();
+        it('returns signature count (no signature)', function() {
+            const signatureCount = signDoc.getSignatureCount();
 
             expect(signatureCount).to.be.equal(0);
         })
@@ -463,7 +469,7 @@ describe('SignDocumentBasic', function () {
         it('returns signature count (placeholder)', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
 
-            const signatureCount = await signDoc.getSignatureCount();
+            const signatureCount = signDoc.getSignatureCount();
 
             expect(signatureCount).to.be.equal(1);
         })
@@ -471,15 +477,15 @@ describe('SignDocumentBasic', function () {
         it('returns signature count (field)', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.fieldPdf);
 
-            const signatureCount = await signDoc.getSignatureCount();
+            const signatureCount = signDoc.getSignatureCount();
 
             expect(signatureCount).to.be.equal(1);
         })
     })
 
     describe('getFields', function() {
-        it('returns no fileds (no fields)', async function() {
-            const signatures = await signDoc.getFields();
+        it('returns no fileds (no fields)', function() {
+            const signatures = signDoc.getFields();
 
             expect(signatures).to.have.length(0);
         })
@@ -487,7 +493,7 @@ describe('SignDocumentBasic', function () {
         it('returns no fields (signed)', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
 
-            const signatures = await signDoc.getFields();
+            const signatures = signDoc.getFields();
 
             expect(signatures).to.have.length(0);
         })
@@ -495,7 +501,7 @@ describe('SignDocumentBasic', function () {
         it('returns no fields (for placeholder)', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
 
-            const signatures = await signDoc.getFields();
+            const signatures = signDoc.getFields();
 
             expect(signatures).to.have.length(0);
         })
@@ -503,7 +509,7 @@ describe('SignDocumentBasic', function () {
         it('returns fields (for field)', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.fieldPdf);
 
-            const signatures = await signDoc.getFields();
+            const signatures = signDoc.getFields();
 
             expect(signatures).to.have.length(1);
         })
