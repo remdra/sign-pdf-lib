@@ -63,6 +63,10 @@ export class SignDocument {
 
     #signDoc: SignDocumentBasic;
 
+    static async embedSignatureAsync(pdf: ArrayBuffer | Buffer | Uint8Array, signature: string | Buffer | ArrayBuffer): Promise<Uint8Array> {
+        return await SignDocumentBasic.embedSignatureAsync(pdf, signature);
+    }
+
     static async fromPdfAsync(pdf: ArrayBuffer | Buffer | Uint8Array): Promise<SignDocument> {
         const signingDoc = await SignDocumentBasic.fromPdfAsync(pdf);
 

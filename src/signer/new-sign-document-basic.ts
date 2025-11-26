@@ -1,9 +1,9 @@
 import { Interval, PdfByteRanges, Size } from '../models';
-import { AlreadySignedError, InvalidImageError, NoPlaceholderError, NoSignatureError, NoSignatureFieldError, NotSignedError } from '../errors';
-import { getPdfRangesFromSignature, toUint8Array } from '../helpers';
+import { AlreadySignedError, InvalidImageError, NoPlaceholderError, NoSignatureFieldError, NotSignedError, TooSmallPlaceholderError } from '../errors';
+import { getPdfRangesFromSignature, toBuffer, toUint8Array } from '../helpers';
 import { PDFNameEx } from '../hacks';
 
-import { DocumentSnapshot, mergeUint8Arrays, PDFArray, PDFContentStream, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFObject, PDFOperator, PDFPage, PDFRef, PDFString } from 'pdf-lib';
+import { DocumentSnapshot, mergeIntoTypedArray, mergeUint8Arrays, PDFArray, PDFContentStream, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFObject, PDFOperator, PDFPage, PDFRef, PDFString } from 'pdf-lib';
 import * as _ from 'lodash';
 import { getSignBuffer, loadPdfDocumentAsync, updateByteRange } from './tmp';
 
@@ -17,6 +17,25 @@ export class SignDocumentBasic {
     #pdfDoc: PDFDocument;
     #pdf: Uint8Array;
     #docSnapshot: DocumentSnapshot;
+
+    static async embedSignatureAsync(pdf: ArrayBuffer | Buffer | Uint8Array, signature: string | Buffer | ArrayBuffer): Promise<Uint8Array> {
+        const signDoc = await SignDocumentBasic.fromPdfAsync(pdf);
+
+        const signatureInterval = signDoc.getSignatureIntervalForThePlaceholder();
+        const hexSignature = signDoc.toHexString(signature);
+        if(signatureInterval.length < hexSignature.length) {
+            throw new TooSmallPlaceholderError();
+        }
+        
+        const diffLength = signatureInterval.length - hexSignature.length;
+        const fill = '0'.repeat(diffLength);
+        const fullSignature = mergeIntoTypedArray(hexSignature, fill);
+
+        signDoc.#pdf.set(fullSignature, signatureInterval.start);
+
+        return signDoc.#pdf;
+    }
+
 
     static async fromPdfAsync(pdf: ArrayBuffer | Buffer | Uint8Array): Promise<SignDocumentBasic> {
         const pdfDoc = await loadPdfDocumentAsync(pdf);
@@ -372,6 +391,26 @@ export class SignDocumentBasic {
             start: (byteRange.get(2) as PDFNumber).asNumber(),
             length: (byteRange.get(3) as PDFNumber).asNumber()
         }];
+    }
+
+    private getSignatureIntervalForThePlaceholder(): Interval {
+        const pdfByteIntervals = this.getPdfByteIntervalsForThePlaceholder();
+
+        const start = pdfByteIntervals[0].start + pdfByteIntervals[0].length + 1;
+        const length = pdfByteIntervals[1].start - start - 1;
+
+        return {
+            start,
+            length 
+        };
+    }
+
+    private toHexString(signature: string | Buffer | ArrayBuffer): string {
+        if(typeof signature === 'string') {
+            return signature.toUpperCase();
+        }
+
+        return toBuffer(signature).toString('hex').toUpperCase();
     }
 
     ///////////////////////////remove

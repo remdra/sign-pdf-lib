@@ -33,12 +33,14 @@ const _paths = {
   secondPageResourcesXobjectPdf: getPath('second-page-resources-xobject.pdf'),
   jpgImagePdf:                   getPath('jpg-signature.pdf'),
   pngImagePdf:                   getPath('png-signature.pdf'),
+  signedPdf:                     getPath('signed.pdf'),
   signedTwicePdf:                getPath('signed-twice.pdf'),
   pageFontPdf:                   getPath('page-font.pdf'),
   secondPageFontPdf:             getPath('second-page-font.pdf'),
 
   placeholderBytes:              getPath('placeholder-bytes.bin'),
-  signatureHexString:            getPath('signature-hex-string.hex')
+  hexStringSignature:            getPath('signature-hex-string.hex'),
+  binarySignature:               getPath('signature.bin')
 };
 
 
@@ -67,12 +69,14 @@ class SignDocumentBasicAssets {
   private _secondPageResourcesXobjectPdf = new BinaryAssetFile(_paths.secondPageResourcesXobjectPdf);
   private _jpgImagePdf                   = new BinaryAssetFile(_paths.jpgImagePdf);
   private _pngImagePdf                   = new BinaryAssetFile(_paths.pngImagePdf);
+  private _signedPdf                     = new BinaryAssetFile(_paths.signedPdf);
   private _signedTwicePdf                = new BinaryAssetFile(_paths.signedTwicePdf);
   private _pageFontPdf                   = new BinaryAssetFile(_paths.pageFontPdf);
   private _secondPageFontPdf             = new BinaryAssetFile(_paths.secondPageFontPdf);
 
   private _placeholderBytes              = new BinaryAssetFile(_paths.placeholderBytes);
-  private _signatureHexString            = new TextAssetFile(_paths.signatureHexString);
+  private _hexStringSignature            = new TextAssetFile(_paths.hexStringSignature);
+  private _binarySignature               = new BinaryAssetFile(_paths.binarySignature);
 
   public paths = {
     docPdf:                        _paths.docPdf,
@@ -98,12 +102,14 @@ class SignDocumentBasicAssets {
     secondPageResourcesXobjectPdf: _paths.secondPageResourcesXobjectPdf,
     jpgImagePdf:                   _paths.jpgImagePdf,
     pngImagePdf:                   _paths.pngImagePdf,
+    signedPdf:                     _paths.signedPdf,
     signedTwicePdf:                _paths.signedTwicePdf,
     pageFontPdf:                   _paths.pageFontPdf,
     secondPageFontPdf:             _paths.secondPageFontPdf,
 
     placeholderBytes:   _paths.placeholderBytes,
-    signatureHexString: _paths.signatureHexString
+    hexStringSignature: _paths.hexStringSignature,
+    binarySignature:    _paths.binarySignature
   }
 
   get docPdf() {
@@ -198,6 +204,10 @@ class SignDocumentBasicAssets {
     return this._pngImagePdf.content;
   }
 
+  get signedPdf() {
+    return this._signedPdf.content;
+  }
+
   get signedTwicePdf() {
     return this._signedTwicePdf.content;
   }
@@ -226,8 +236,12 @@ class SignDocumentBasicAssets {
     return this._placeholderBytes.content;
   }
 
-  get signatureHexString() {
-    return this._signatureHexString.content;
+  get hexStringSignature() {
+    return this._hexStringSignature.content;
+  }
+
+  get binarySignature() {
+    return this._binarySignature.content;
   }
 };
 

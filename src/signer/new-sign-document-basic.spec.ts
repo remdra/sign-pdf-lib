@@ -1,5 +1,5 @@
 import { SignDocumentBasic } from './new-sign-document-basic';
-import { AlreadySignedError, InvalidImageError, NoPlaceholderError, NoSignatureFieldError, NotSignedError } from '../errors';
+import { AlreadySignedError, InvalidImageError, NoPlaceholderError, NoSignatureFieldError, NotSignedError, TooSmallPlaceholderError } from '../errors';
 import { toArrayBuffer, toBuffer } from "../helpers";
 
 import { beginText, endText, PDFRef } from 'pdf-lib';
@@ -30,6 +30,34 @@ describe('SignDocumentBasic', function () {
     
     beforeEach(async function () {
         signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.docPdf);
+    })
+
+    describe('embedSignatureAsync', function() {
+
+        it('embeds signature (hex string)', async function() {
+            const signedPdf = await SignDocumentBasic.embedSignatureAsync(signDocumentBasicAssets.placeholderPdf, signDocumentBasicAssets.hexStringSignature);
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.signedPdf, signedPdf);
+            expect(signedPdf).to.be.deep.equal(signDocumentBasicAssets.signedPdf);
+        })
+
+        it('embeds signature (buffer)', async function() {
+            const signedPdf = await SignDocumentBasic.embedSignatureAsync(signDocumentBasicAssets.placeholderPdf, toBuffer(signDocumentBasicAssets.binarySignature));
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.signedPdf, signedPdf);
+            expect(signedPdf).to.be.deep.equal(signDocumentBasicAssets.signedPdf);
+        })
+
+        it('embeds signature (array buffer)', async function() {
+            const signedPdf = await SignDocumentBasic.embedSignatureAsync(signDocumentBasicAssets.placeholderPdf, toArrayBuffer(signDocumentBasicAssets.binarySignature));
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.signedPdf, signedPdf);
+            expect(signedPdf).to.be.deep.equal(signDocumentBasicAssets.signedPdf);
+        })
+
+        it('throws for small placeholder', function() {
+            expect(SignDocumentBasic.embedSignatureAsync(signDocumentBasicAssets.placeholderPdf, signDocumentBasicAssets.hexStringSignature.repeat(3))).to.be.rejectedWith(TooSmallPlaceholderError);
+        })
     })
 
     describe('registerDict', function() {

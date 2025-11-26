@@ -1,4 +1,3 @@
-import { testSettings } from '../../_settings/test-settings';
 import * as fs from 'fs-extra';
 
 export class JsonAssetFile {
@@ -11,9 +10,7 @@ export class JsonAssetFile {
   }
   
   get content(): Buffer {
-    if(!this._content || testSettings.generate) {
-      this._content = fs.readJsonSync(this.path);
-    }
+    this._content = fs.readJsonSync(this.path);
 
     return this._content!;
   }

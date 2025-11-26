@@ -15,8 +15,11 @@ const _paths = {
   pageTwoFieldPdf:               getPath('page-two-field.pdf'),
   twoFieldsPdf:                  getPath('two-fields.pdf'),
   placeholderPdf:                getPath('placeholder.pdf'),
+  signedPdf:                     getPath('signed.pdf'),
 
   placeholderBytes:              getPath('placeholder-bytes.bin'),
+  hexStringSignature:            getPath('signature-hex-string.hex'),
+  binarySignature:               getPath('signature-binary.bin')
 };
 
 
@@ -27,8 +30,11 @@ class SignDocumentAssets {
   private _pageTwoFieldPdf               = new BinaryAssetFile(_paths.pageTwoFieldPdf);
   private _twoFieldsPdf                  = new BinaryAssetFile(_paths.twoFieldsPdf);
   private _placeholderPdf                = new BinaryAssetFile(_paths.placeholderPdf);
+  private _signedPdf                     = new BinaryAssetFile(_paths.signedPdf);
 
   private _placeholderBytes              = new BinaryAssetFile(_paths.placeholderBytes);
+  private _hexStringSignature            = new TextAssetFile(_paths.hexStringSignature);
+  private _binarySignature               = new TextAssetFile(_paths.binarySignature);
   
   public paths = {
     docPdf:                        _paths.docPdf,
@@ -36,8 +42,11 @@ class SignDocumentAssets {
     pageTwoFieldPdf:               _paths.pageTwoFieldPdf,
     twoFieldsPdf:                  _paths.twoFieldsPdf,
     placeholderPdf:                _paths.placeholderPdf,
+    signedPdf:                     _paths.signedPdf,
 
     placeholderBytes:   _paths.placeholderBytes,
+    hexStringSignature: _paths.hexStringSignature,
+    binarySignature:   _paths.binarySignature
   }
 
   get docPdf() {
@@ -60,12 +69,24 @@ class SignDocumentAssets {
     return this._placeholderPdf.content;
   }
 
+  get signedPdf() {
+    return this._signedPdf.content;
+  }
+
   get signatureBackground() {
     return commonAssets.pngImage;
   }
 
   get placeholderBytes() {
     return this._placeholderBytes.content;
+  }
+
+  get hexStringSignature() {
+    return this._hexStringSignature.content;
+  }
+
+  get binarySignature() {
+    return this._binarySignature.content;
   }
 };
 

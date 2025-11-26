@@ -74,6 +74,16 @@ describe("SignDocument", function () {
     );
   });
 
+  describe('embedSignatureAsync', function() {
+    it('embeds signature', async function() {
+      const signedPdf = await SignDocument.embedSignatureAsync(signDocumentAssets.placeholderPdf, signDocumentAssets.hexStringSignature);
+  
+      await generateAsset.generateBinaryAsync(signDocumentAssets.paths.signedPdf, signedPdf);
+      expect(signedPdf).to.be.deep.equal(signDocumentAssets.signedPdf);
+    })
+  })
+
+
   describe("addSignatureField", function () {
     it("adds signature field", async function () {
       signDoc.addSignatureField(fieldParams);
