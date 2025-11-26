@@ -3,6 +3,7 @@ import { PDFName } from "pdf-lib";
 export class PDFNameEx {
     static Annot = PDFName.of('Annot');
     static AP = PDFName.of('AP');
+    static ByteRange = PDFName.of('ByteRange');
     static Fields = PDFName.of('Fields');
     static FT = PDFName.of('FT');
     static N = PDFName.of('N');

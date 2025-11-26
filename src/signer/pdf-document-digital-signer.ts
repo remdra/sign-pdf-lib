@@ -108,7 +108,7 @@ export class PdfDocumentDigitalSigner {
     private constructor(signingDoc: SignDocumentBasic) {
         this.#signingDoc = signingDoc;
         
-        this.#nameProvider = new NameProvider(this.#signingDoc.getSignatureCount() + 1);
+        this.#nameProvider = new NameProvider(this.#signingDoc.getSignatureFieldCount() + 1);
     }
 
     addSignatureField({ name, pageIndex, rectangle, visualRef, placeholderRef, embedFont }: AddSignatureFieldParameters): void {
@@ -273,7 +273,7 @@ export class PdfDocumentDigitalSigner {
     }
 
     updateSignature(name: string, { placeholderRef, visualRef, embedFont }: UpdateSignatureParameters): void {
-        const signature = this.#signingDoc.getSignature(name);
+        const signature = this.#signingDoc.getSignatureField(name);
         if(signature.get(PDFName.of('V'))) {
             throw new AlreadySignedError(name);
         }
@@ -298,6 +298,6 @@ export class PdfDocumentDigitalSigner {
     }
 
     getPlaceholderRanges(): PdfByteRanges {
-        return this.#signingDoc.getPlaceholderRanges();
+        return this.#signingDoc.getPlaceholderRangesOld();
     }
 }

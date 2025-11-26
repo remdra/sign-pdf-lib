@@ -97,6 +97,10 @@ export class SignDocument {
         await this.addSignaturePlaceholderForFieldAsync(placeholderParams);
     }
 
+    getPdfBytesForThePlaceholder(): Uint8Array {
+        return this.#signDoc.getPdfBytesForThePlaceholder();
+    }
+
     async saveAsync(): Promise<Uint8Array> {
         return await this.#signDoc.saveAsync();
     }

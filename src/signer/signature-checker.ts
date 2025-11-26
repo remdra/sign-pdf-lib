@@ -27,21 +27,21 @@ export class SignatureChecker {
     }
 
     async verifySignaturesAsync(): Promise<PdfVerifySignaturesResult | undefined> {
-        const signatures = this.#signingDoc.getSignatureRefs();
+        const fields = this.#signingDoc.getSignatureFieldRefs();
         
-        if(_.isEmpty(signatures)) {
+        if(_.isEmpty(fields)) {
             return undefined;
         }
 
         const checks: VerifySignatureResult[] = [];
         let integrity = true;
-        for(let i = 0; i < signatures.length; i++) {
-            const signature = signatures[i];
-            const check = await this.verifySignatureAsync(signature, i == signatures.length - 1);
+        for(let i = 0; i < fields.length; i++) {
+            const signature = fields[i];
+            const check = await this.verifySignatureAsync(signature, i == fields.length - 1);
             checks.push(check);
             if('integrity' in check ) {
                 integrity = integrity && check.integrity;
-            } else if( i !== signatures.length - 1) {
+            } else if( i !== fields.length - 1) {
                 integrity = false;
             }
         }
@@ -60,13 +60,13 @@ export class SignatureChecker {
             };
         }
     
-        const signBuffer = this.#signingDoc.getSignatureBuffer(signature); 
+        const signBuffer = this.#signingDoc.getSignatureBufferOld(signature); 
         const signatureHexStr = getSignatureHexString(signature);
         const signatureStr = Buffer.from(signatureHexStr, 'hex').toString('latin1');
         
         const message = getMessageFromSignature(signatureStr);
 
-        const appended = isLast && !this.#signingDoc.isSignatureForEntireDocument(signature);
+        const appended = isLast && !this.#signingDoc.isSignatureForEntireDocumentOld(signature);
         
         const { 
             rawCapture: {

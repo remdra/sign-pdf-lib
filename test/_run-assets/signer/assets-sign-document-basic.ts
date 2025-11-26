@@ -22,8 +22,8 @@ const _paths = {
   registerStreamPdf:             getPath('register-stream.pdf'),
   markObjAsChangedPdf:           getPath('mark-obj-as-changed.pdf'),
   savePdf:                       getPath('save.pdf'),
-  placeholderRanges:             getPath('ranges-placeholder.json'),
-  signatureRanges:               getPath('ranges-signature.json'),
+  placeholderIntervals:          getPath('intervals-placeholder.json'),
+  signatureIntervals:            getPath('intervals-signature.json'),
   acroFormPdf:                   getPath('acro-form.pdf'),
   pageAnnotsPdf:                 getPath('page-annots.pdf'),
   secondPageAnnotsPdf:           getPath('second-page-annots.pdf'),
@@ -37,7 +37,7 @@ const _paths = {
   pageFontPdf:                   getPath('page-font.pdf'),
   secondPageFontPdf:             getPath('second-page-font.pdf'),
 
-  signatureBuffer:               getPath('signature-buffer.bin'),
+  placeholderBytes:              getPath('placeholder-bytes.bin'),
   signatureHexString:            getPath('signature-hex-string.hex')
 };
 
@@ -56,8 +56,8 @@ class SignDocumentBasicAssets {
   private _registerStreamPdf             = new BinaryAssetFile(_paths.registerStreamPdf);
   private _markObjAsChangedPdf           = new BinaryAssetFile(_paths.markObjAsChangedPdf);
   private _savePdf                       = new BinaryAssetFile(_paths.savePdf);
-  private _placeholderRanges             = new JsonAssetFile(_paths.placeholderRanges);
-  private _signatureRanges               = new JsonAssetFile(_paths.signatureRanges);
+  private _placeholderIntervals          = new JsonAssetFile(_paths.placeholderIntervals);
+  private _signatureIntervals            = new JsonAssetFile(_paths.signatureIntervals);
   private _acroFormPdf                   = new BinaryAssetFile(_paths.acroFormPdf);
   private _pageAnnotsPdf                 = new BinaryAssetFile(_paths.pageAnnotsPdf);
   private _secondPageAnnotsPdf           = new BinaryAssetFile(_paths.secondPageAnnotsPdf);
@@ -71,7 +71,7 @@ class SignDocumentBasicAssets {
   private _pageFontPdf                   = new BinaryAssetFile(_paths.pageFontPdf);
   private _secondPageFontPdf             = new BinaryAssetFile(_paths.secondPageFontPdf);
 
-  private _signatureBuffer               = new BinaryAssetFile(_paths.signatureBuffer);
+  private _placeholderBytes              = new BinaryAssetFile(_paths.placeholderBytes);
   private _signatureHexString            = new TextAssetFile(_paths.signatureHexString);
 
   public paths = {
@@ -87,8 +87,8 @@ class SignDocumentBasicAssets {
     registerStreamPdf:             _paths.registerStreamPdf,
     markObjAsChangedPdf:           _paths.markObjAsChangedPdf,
     savePdf:                       _paths.savePdf,
-    placeholderRanges:             _paths.placeholderRanges,
-    signatureRanges:               _paths.signatureRanges,
+    placeholderIntervals:          _paths.placeholderIntervals,
+    signatureIntervals:            _paths.signatureIntervals,
     acroFormPdf:                   _paths.acroFormPdf,
     pageAnnotsPdf:                 _paths.pageAnnotsPdf,
     secondPageAnnotsPdf:           _paths.secondPageAnnotsPdf,
@@ -102,7 +102,7 @@ class SignDocumentBasicAssets {
     pageFontPdf:                   _paths.pageFontPdf,
     secondPageFontPdf:             _paths.secondPageFontPdf,
 
-    signatureBuffer:    _paths.signatureBuffer,
+    placeholderBytes:   _paths.placeholderBytes,
     signatureHexString: _paths.signatureHexString
   }
 
@@ -154,12 +154,12 @@ class SignDocumentBasicAssets {
     return this._savePdf.content;
   }
 
-  get placeholderRanges() {
-    return this._placeholderRanges.content;
+  get placeholderIntervals() {
+    return this._placeholderIntervals.content;
   }
 
-  get signatureRanges() {
-    return this._signatureRanges.content;
+  get signatureIntervals() {
+    return this._signatureIntervals.content;
   }
 
   get acroFormPdf() {
@@ -222,8 +222,8 @@ class SignDocumentBasicAssets {
     return commonAssets.badImage;
   }
 
-  get signatureBuffer() {
-    return this._signatureBuffer.content;
+  get placeholderBytes() {
+    return this._placeholderBytes.content;
   }
 
   get signatureHexString() {

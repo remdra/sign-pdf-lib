@@ -25,7 +25,7 @@ export function getSignatureName(signature: PDFDict): string {
     return value.asString();
 }    
 
-export function getPdfRangesFromSignature(signature: PDFDict): PdfByteRanges {
+export function getPdfRangesFromSignature(signature: PDFDict): PdfByteRanges {///////////////////
     if(!signature.get(PDFName.of('V'))) {
         throw new NoPlaceholderError();
     }

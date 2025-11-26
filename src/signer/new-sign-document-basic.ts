@@ -1,11 +1,16 @@
-import { PdfByteRanges, Size } from '../models';
-import { AlreadySignedError, InvalidImageError, NoPlaceholderError, SignatureNotFoundError } from '../errors';
+import { Interval, PdfByteRanges, Size } from '../models';
+import { AlreadySignedError, InvalidImageError, NoPlaceholderError, NoSignatureError, NoSignatureFieldError, NotSignedError } from '../errors';
 import { getPdfRangesFromSignature, toUint8Array } from '../helpers';
 import { PDFNameEx } from '../hacks';
 
-import { DocumentSnapshot, mergeUint8Arrays, PDFArray, PDFContentStream, PDFDict, PDFDocument, PDFImage, PDFName, PDFNumber, PDFObject, PDFOperator, PDFPage, PDFRef, PDFString } from 'pdf-lib';
+import { DocumentSnapshot, mergeUint8Arrays, PDFArray, PDFContentStream, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFObject, PDFOperator, PDFPage, PDFRef, PDFString } from 'pdf-lib';
 import * as _ from 'lodash';
 import { getSignBuffer, loadPdfDocumentAsync, updateByteRange } from './tmp';
+
+
+function isSignature(str: string): boolean {
+    return str.split('').some(ch => ch != str[0]);
+}
 
 export class SignDocumentBasic {
 
@@ -74,11 +79,6 @@ export class SignDocumentBasic {
         this.markForSave(page, PDFName.Resources);
     }
 
-    registerStreamOld(drawBuffer: string, visualObj: any): PDFRef { /*FIXME remove */
-        const visual = this.#pdfDoc.context.stream(drawBuffer, visualObj);
-        return this.#pdfDoc.context.register(visual);
-    }
-
     registerStream(ops: PDFOperator[], obj: {}): PDFRef {
         const dict = this.#pdfDoc.context.obj(obj);
         const stream = PDFContentStream.of(dict, ops, false);
@@ -89,6 +89,22 @@ export class SignDocumentBasic {
         this.#docSnapshot.markObjForSave(obj);
     }
 
+    async embedImageAsync(image: ArrayBuffer | Buffer): Promise<PDFRef> {
+        let img: PDFImage;
+        try { 
+            img = await this.#pdfDoc.embedJpg(image);
+        } catch {
+            try {
+                img = await this.#pdfDoc.embedPng(image);
+            } catch {
+                throw new InvalidImageError();
+            }
+        }
+        await img.embed();
+    
+        return img.ref;
+    }   
+
     async saveAsync(): Promise<Uint8Array> {
         let incrementalPdf = await this.#pdfDoc.saveIncremental(this.#docSnapshot);
         incrementalPdf = updateByteRange(incrementalPdf, this.#pdf.length);
@@ -97,18 +113,6 @@ export class SignDocumentBasic {
             this.#pdf,
             incrementalPdf
         ]);
-    }
-
-    getPlaceholderRanges(): PdfByteRanges {
-        const signatureRefs = this.getSignatureRefs();
-        const lastSignatureRef = _.last(signatureRefs);
-
-        if(!lastSignatureRef) {
-            throw new NoPlaceholderError();
-        }
-    
-        const lastSignature = this.#pdfDoc.context.lookup(lastSignatureRef, PDFDict);
-        return getPdfRangesFromSignature(lastSignature);
     }
 
     ensureAcroForm(): void {
@@ -185,43 +189,21 @@ export class SignDocumentBasic {
         this.#docSnapshot.markRefForSave(pageRef);
     }
 
-    ensureSignatureFontOld(pageIndex: number): void { /* FIXME: remove */
-        const page = this.#pdfDoc.getPage(pageIndex);
-        const pageDict = page.node;
-        const resources = pageDict.lookup(PDFName.Resources, PDFDict);
-        const fontDict = resources.lookup(PDFName.Font, PDFDict);
-        if(fontDict.has(PDFNameEx.Helvetica)) {
-            return;
-        }
+    getPdfByteIntervalsForThePlaceholder(): Interval[] {
+        const placeholder = this.getThePlaceholder();
+        const byteRange = placeholder.lookup(PDFNameEx.ByteRange, PDFArray);
 
-        const fontRef = this.registerFont(PDFNameEx.Helvetica);
-        fontDict.set(PDFNameEx.Helvetica, fontRef);
-        const obj = pageDict.get(PDFName.Resources);
-        if(obj instanceof PDFRef) {
-            this.#docSnapshot.markRefForSave(obj);
-        } else {
-            this.#docSnapshot.markRefForSave(page.ref);
-        }
-
+        return this.convertByteRangeToIntervals(byteRange);
     }
 
-    async embedImageAsync(image: ArrayBuffer | Buffer): Promise<PDFRef> {
-        let img: PDFImage;
-        try { 
-            img = await this.#pdfDoc.embedJpg(image);
-        } catch {
-            try {
-                img = await this.#pdfDoc.embedPng(image);
-            } catch {
-                throw new InvalidImageError();
-            }
-        }
-        await img.embed();
-    
-        return img.ref;
-    }   
+    getPdfByteIntervalsForSignature(name: string): Interval[] {
+        const signature = this.getSignature(name);
+        const byteRange = signature.lookup(PDFNameEx.ByteRange, PDFArray);
 
-    getSignatureRefs(): PDFDict[] {
+        return this.convertByteRangeToIntervals(byteRange);
+    }
+
+    getSignatureFieldRefs(): PDFDict[] {
         if(!this.#pdfDoc.catalog.AcroForm()) {
             return [];
         }
@@ -231,10 +213,7 @@ export class SignDocumentBasic {
 
         return formFields.asArray()
             .filter(ref => {
-                const dict = this.#pdfDoc.context.lookupMaybe(ref, PDFDict);
-                if(!dict) {
-                    return false;
-                }
+                const dict = this.#pdfDoc.context.lookup(ref, PDFDict);
                 return dict.lookupMaybe(PDFNameEx.FT, PDFName) == PDFNameEx.Sig
                         && dict.lookupMaybe(PDFName.Type, PDFName) == PDFNameEx.Annot
                         && dict.lookupMaybe(PDFNameEx.Subtype, PDFName) == PDFNameEx.Widget;
@@ -243,19 +222,19 @@ export class SignDocumentBasic {
             .map(ref => this.#pdfDoc.context.lookup(ref, PDFDict));
     }
 
-    getSignature(name: string): PDFDict {
-        const signatures = this.getSignatureRefs();
-        for(let i= 0; i < signatures.length; i++) {
-            const signature = this.#pdfDoc.context.lookup(signatures[i], PDFDict);
+    getSignatureField(name: string): PDFDict {
+        const fields = this.getSignatureFieldRefs();
+        for(let i = 0; i < fields.length; i++) {
+            const signature = this.#pdfDoc.context.lookup(fields[i], PDFDict);
             if(signature.lookup(PDFNameEx.T, PDFString).asString() === name) {
                 return signature;
             };
         };
-        throw new SignatureNotFoundError(name);
+        throw new NoSignatureFieldError(name);
     }
 
     getUnsignedField(name: string): PDFDict {
-        const signature = this.getSignature(name);
+        const signature = this.getSignatureField(name);
         if(signature.has(PDFNameEx.V)) {
             throw new AlreadySignedError(name);
         }
@@ -263,7 +242,7 @@ export class SignDocumentBasic {
         return signature;
     }
 
-    getSignaturePageNumber(name: string): number {
+    getSignatureFieldPageNumber(name: string): number {
         for(let i = 0; i < this.#pdfDoc.getPageCount(); i++) {
             const page = this.#pdfDoc.getPage(i);
             const annotRefs = page.node.Annots();
@@ -277,27 +256,16 @@ export class SignDocumentBasic {
                 }
             } 
         }
-        throw new SignatureNotFoundError(name);
+        throw new NoSignatureFieldError(name);
     }
 
-    getSignatureBuffer(signature: PDFDict): Uint8Array {
-        const signRanges = getPdfRangesFromSignature(signature); 
-        return getSignBuffer(this.#pdf, signRanges);
+    getPdfBytesForThePlaceholder(): Uint8Array {
+        const intervals = this.getPdfByteIntervalsForThePlaceholder();
+        return this.getPdfBytes(intervals)
     }
 
-    isSignatureForEntireDocument(signature: PDFDict): boolean {
-        const signRanges = getPdfRangesFromSignature(signature); 
-        return signRanges.after.start + signRanges.after.length === this.#pdf.length;
-    }
-    
-    getSignatureCount(): number {
-        return this.getSignatureRefs().length;
-    }
-
-    getFields(): PDFDict[] {
-        return this.getSignatureRefs()
-            .map(ref => this.#pdfDoc.context.lookup(ref, PDFDict))
-            .filter(dict => !dict.has(PDFNameEx.V));
+    getSignatureFieldCount(): number {
+        return this.getSignatureFieldRefs().length;
     }
 
     getPageSize(pageIndex: number): Size {
@@ -314,6 +282,45 @@ export class SignDocumentBasic {
 
     getDict(ref: PDFRef): PDFDict {
         return this.#pdfDoc.context.lookup(ref, PDFDict);
+    }
+
+    getThePlaceholder(): PDFDict {
+        const fieldRefs = this.getSignatureFieldRefs();
+        const lastFieldRef = _.last(fieldRefs);
+
+        if(!lastFieldRef) {
+            throw new NoPlaceholderError();
+        }
+    
+        const lastField = this.#pdfDoc.context.lookup(lastFieldRef, PDFDict);
+        if(!lastField.has(PDFNameEx.V)) {
+            throw new NoPlaceholderError();
+        }
+
+        const placeholderV = lastField.lookup(PDFNameEx.V, PDFDict);
+    
+        const contents = placeholderV.lookup(PDFName.Contents, PDFHexString).asString();
+        if(isSignature(contents)) {
+            const name = lastField.lookup(PDFNameEx.T, PDFString).asString();
+            throw new AlreadySignedError(name);
+        }
+
+        return placeholderV;
+    }
+
+    getSignature(name: string): PDFDict {
+        const field = this.getSignatureField(name);
+        if(!field.has(PDFNameEx.V)) {
+            throw new NotSignedError(name);
+        }
+
+        const placeholderV = field.lookup(PDFNameEx.V, PDFDict);
+        const contents = placeholderV.lookup(PDFName.Contents, PDFHexString).asString();
+        if(!isSignature(contents)) {
+            throw new NotSignedError(name);
+        }
+
+        return placeholderV;
     }
 
     private markForSave(page: PDFDict, name: PDFName): void {
@@ -335,12 +342,89 @@ export class SignDocumentBasic {
         return this.#pdfDoc.context.register(font);
     }
 
-    ensurePageResources(page: PDFDict): void {
+    private ensurePageResources(page: PDFDict): void {
         if(page.has(PDFName.Resources)) {
             return;
         }
 
         const resources = this.#pdfDoc.context.obj({});
         page.set(PDFName.Resources, resources);
+    }
+
+    private getPdfBytes(intervals: Interval[]): Uint8Array {
+        const length = intervals.map(i => i.length).reduce((t, l) => t + l, 0);
+
+        const buffer = new Uint8Array(length);
+        let offset = 0;
+        intervals.forEach(interval => {
+            buffer.set(this.#pdf.subarray(interval.start, interval.start + interval.length), offset);
+            offset += interval.length;
+        });
+
+        return buffer;
+    }
+
+    private convertByteRangeToIntervals(byteRange: PDFArray): Interval[] {
+        return [{
+            start: (byteRange.get(0) as PDFNumber).asNumber(),
+            length: (byteRange.get(1) as PDFNumber).asNumber()
+        }, {
+            start: (byteRange.get(2) as PDFNumber).asNumber(),
+            length: (byteRange.get(3) as PDFNumber).asNumber()
+        }];
+    }
+
+    ///////////////////////////remove
+    ensureSignatureFontOld(pageIndex: number): void { /* FIXME: remove */
+        const page = this.#pdfDoc.getPage(pageIndex);
+        const pageDict = page.node;
+        const resources = pageDict.lookup(PDFName.Resources, PDFDict);
+        const fontDict = resources.lookup(PDFName.Font, PDFDict);
+        if(fontDict.has(PDFNameEx.Helvetica)) {
+            return;
+        }
+
+        const fontRef = this.registerFont(PDFNameEx.Helvetica);
+        fontDict.set(PDFNameEx.Helvetica, fontRef);
+        const obj = pageDict.get(PDFName.Resources);
+        if(obj instanceof PDFRef) {
+            this.#docSnapshot.markRefForSave(obj);
+        } else {
+            this.#docSnapshot.markRefForSave(page.ref);
+        }
+
+    }
+
+    registerStreamOld(drawBuffer: string, visualObj: any): PDFRef { /*FIXME remove */
+        const visual = this.#pdfDoc.context.stream(drawBuffer, visualObj);
+        return this.#pdfDoc.context.register(visual);
+    }
+
+    getPlaceholderRangesOld(): PdfByteRanges { /*FIXME: remove */
+        const signatureRefs = this.getSignatureFieldRefs();
+        const lastSignatureRef = _.last(signatureRefs);
+
+        if(!lastSignatureRef) {
+            throw new NoPlaceholderError();
+        }
+    
+        const lastSignature = this.#pdfDoc.context.lookup(lastSignatureRef, PDFDict);
+        return getPdfRangesFromSignature(lastSignature);
+    }
+
+    getSignatureBufferOld(signature: PDFDict): Uint8Array {/*FIXME REMOVE */
+        const signRanges = getPdfRangesFromSignature(signature); 
+        return getSignBuffer(this.#pdf, signRanges);/////////////////
+    }
+
+    isSignatureForEntireDocumentOld(signature: PDFDict): boolean {/*FIXME REMOVE */
+        const signRanges = getPdfRangesFromSignature(signature); 
+        return signRanges.after.start + signRanges.after.length === this.#pdf.length;
+    }
+    
+    getFieldsOld(): PDFDict[] { /*************** */
+        return this.getSignatureFieldRefs()
+            .map(ref => this.#pdfDoc.context.lookup(ref, PDFDict))
+            .filter(dict => !dict.has(PDFNameEx.V));
     }
 }

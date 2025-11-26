@@ -64,7 +64,7 @@ export function updateByteRange(incrementalPdf: Buffer | Uint8Array, initialPdfL
 //    ]);
 }
 
-export function getSignBuffer(pdf: Uint8Array, signRanges: PdfByteRanges): Uint8Array {
+export function getSignBuffer(pdf: Uint8Array, signRanges: PdfByteRanges): Uint8Array {//////////////////
     return mergeUint8Arrays([
         pdf.subarray(signRanges.before.start, signRanges.before.start + signRanges.before.length), 
         pdf.subarray(signRanges.after.start, signRanges.after.start + signRanges.after.length)

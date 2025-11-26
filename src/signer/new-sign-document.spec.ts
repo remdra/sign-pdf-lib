@@ -117,4 +117,15 @@ describe("SignDocument", function () {
       expect(placeholderPdf).to.be.deep.equal(signDocumentAssets.placeholderPdf);
     });
   });
+
+  describe('getPdfBytesForThePlaceholder', function() {
+    it('returns placeholder bytes', async function() {
+      signDoc = await SignDocument.fromPdfAsync(signDocumentAssets.placeholderPdf);
+  
+      const placeholderBytes = signDoc.getPdfBytesForThePlaceholder();
+  
+      await generateAsset.generateBinaryAsync(signDocumentAssets.paths.placeholderBytes, placeholderBytes);
+      expect(placeholderBytes).to.be.deep.equal(signDocumentAssets.placeholderBytes);
+    })
+  })
 });

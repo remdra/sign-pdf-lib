@@ -62,9 +62,9 @@ export async function verifySignaturesAsync(
 
 export async function getFieldsAsync(pdf: ArrayBuffer | Buffer): Promise<SignatureField[]> {
   const signingDoc = await SignDocumentBasic.fromPdfAsync(pdf);
-  return signingDoc.getFields().map((field) => {
+  return signingDoc.getFieldsOld().map((field) => {
     const name = field.lookup(PDFName.of("T"), PDFString).asString();
-    const pageNumber = signingDoc.getSignaturePageNumber(name);
+    const pageNumber = signingDoc.getSignatureFieldPageNumber(name);
     return {
       name,
       pageNumber,

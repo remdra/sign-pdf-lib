@@ -1,5 +1,5 @@
 import { SignDocumentBasic } from './new-sign-document-basic';
-import { AlreadySignedError, InvalidImageError, NoPlaceholderError, SignatureNotFoundError } from '../errors';
+import { AlreadySignedError, InvalidImageError, NoPlaceholderError, NoSignatureFieldError, NotSignedError } from '../errors';
 import { toArrayBuffer, toBuffer } from "../helpers";
 
 import { beginText, endText, PDFRef } from 'pdf-lib';
@@ -112,36 +112,72 @@ describe('SignDocumentBasic', function () {
         })
     })
 
+    describe('embedImageAsync', function() {
+        it('embeds jpg image', async function() {
+            await signDoc.embedImageAsync(signDocumentBasicAssets.jpgImage);
+
+            const jpgImagePdf = await signDoc.saveAsync();
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.jpgImagePdf, jpgImagePdf);
+            expect(jpgImagePdf).to.be.deep.equal(signDocumentBasicAssets.jpgImagePdf);
+        })
+
+        it('embeds jpg image (ArrayBuffer)', async function() {
+            await signDoc.embedImageAsync(toArrayBuffer(signDocumentBasicAssets.jpgImage));
+
+            const jpgImagePdf = await signDoc.saveAsync();
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.jpgImagePdf, jpgImagePdf);
+            expect(jpgImagePdf).to.be.deep.equal(signDocumentBasicAssets.jpgImagePdf);
+        })
+
+        it('embeds jpg image (Buffer)', async function() {
+            await signDoc.embedImageAsync(toBuffer(signDocumentBasicAssets.jpgImage));
+
+            const jpgImagePdf = await signDoc.saveAsync();
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.jpgImagePdf, jpgImagePdf);
+            expect(jpgImagePdf).to.be.deep.equal(signDocumentBasicAssets.jpgImagePdf);
+        })
+
+        it('embeds png image', async function() {
+            await signDoc.embedImageAsync(signDocumentBasicAssets.pngImage);
+
+            const pngImagePdf = await signDoc.saveAsync();
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.pngImagePdf, pngImagePdf);
+            expect(pngImagePdf).to.be.deep.equal(signDocumentBasicAssets.pngImagePdf);
+        })
+
+        it('embeds png image (ArrayBuffer)', async function() {
+            await signDoc.embedImageAsync(toArrayBuffer(signDocumentBasicAssets.pngImage));
+
+            const pngImagePdf = await signDoc.saveAsync();
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.pngImagePdf, pngImagePdf);
+            expect(pngImagePdf).to.be.deep.equal(signDocumentBasicAssets.pngImagePdf);
+        })
+
+        it('embeds png image (Buffer)', async function() {
+            await signDoc.embedImageAsync(toBuffer(signDocumentBasicAssets.pngImage));
+
+            const pngImagePdf = await signDoc.saveAsync();
+
+            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.pngImagePdf, pngImagePdf);
+            expect(pngImagePdf).to.be.deep.equal(signDocumentBasicAssets.pngImagePdf);
+        })
+
+        it('throws for bad image', async function() {
+            await expect(signDoc.embedImageAsync(signDocumentBasicAssets.badImage)).to.be.rejectedWith(InvalidImageError);
+        })
+    })
+
     describe('saveAsync', function() {
         it('saves pdf', async function() {
             const savePdf = await signDoc.saveAsync();
 
             await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.savePdf, savePdf);
             expect(savePdf).to.be.deep.equal(signDocumentBasicAssets.savePdf);
-        })
-    })
-
-    describe('getPlaceholderRanges', function() {
-        it('returns signature placeholder ranges', async function() {
-            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
-
-            const placeholderRanges = signDoc.getPlaceholderRanges();
-
-            await generateAsset.generateJsonAsync(signDocumentBasicAssets.paths.placeholderRanges, placeholderRanges);
-            expect(placeholderRanges).to.be.deep.equal(signDocumentBasicAssets.placeholderRanges);
-        })
-
-        it('throws if no signature placeholder', function() {
-            expect(() => signDoc.getPlaceholderRanges()).to.throw(NoPlaceholderError);
-        })
-
-        it('returns signature ranges', async function() {
-            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
-
-            const signatureRanges = signDoc.getPlaceholderRanges();
-
-            await generateAsset.generateJsonAsync(signDocumentBasicAssets.paths.signatureRanges, signatureRanges);
-            expect(signatureRanges).to.be.deep.equal(signDocumentBasicAssets.signatureRanges);
         })
     })
 
@@ -267,111 +303,73 @@ describe('SignDocumentBasic', function () {
 
     })
 
-    describe('embedImageAsync', function() {
-        it('embeds jpg image', async function() {
-            await signDoc.embedImageAsync(signDocumentBasicAssets.jpgImage);
-
-            const jpgImagePdf = await signDoc.saveAsync();
-
-            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.jpgImagePdf, jpgImagePdf);
-            expect(jpgImagePdf).to.be.deep.equal(signDocumentBasicAssets.jpgImagePdf);
-        })
-
-        it('embeds jpg image (ArrayBuffer)', async function() {
-            await signDoc.embedImageAsync(toArrayBuffer(signDocumentBasicAssets.jpgImage));
-
-            const jpgImagePdf = await signDoc.saveAsync();
-
-            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.jpgImagePdf, jpgImagePdf);
-            expect(jpgImagePdf).to.be.deep.equal(signDocumentBasicAssets.jpgImagePdf);
-        })
-
-        it('embeds jpg image (Buffer)', async function() {
-            await signDoc.embedImageAsync(toBuffer(signDocumentBasicAssets.jpgImage));
-
-            const jpgImagePdf = await signDoc.saveAsync();
-
-            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.jpgImagePdf, jpgImagePdf);
-            expect(jpgImagePdf).to.be.deep.equal(signDocumentBasicAssets.jpgImagePdf);
-        })
-
-        it('embeds png image', async function() {
-            await signDoc.embedImageAsync(signDocumentBasicAssets.pngImage);
-
-            const pngImagePdf = await signDoc.saveAsync();
-
-            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.pngImagePdf, pngImagePdf);
-            expect(pngImagePdf).to.be.deep.equal(signDocumentBasicAssets.pngImagePdf);
-        })
-
-        it('embeds png image (ArrayBuffer)', async function() {
-            await signDoc.embedImageAsync(toArrayBuffer(signDocumentBasicAssets.pngImage));
-
-            const pngImagePdf = await signDoc.saveAsync();
-
-            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.pngImagePdf, pngImagePdf);
-            expect(pngImagePdf).to.be.deep.equal(signDocumentBasicAssets.pngImagePdf);
-        })
-
-        it('embeds png image (Buffer)', async function() {
-            await signDoc.embedImageAsync(toBuffer(signDocumentBasicAssets.pngImage));
-
-            const pngImagePdf = await signDoc.saveAsync();
-
-            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.pngImagePdf, pngImagePdf);
-            expect(pngImagePdf).to.be.deep.equal(signDocumentBasicAssets.pngImagePdf);
-        })
-
-        it('throws for bad image', async function() {
-            await expect(signDoc.embedImageAsync(signDocumentBasicAssets.badImage)).to.be.rejectedWith(InvalidImageError);
-        })
-    })
-
-    describe('getSignatureRefss', function() {
-        it('returns no signatures (no signatures)', function() {
-            const signatures = signDoc.getSignatureRefs();
-
-            expect(signatures).to.have.length(0);
-        })
-
-        it('returns signatures', async function() {
-            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
-
-            const signatures = signDoc.getSignatureRefs();
-
-            expect(signatures).to.have.length(2);
-        })
-
-        it('returns signatures (for placeholder)', async function() {
+    describe('getPdfByteIntervalsForThePlaceholder', function() {
+        it('returns signature placeholder intervals', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
 
-            const signatures = signDoc.getSignatureRefs();
+            const intervals = signDoc.getPdfByteIntervalsForThePlaceholder();
 
-            expect(signatures).to.have.length(1);
-        })
-
-        it('returns signatures (for field)', async function() {
-            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.fieldPdf);
-
-            const signatures = signDoc.getSignatureRefs();
-
-            expect(signatures).to.have.length(1);
+            await generateAsset.generateJsonAsync(signDocumentBasicAssets.paths.placeholderIntervals, intervals);
+            expect(intervals).to.be.deep.equal(signDocumentBasicAssets.placeholderIntervals);
         })
     })
 
-    describe('getSignature', function() {
-        it('returns signature', async function() {
+    describe('getPdfByteIntervalsForSignature', function() {
+        it('returns signature intervals', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
 
-            const signature = signDoc.getSignature('Signature2');
+            const signatureIntervals = signDoc.getPdfByteIntervalsForSignature('Signature1');
+
+            await generateAsset.generateJsonAsync(signDocumentBasicAssets.paths.signatureIntervals, signatureIntervals);
+            expect(signatureIntervals).to.be.deep.equal(signDocumentBasicAssets.signatureIntervals);
+        })
+    })
+
+    describe('getSignatureFieldRefs', function() {
+        it('returns no fields (no signatures)', function() {
+            const fields = signDoc.getSignatureFieldRefs();
+
+            expect(fields).to.have.length(0);
+        })
+
+        it('returns fields (signatures)', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
+
+            const fields = signDoc.getSignatureFieldRefs();
+
+            expect(fields).to.have.length(2);
+        })
+
+        it('returns field (for placeholder)', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
+
+            const fields = signDoc.getSignatureFieldRefs();
+
+            expect(fields).to.have.length(1);
+        })
+
+        it('returns fields (for field)', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.fieldPdf);
+
+            const fields = signDoc.getSignatureFieldRefs();
+
+            expect(fields).to.have.length(1);
+        })
+    })
+
+    describe('getSignatureField', function() {
+        it('returns field', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
+
+            const signature = signDoc.getSignatureField('Signature2');
 
             expect(signature).to.not.be.undefined;
         })
 
-        it('throws for another signature', async function() {
+        it('throws for another field', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
 
-            expect(() => signDoc.getSignature('AnotherName')).to.throw(SignatureNotFoundError);
+            expect(() => signDoc.getSignatureField('AnotherName')).to.throw(NoSignatureFieldError);
         })
     })
 
@@ -384,7 +382,7 @@ describe('SignDocumentBasic', function () {
             expect(signature).to.not.be.undefined;
         })
 
-        it('throws for already signed field', async function() {
+        it('throws for already signed field (signature)', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
 
             expect(() => signDoc.getUnsignedField('Signature2')).to.throw(AlreadySignedError);
@@ -397,95 +395,161 @@ describe('SignDocumentBasic', function () {
         })
     })
 
-    describe('getSignaturePageNumber', function() {
-        it('returns signature page', async function() {
+    describe('getSignatureFieldPageNumber', function() {
+        it('returns signature field page (signature)', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
 
-            const signaturePage = signDoc.getSignaturePageNumber('Signature2');
+            const signaturePage = signDoc.getSignatureFieldPageNumber('Signature2');
 
             expect(signaturePage).to.be.equal(1);
         })
 
-        it('throws for another signature', async function() {
+        it('returns signature field page (placeholder)', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
+
+            const signaturePage = signDoc.getSignatureFieldPageNumber('Signature');
+
+            expect(signaturePage).to.be.equal(1);
+        })
+
+        it('returns signature field page (field)', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.fieldPdf);
+
+            const signaturePage = signDoc.getSignatureFieldPageNumber('Signature');
+
+            expect(signaturePage).to.be.equal(1);
+        })
+
+        it('throws for another field name', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
 
-            expect(() => signDoc.getSignaturePageNumber('AnotherName')).to.throw(SignatureNotFoundError);
+            expect(() => signDoc.getSignatureFieldPageNumber('AnotherName')).to.throw(NoSignatureFieldError);
         })
     })
 
-    describe('getSignatureBuffer', function() {
-        it('returns signature buffer', async function() {
-            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
+    describe('getPdfBytesForThePlaceholder', function() {
+        it('returns placeholder bytes', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
 
-            const signatures = signDoc.getSignatureRefs();
+            const placeholderBytes = signDoc.getPdfBytesForThePlaceholder();
 
-            expect(signatures).to.have.length(2);
-
-            const signatureBuffer = signDoc.getSignatureBuffer(signatures[0]);
-            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.signatureBuffer, signatureBuffer);
-            expect(signatureBuffer).to.be.deep.equal(signDocumentBasicAssets.signatureBuffer);
+            await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.placeholderBytes, placeholderBytes);
+            expect(placeholderBytes).to.be.deep.equal(signDocumentBasicAssets.placeholderBytes);
         })
     })
 
-    describe('isSignatureForEntireDocument', function() {
-        it('returns true for last signature', async function() {
+    describe('getSignatureFieldCount', function() {
+        it('returns signature field count (signature)', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
 
-            const signatures = signDoc.getSignatureRefs();
-
-            expect(signatures).to.have.length(2);
-
-            const isForEntireDocument = signDoc.isSignatureForEntireDocument(signatures[1]);
-            expect(isForEntireDocument).to.be.true;
-        })
-
-        it('returns false for first signature', async function() {
-            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
-
-            const signatures = signDoc.getSignatureRefs();
-
-            expect(signatures).to.have.length(2);
-
-            const isForEntireDocument = signDoc.isSignatureForEntireDocument(signatures[0]);
-            expect(isForEntireDocument).to.be.false;
-        })
-    })
-
-    describe('getSignatureCount', function() {
-        it('returns signature count', async function() {
-            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
-
-            const signatureCount = signDoc.getSignatureCount();
+            const signatureCount = signDoc.getSignatureFieldCount();
 
             expect(signatureCount).to.be.equal(2);
         })
 
-        it('returns signature count (no signature)', function() {
-            const signatureCount = signDoc.getSignatureCount();
+        it('returns signature field count (no signature)', function() {
+            const signatureCount = signDoc.getSignatureFieldCount();
 
             expect(signatureCount).to.be.equal(0);
         })
 
-        it('returns signature count (placeholder)', async function() {
+        it('returns signature field count (placeholder)', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
 
-            const signatureCount = signDoc.getSignatureCount();
+            const signatureCount = signDoc.getSignatureFieldCount();
 
             expect(signatureCount).to.be.equal(1);
         })
 
-        it('returns signature count (field)', async function() {
+        it('returns signature field count (field)', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.fieldPdf);
 
-            const signatureCount = signDoc.getSignatureCount();
+            const signatureCount = signDoc.getSignatureFieldCount();
 
             expect(signatureCount).to.be.equal(1);
         })
     })
 
+    describe('getPageSize', function() {
+        it('returns page size', function() {
+            const pageSize = signDoc.getPageSize(1);
+
+            expect(pageSize.width).to.be.closeTo(595.28, .0001);
+            expect(pageSize.height).to.be.closeTo(841.89, .0001);
+        })
+    })
+    
+    describe('getPageRef', function() {
+        it('returns page ref', function() {
+            const pageRef = signDoc.getPageRef(1);
+
+            expect(pageRef).to.not.be.undefined;
+        })
+    })
+
+    describe('getDict', function() {
+        it('returns dict', function() {
+            const pageRef = signDoc.getPageRef(1);
+            const dict = signDoc.getDict(pageRef);
+
+            expect(dict).to.not.be.undefined;
+        })
+    })
+
+    describe('getThePlaceholder', function() {
+        it('returns the placeholder', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
+
+            const thePlaceholder = signDoc.getThePlaceholder();
+
+            expect(thePlaceholder).to.not.be.undefined;
+        })
+
+        it('throws if no signature fields', function() {
+            expect(() => signDoc.getThePlaceholder()).to.throw(NoPlaceholderError);
+        })
+
+        it('throws for signature', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
+
+            expect(() => signDoc.getThePlaceholder()).to.throw(AlreadySignedError);
+        })
+    })
+
+    describe('getSignature', function() {
+        it('returns signature', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
+
+            const signature = signDoc.getSignature('Signature1');
+
+            expect(signature).to.not.be.undefined;
+        })
+
+        it('throws for another signature name', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
+
+            expect(() => signDoc.getSignature('Another name')).to.throw(NoSignatureFieldError);
+        })
+
+        it('throws for signature placeholder', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
+
+            expect(() => signDoc.getSignature('Signature')).to.throw(NotSignedError);
+        })
+
+        it('throws for signature field', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.fieldPdf);
+
+            expect(() => signDoc.getSignature('Signature')).to.throw(NotSignedError);
+        })
+    })
+
+
+
+    ////////////////////////////////
     describe('getFields', function() {
         it('returns no fileds (no fields)', function() {
-            const signatures = signDoc.getFields();
+            const signatures = signDoc.getFieldsOld();
 
             expect(signatures).to.have.length(0);
         })
@@ -493,7 +557,7 @@ describe('SignDocumentBasic', function () {
         it('returns no fields (signed)', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
 
-            const signatures = signDoc.getFields();
+            const signatures = signDoc.getFieldsOld();
 
             expect(signatures).to.have.length(0);
         })
@@ -501,7 +565,7 @@ describe('SignDocumentBasic', function () {
         it('returns no fields (for placeholder)', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
 
-            const signatures = signDoc.getFields();
+            const signatures = signDoc.getFieldsOld();
 
             expect(signatures).to.have.length(0);
         })
@@ -509,9 +573,33 @@ describe('SignDocumentBasic', function () {
         it('returns fields (for field)', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.fieldPdf);
 
-            const signatures = signDoc.getFields();
+            const signatures = signDoc.getFieldsOld();
 
             expect(signatures).to.have.length(1);
+        })
+    })
+
+    describe('isSignatureForEntireDocument', function() {
+        it('returns true for last signature', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
+
+            const fields = signDoc.getSignatureFieldRefs();
+
+            expect(fields).to.have.length(2);
+
+            const isForEntireDocument = signDoc.isSignatureForEntireDocumentOld(fields[1]);
+            expect(isForEntireDocument).to.be.true;
+        })
+
+        it('returns false for first signature', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
+
+            const fields = signDoc.getSignatureFieldRefs();
+
+            expect(fields).to.have.length(2);
+
+            const isForEntireDocument = signDoc.isSignatureForEntireDocumentOld(fields[0]);
+            expect(isForEntireDocument).to.be.false;
         })
     })
 })

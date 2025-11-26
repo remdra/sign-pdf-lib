@@ -47,7 +47,7 @@ export class PdfDocumentVisualSigner {
             return;
         }
         
-        const signatureCount = this.#signingDoc.getSignatureCount();
+        const signatureCount = this.#signingDoc.getSignatureFieldCount();
         if(signatureCount) {
             throw new DigitallySignedError();
         }
