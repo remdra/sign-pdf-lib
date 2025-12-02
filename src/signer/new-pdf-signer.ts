@@ -7,6 +7,7 @@ import { PDFNameEx } from '../hacks';
 import { beginText, concatTransformationMatrix, drawObject, endText, nextLine, PDFDict, PDFHexString, PDFName, PDFNumber, PDFOperator, PDFOperatorNames, PDFRef, PDFString, popGraphicsState, pushGraphicsState, rectangle, setCharacterSpacing, setCharacterSqueeze, setFontAndSize, setTextMatrix, setTextRenderingMode, setTextRise, setWordSpacing, TextRenderingMode } from 'pdf-lib';
 
 const showTextEx = (text: string) => PDFOperator.of(PDFOperatorNames.ShowText, [PDFString.of(text)])
+
 const moveTextSetLeadingEx = (offsetX: number, offsetY: number) => PDFOperator.of(PDFOperatorNames.MoveTextSetLeading, [PDFNumber.of(offsetX), PDFNumber.of(offsetY)]);
 
 export type SignaturePlaceholderParameters = SignatureFieldParameters & SignaturePlaceholderForFieldParameters;
@@ -41,6 +42,9 @@ export class SignDocument {
     }
 
     addField(fieldParams: SignatureFieldParameters): void {
+        this.#signDoc.ensureAcroForm();
+        this.#signDoc.ensurePageAnnots(fieldParams.pageIndex);
+
         const signatureAnnot: any = {
             'FT': 'Sig',
             'Type': 'Annot',
@@ -69,16 +73,33 @@ export class SignDocument {
             updateParams.hasText = !!placeholderParams.visual.texts
         }
         this.updateSignatureField(placeholderParams.name, updateParams);
-        
+    }
+
+    async addPlaceholderAsync(placeholderParams: SignatureFieldParameters & SignaturePlaceholderForFieldParameters): Promise<void> {
+        this.addField(placeholderParams);
+        await this.addPlaceholderForFieldAsync(placeholderParams);
+
         this.#hasChanges = true;
     }
 
-    async addPlaceholderAsync(placeholderParams: SignaturePlaceholderParameters): Promise<void> {
-        this.addField(placeholderParams);
-        await this.addPlaceholderForFieldAsync(placeholderParams);
+    getPdfBytesForThePlaceholder(): Uint8Array {
+        return this.#signDoc.getPdfBytesForThePlaceholder();
     }
 
-    addPlaceholder(signatureParams: SignatureParameters = {}, placeholderParams: PlaceholderParameters): PDFRef {
+    async embedSignatureAsync(signature: string | Buffer | ArrayBuffer): Promise<void> {
+        const pdf = await this.saveAsync();
+        const signedPdf = await SignDocumentBasic.embedSignatureAsync(pdf, signature);
+
+        this.#signDoc = await SignDocumentBasic.fromPdfAsync(signedPdf);
+
+        this.#hasChanges = false;
+    }
+
+    async saveAsync(): Promise<Uint8Array> {
+        return await this.#signDoc.saveAsync(this.#hasChanges);
+    }
+
+    private addPlaceholder(signatureParams: SignatureParameters = {}, placeholderParams: PlaceholderParameters): PDFRef {
         const signatureMask = getSignatureMask(placeholderParams.signatureMaxLen);
         const offsetMask = getOffsetMask(placeholderParams.offsetMaxLen);
         const signature: any = {
@@ -106,23 +127,6 @@ export class SignDocument {
         };
             
         return this.#signDoc.registerDict(signature); 
-    }
-
-    getPdfBytesForThePlaceholder(): Uint8Array {
-        return this.#signDoc.getPdfBytesForThePlaceholder();
-    }
-
-    async embedSignatureAsync(signature: string | Buffer | ArrayBuffer): Promise<void> {
-        const pdf = await this.saveAsync();
-        const signedPdf = await SignDocumentBasic.embedSignatureAsync(pdf, signature);
-
-        this.#signDoc = await SignDocumentBasic.fromPdfAsync(signedPdf);
-
-        this.#hasChanges = false;
-    }
-
-    async saveAsync(forceSave: boolean = false): Promise<Uint8Array> {
-        return await this.#signDoc.saveAsync(this.#hasChanges || forceSave);
     }
 
     private async addSignatureVisualAsync(visualParams: SignatureVisualParametersEx): Promise<PDFRef> {
@@ -154,7 +158,6 @@ export class SignDocument {
     private async addSignatureBackgroundAsync(background: ArrayBuffer | Buffer, name: string): Promise<PDFRef> {
         const imageRef = await this.#signDoc.embedImageAsync(background);
         const drawOp: PDFOperator[] = [
-            pushGraphicsState(),
             concatTransformationMatrix(1, 0, 0, 1, 0, 0),
             drawObject(name),
             popGraphicsState(),

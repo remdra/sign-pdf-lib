@@ -1,5 +1,5 @@
 import { mergeUint8Arrays, PDFContext, PDFDocument } from "pdf-lib";
-import { indexOf, toArrayBuffer } from "../helpers";
+import { indexOf, toArrayBuffer, toBuffer } from "../helpers";
 import { PdfByteRanges } from "../models";
 
 export function getSignatureRange(pdf: Buffer | Uint8Array) {
@@ -73,4 +73,12 @@ export function getSignBuffer(pdf: Uint8Array, signRanges: PdfByteRanges): Uint8
 
 export async function loadPdfDocumentAsync(pdf: ArrayBuffer | Buffer | Uint8Array): Promise<PDFDocument> {
     return await PDFDocument.load(toArrayBuffer(pdf));
+}
+
+export function toHexString(signature: string | Buffer | ArrayBuffer): string {
+    if(typeof signature === 'string') {
+        return signature.toUpperCase();
+    }
+
+    return toBuffer(signature).toString('hex').toUpperCase();
 }

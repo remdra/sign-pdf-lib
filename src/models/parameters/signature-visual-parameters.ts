@@ -13,7 +13,28 @@ export interface SignatureTextsParameters {
 export type SignatureVisualParameters = SignatureBackgroundParameters | SignatureTextsParameters;
 
 
-export function hasTextContent(params: SignatureVisualParameters): params is SignatureTextsParameters {
+interface SignatureBackgroundParametersEx {
+    background: {
+        image: ArrayBuffer | Buffer;
+        imageName: string;
+        frmName: string;
+    };
+    texts?: SignatureText[];
+}
+
+export interface SignatureTextsParametersEx {
+    background?: {
+        image: ArrayBuffer | Buffer;
+        imageName: string;
+        frmName: string;
+    };
+    texts: SignatureText[];
+}
+
+export type SignatureVisualParametersEx = SignatureBackgroundParametersEx | SignatureTextsParametersEx;
+
+
+export function hasTextContent(params: SignatureVisualParameters): params is SignatureTextsParameters { /*FIXME: remove it */
     return "texts" in params;
 }
 
@@ -21,7 +42,7 @@ export function hasTextContentEx(params?: SignatureVisualParameters): params is 
     return !!params && hasTextContent(params);
 }
 
-export function hasBackgroundContent(params: SignatureVisualParameters): params is SignatureBackgroundParameters {
+export function hasBackgroundContent(params: SignatureVisualParameters): params is SignatureBackgroundParameters { /*FIXME: remove it */
     return "background" in params;
 }
 

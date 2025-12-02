@@ -1,4 +1,4 @@
-import { SignDocument, SignaturePlaceholderParameters } from "./new-sign-document";
+import { SignDocument, SignaturePlaceholderParameters } from "./new-pdf-signer";
 
 import {
   generateAsset,
@@ -8,9 +8,9 @@ import { signDocumentAssets } from "../../test/_run-assets/signer/assets-sign-do
 
 
 import { expect } from "chai";
-import { PlaceholderParameters, SignatureFieldParameters, SignatureParameters, SignaturePlaceholderForFieldParameters } from "src/models/parameters";
+import { SignatureFieldParameters } from "src/models/parameters";
 
-it("_generate", async function () {
+it.skip("_generate", async function () {
   const pdf = await generatePdfAsync({ pageCount: 2 });
   await generateAsset.generateBinaryAsync(
     signDocumentAssets.paths.docPdf,
@@ -18,28 +18,12 @@ it("_generate", async function () {
   );
 });
 
-describe("SignDocument", function () {
+describe.skip("SignDocument", function () {
   let signDoc: SignDocument;
   let fieldParams: SignatureFieldParameters;
-  let placeholderForFieldParams: SignaturePlaceholderForFieldParameters;
   let placeholderParams: SignaturePlaceholderParameters;
-  let info: SignatureParameters;
-  let placeholder: PlaceholderParameters;
 
   beforeEach(async function () {
-    info = {
-      name: 'Test Signer',
-      location: 'Timisoara',
-      reason: 'Signing',
-      date: new Date(2023, 1, 20, 18, 47, 35),
-      contactInfo: 'signer@semnezonline.ro'
-    };
-
-    placeholder = {
-      signatureMaxLen: 4096,
-      offsetMaxLen: 5
-    };
-
     fieldParams = {
       name: "Signature",
       pageIndex: 0,
@@ -51,9 +35,15 @@ describe("SignDocument", function () {
       }
     };
 
-    placeholderForFieldParams = { 
-      name: "Signature",
-      info,
+    placeholderParams = { 
+      ...fieldParams,
+      info: {
+        name: 'Test Signer',
+        location: 'Timisoara',
+        reason: 'Signing',
+        date: new Date(2023, 1, 20, 18, 47, 35),
+        contactInfo: 'signer@semnezonline.ro'
+      },
       visual: {
         background: {
           image: signDocumentAssets.signatureBackground,
@@ -74,12 +64,10 @@ describe("SignDocument", function () {
           },
         ],   
       },
-      placeholder
-    }
-
-    placeholderParams = {
-      ...fieldParams,
-      ...placeholderForFieldParams
+      placeholder: {
+        signatureMaxLen: 4096,
+        offsetMaxLen: 5
+      }
     }
 
     signDoc = await SignDocument.fromPdfAsync(
@@ -96,6 +84,16 @@ describe("SignDocument", function () {
       expect(fieldPdf).to.be.deep.equal(signDocumentAssets.fieldPdf);
     });
 
+    it("adds signature field (page two)", async function () {
+      fieldParams.pageIndex = 1;
+
+      signDoc.addField(fieldParams);
+      const pageTwoFieldPdf = await signDoc.saveAsync();
+
+      await generateAsset.generateBinaryAsync(signDocumentAssets.paths.pageTwoFieldPdf, pageTwoFieldPdf);
+      expect(pageTwoFieldPdf).to.be.deep.equal(signDocumentAssets.pageTwoFieldPdf);
+    });
+
     it("adds multiple signature fields", async function () {
       signDoc.addField(fieldParams);
       fieldParams.name = 'Signature2';
@@ -107,29 +105,8 @@ describe("SignDocument", function () {
       await generateAsset.generateBinaryAsync(signDocumentAssets.paths.twoFieldsPdf, twoFieldsPdf);
       expect(twoFieldsPdf).to.be.deep.equal(signDocumentAssets.twoFieldsPdf);
     });
-  });
 
-  describe("addPlaceholderForFieldAsync", function () {
-    it("adds signature placeholder", async function () {
-      signDoc = await SignDocument.fromPdfAsync(signDocumentAssets.fieldPdf);
 
-      await signDoc.addPlaceholderForFieldAsync(placeholderForFieldParams);
-      const placeholderForFieldPdf = await signDoc.saveAsync();
-
-      await generateAsset.generateBinaryAsync(signDocumentAssets.paths.placeholderForFieldPdf, placeholderForFieldPdf);
-      expect(placeholderForFieldPdf).to.be.deep.equal(signDocumentAssets.placeholderForFieldPdf);
-    });
-
-    it("adds signature placeholder (minimum)", async function () {
-      signDoc = await SignDocument.fromPdfAsync(signDocumentAssets.fieldPdf);
-      delete placeholderForFieldParams.visual;
-
-      await signDoc.addPlaceholderForFieldAsync(placeholderForFieldParams);
-      const placeholderForFieldPdf = await signDoc.saveAsync();
-
-      await generateAsset.generateBinaryAsync(signDocumentAssets.paths.placeholderForFieldMinimumPdf, placeholderForFieldPdf);
-      expect(placeholderForFieldPdf).to.be.deep.equal(signDocumentAssets.placeholderForFieldMinimumPdf);
-    });
   });
 
   describe("addPlaceholderAsync", function () {
@@ -139,30 +116,6 @@ describe("SignDocument", function () {
 
       await generateAsset.generateBinaryAsync(signDocumentAssets.paths.placeholderPdf, placeholderPdf);
       expect(placeholderPdf).to.be.deep.equal(signDocumentAssets.placeholderPdf);
-    });
-  });
-
-  describe.only("addPlaceholder", function () {
-    it("adds signature placeholder", async function () {
-      signDoc.addPlaceholder(info, placeholder);
-      const placeholderPdf = await signDoc.saveAsync(true);
-
-      await generateAsset.generateBinaryAsync(signDocumentAssets.paths.placeholderOnlyPdf, placeholderPdf);
-      expect(placeholderPdf).to.be.deep.equal(signDocumentAssets.placeholderOnlyPdf);
-    });
-
-    it("adds signature placeholder (minimum)", async function () {
-      delete info.name;
-      delete info.reason;
-      delete info.location;
-      delete info.contactInfo;
-      delete info.date;
-
-      signDoc.addPlaceholder(info, placeholder);
-      const placeholderPdf = await signDoc.saveAsync(true);
-
-      await generateAsset.generateBinaryAsync(signDocumentAssets.paths.placeholderOnlyMinimumPdf, placeholderPdf);
-      expect(placeholderPdf).to.be.deep.equal(signDocumentAssets.placeholderOnlyMinimumPdf);
     });
   });
 

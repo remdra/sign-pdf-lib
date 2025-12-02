@@ -1,4 +1,6 @@
 export * from './add-field-parameters';
+export * from './new-signature-field-parameters';
+export * from './new-signature-placeholder-for-field-parameters';
 export * from './placeholder-parameters';
 export * from './sign-digital-parameters';
 export * from './sign-field-parameters';

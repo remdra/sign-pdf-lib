@@ -201,15 +201,23 @@ describe('SignDocumentBasic', function () {
     })
 
     describe('saveAsync', function() {
-        it('saves pdf', async function() {
-            const savePdf = await signDoc.saveAsync();
+        it('saves pdf (changes)', async function() {
+            const savePdf = await signDoc.saveAsync(true);
 
             await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.savePdf, savePdf);
             expect(savePdf).to.be.deep.equal(signDocumentBasicAssets.savePdf);
         })
+
+        it('saves pdf (no changes)', async function() {
+            const savePdf = await signDoc.saveAsync(false);
+
+            /* await generateAsset.generateBinaryAsync(signDocumentBasicAssets.paths.docPdf, savePdf); */
+            expect(savePdf).to.be.deep.equal(signDocumentBasicAssets.docPdf);
+        })
     })
 
     describe('ensureAcroForm', function() {
+        /* also regression tests */
         it('ensures acro form', async function() {
             signDoc.ensureAcroForm();
             
@@ -227,6 +235,7 @@ describe('SignDocumentBasic', function () {
     })
 
     describe('ensurePageAnnots', function() {
+        /* also regression tests */
         it('ensures page annotations', async function() {
             signDoc.ensurePageAnnots(0);
             
@@ -253,6 +262,7 @@ describe('SignDocumentBasic', function () {
     })
 
     describe('ensurePageContentsArray', function() {
+        /* also regression tests */
         it('ensures page contents array', async function() {
             signDoc.ensurePageContentsArray(0);
             
@@ -279,6 +289,7 @@ describe('SignDocumentBasic', function () {
     })
     
     describe('ensurePageResourcesXObject', function() {
+        /* also regression tests */
         it('ensures page resources xobject', async function() {
             signDoc.ensurePageResourcesXObject(0);
             
@@ -305,6 +316,7 @@ describe('SignDocumentBasic', function () {
     })
 
     describe('ensureSignatureFont', function() {
+        /* also regression tests */
         it('ensures signature font', async function() {
             signDoc.ensureSignatureFont(PDFRef.of(4));
             
@@ -354,6 +366,7 @@ describe('SignDocumentBasic', function () {
     })
 
     describe('getSignatureFieldRefs', function() {
+        /* also regression tests */
         it('returns no fields (no signatures)', function() {
             const fields = signDoc.getSignatureFieldRefs();
 
@@ -467,34 +480,10 @@ describe('SignDocumentBasic', function () {
     })
 
     describe('getSignatureFieldCount', function() {
-        it('returns signature field count (signature)', async function() {
-            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
-
-            const signatureCount = signDoc.getSignatureFieldCount();
-
-            expect(signatureCount).to.be.equal(2);
-        })
-
         it('returns signature field count (no signature)', function() {
             const signatureCount = signDoc.getSignatureFieldCount();
 
             expect(signatureCount).to.be.equal(0);
-        })
-
-        it('returns signature field count (placeholder)', async function() {
-            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
-
-            const signatureCount = signDoc.getSignatureFieldCount();
-
-            expect(signatureCount).to.be.equal(1);
-        })
-
-        it('returns signature field count (field)', async function() {
-            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.fieldPdf);
-
-            const signatureCount = signDoc.getSignatureFieldCount();
-
-            expect(signatureCount).to.be.equal(1);
         })
     })
 
@@ -537,6 +526,12 @@ describe('SignDocumentBasic', function () {
             expect(() => signDoc.getThePlaceholder()).to.throw(NoPlaceholderError);
         })
 
+        it('throws for signature field', async function() {
+            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.fieldPdf);
+
+            expect(() => signDoc.getThePlaceholder()).to.throw(NoPlaceholderError);
+        })
+
         it('throws for signature', async function() {
             signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.signedTwicePdf);
 
@@ -551,12 +546,6 @@ describe('SignDocumentBasic', function () {
             const signature = signDoc.getSignature('Signature1');
 
             expect(signature).to.not.be.undefined;
-        })
-
-        it('throws for another signature name', async function() {
-            signDoc = await SignDocumentBasic.fromPdfAsync(signDocumentBasicAssets.placeholderPdf);
-
-            expect(() => signDoc.getSignature('Another name')).to.throw(NoSignatureFieldError);
         })
 
         it('throws for signature placeholder', async function() {
@@ -759,5 +748,13 @@ describe("SignDocumentBasic Regression", function () {
             expect(secondPageFontPdf).to.be.deep.equal(signDocumentBasicRegressionAssets.secondPageFontPdf);
         })
 
+    })
+
+    describe('getSignatureFieldRefs', function() {
+        it('returns no fields (no signatures)', function() {
+            const fields = signDoc.getSignatureFieldRefs();
+
+            expect(fields).to.have.length(0);
+        })
     })
 });

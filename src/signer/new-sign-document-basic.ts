@@ -1,15 +1,25 @@
 import { Interval, PdfByteRanges, Size } from '../models';
 import { AlreadySignedError, InvalidImageError, NoPlaceholderError, NoSignatureFieldError, NotSignedError, TooSmallPlaceholderError } from '../errors';
-import { getPdfRangesFromSignature, toBuffer, toUint8Array } from '../helpers';
+import { getPdfRangesFromSignature, toUint8Array } from '../helpers';
 import { PDFNameEx } from '../hacks';
 
 import { DocumentSnapshot, mergeIntoTypedArray, mergeUint8Arrays, PDFArray, PDFContentStream, PDFDict, PDFDocument, PDFHexString, PDFImage, PDFName, PDFNumber, PDFObject, PDFOperator, PDFPage, PDFRef, PDFString } from 'pdf-lib';
 import * as _ from 'lodash';
-import { getSignBuffer, loadPdfDocumentAsync, updateByteRange } from './tmp';
+import { getSignBuffer, loadPdfDocumentAsync, toHexString, updateByteRange } from './tmp';
 
 
 function isSignature(str: string): boolean {
     return str.split('').some(ch => ch != str[0]);
+}
+
+function convertByteRangeToIntervals(byteRange: PDFArray): Interval[] {
+    return [{
+        start: (byteRange.get(0) as PDFNumber).asNumber(),
+        length: (byteRange.get(1) as PDFNumber).asNumber()
+    }, {
+        start: (byteRange.get(2) as PDFNumber).asNumber(),
+        length: (byteRange.get(3) as PDFNumber).asNumber()
+    }];
 }
 
 export class SignDocumentBasic {
@@ -22,7 +32,7 @@ export class SignDocumentBasic {
         const signDoc = await SignDocumentBasic.fromPdfAsync(pdf);
 
         const signatureInterval = signDoc.getSignatureIntervalForThePlaceholder();
-        const hexSignature = signDoc.toHexString(signature);
+        const hexSignature = toHexString(signature);
         if(signatureInterval.length < hexSignature.length) {
             throw new TooSmallPlaceholderError();
         }
@@ -35,7 +45,6 @@ export class SignDocumentBasic {
 
         return signDoc.#pdf;
     }
-
 
     static async fromPdfAsync(pdf: ArrayBuffer | Buffer | Uint8Array): Promise<SignDocumentBasic> {
         const pdfDoc = await loadPdfDocumentAsync(pdf);
@@ -72,6 +81,8 @@ export class SignDocumentBasic {
     }
 
     addFormField(fieldRef: PDFRef): void {
+        this.ensureAcroForm();
+
         const formDict = this.#pdfDoc.getForm().acroForm.dict;
         const formFields = formDict.lookup(PDFNameEx.Fields, PDFArray);
         formFields.push(fieldRef);
@@ -124,7 +135,11 @@ export class SignDocumentBasic {
         return img.ref;
     }   
 
-    async saveAsync(): Promise<Uint8Array> {
+    async saveAsync(hasChanges: boolean = true): Promise<Uint8Array> {
+        if(!hasChanges) {
+            return this.#pdf;
+        }
+
         let incrementalPdf = await this.#pdfDoc.saveIncremental(this.#docSnapshot);
         incrementalPdf = updateByteRange(incrementalPdf, this.#pdf.length);
 
@@ -212,14 +227,14 @@ export class SignDocumentBasic {
         const placeholder = this.getThePlaceholder();
         const byteRange = placeholder.lookup(PDFNameEx.ByteRange, PDFArray);
 
-        return this.convertByteRangeToIntervals(byteRange);
+        return convertByteRangeToIntervals(byteRange);
     }
 
     getPdfByteIntervalsForSignature(name: string): Interval[] {
         const signature = this.getSignature(name);
         const byteRange = signature.lookup(PDFNameEx.ByteRange, PDFArray);
 
-        return this.convertByteRangeToIntervals(byteRange);
+        return convertByteRangeToIntervals(byteRange);
     }
 
     getSignatureFieldRefs(): PDFDict[] {
@@ -361,6 +376,7 @@ export class SignDocumentBasic {
         return this.#pdfDoc.context.register(font);
     }
 
+    /* tested as part of other functions */
     private ensurePageResources(page: PDFDict): void {
         if(page.has(PDFName.Resources)) {
             return;
@@ -383,16 +399,6 @@ export class SignDocumentBasic {
         return buffer;
     }
 
-    private convertByteRangeToIntervals(byteRange: PDFArray): Interval[] {
-        return [{
-            start: (byteRange.get(0) as PDFNumber).asNumber(),
-            length: (byteRange.get(1) as PDFNumber).asNumber()
-        }, {
-            start: (byteRange.get(2) as PDFNumber).asNumber(),
-            length: (byteRange.get(3) as PDFNumber).asNumber()
-        }];
-    }
-
     private getSignatureIntervalForThePlaceholder(): Interval {
         const pdfByteIntervals = this.getPdfByteIntervalsForThePlaceholder();
 
@@ -403,14 +409,6 @@ export class SignDocumentBasic {
             start,
             length 
         };
-    }
-
-    private toHexString(signature: string | Buffer | ArrayBuffer): string {
-        if(typeof signature === 'string') {
-            return signature.toUpperCase();
-        }
-
-        return toBuffer(signature).toString('hex').toUpperCase();
     }
 
     ///////////////////////////remove

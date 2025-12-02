@@ -15,6 +15,10 @@ const _paths = {
   pageTwoFieldPdf:               getPath('page-two-field.pdf'),
   twoFieldsPdf:                  getPath('two-fields.pdf'),
   placeholderPdf:                getPath('placeholder.pdf'),
+  placeholderForFieldPdf:        getPath('placeholder-for-field.pdf'),
+  placeholderForFieldMinimumPdf: getPath('placeholder-for-field-minimum.pdf'),
+  placeholderOnlyPdf:            getPath('placeholder-only.pdf'),
+  placeholderOnlyMinimumPdf:     getPath('placeholder-only-minimum.pdf'),
   signedPdf:                     getPath('signed.pdf'),
 
   placeholderBytes:              getPath('placeholder-bytes.bin'),
@@ -30,6 +34,10 @@ class SignDocumentAssets {
   private _pageTwoFieldPdf               = new BinaryAssetFile(_paths.pageTwoFieldPdf);
   private _twoFieldsPdf                  = new BinaryAssetFile(_paths.twoFieldsPdf);
   private _placeholderPdf                = new BinaryAssetFile(_paths.placeholderPdf);
+  private _placeholderForFieldPdf        = new BinaryAssetFile(_paths.placeholderForFieldPdf);
+  private _placeholderForFieldMinimumPdf = new BinaryAssetFile(_paths.placeholderForFieldMinimumPdf);
+  private _placeholderOnlyPdf            = new BinaryAssetFile(_paths.placeholderOnlyPdf);
+  private _placeholderOnlyMinimumPdf     = new BinaryAssetFile(_paths.placeholderOnlyMinimumPdf);
   private _signedPdf                     = new BinaryAssetFile(_paths.signedPdf);
 
   private _placeholderBytes              = new BinaryAssetFile(_paths.placeholderBytes);
@@ -42,6 +50,10 @@ class SignDocumentAssets {
     pageTwoFieldPdf:               _paths.pageTwoFieldPdf,
     twoFieldsPdf:                  _paths.twoFieldsPdf,
     placeholderPdf:                _paths.placeholderPdf,
+    placeholderForFieldPdf:        _paths.placeholderForFieldPdf,
+    placeholderForFieldMinimumPdf: _paths.placeholderForFieldMinimumPdf,
+    placeholderOnlyPdf:            _paths.placeholderOnlyPdf,
+    placeholderOnlyMinimumPdf:     _paths.placeholderOnlyMinimumPdf,
     signedPdf:                     _paths.signedPdf,
 
     placeholderBytes:   _paths.placeholderBytes,
@@ -67,6 +79,22 @@ class SignDocumentAssets {
 
   get placeholderPdf() {
     return this._placeholderPdf.content;
+  }
+
+  get placeholderForFieldPdf() {
+    return this._placeholderForFieldPdf.content;
+  }
+
+  get placeholderForFieldMinimumPdf() {
+    return this._placeholderForFieldMinimumPdf.content;
+  }
+
+  get placeholderOnlyPdf() {
+    return this._placeholderOnlyPdf.content;
+  }
+
+  get placeholderOnlyMinimumPdf() {
+    return this._placeholderOnlyMinimumPdf.content;
   }
 
   get signedPdf() {
